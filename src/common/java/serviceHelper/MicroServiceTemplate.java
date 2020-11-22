@@ -116,6 +116,11 @@ public class MicroServiceTemplate implements MicroServiceTemplateInterface {
         if (!db.nullCondition()) {
             r = (int) db.deleteAll();
         }
+        /*
+        else{
+            r = db.delete_() ? 1 : 0;
+        }
+         */
         return rMsg.netMSG(true, r);
     }
 

@@ -436,7 +436,7 @@ public class GrapeDbLayerModel implements InterfaceDatabase<GrapeDbLayerModel> {
         return auth;
     }
 
-
+    @Deprecated
     public JSONObject insertOnce() {
         nlogger.logInfo("insertOnce方法禁止使用");
         return null;
@@ -454,8 +454,9 @@ public class GrapeDbLayerModel implements InterfaceDatabase<GrapeDbLayerModel> {
         return this;
     }
 
-
+    @Deprecated
     public JSONObject update() {
+        nlogger.logInfo("update方法禁止使用");
         return null;
     }
 
@@ -483,7 +484,9 @@ public class GrapeDbLayerModel implements InterfaceDatabase<GrapeDbLayerModel> {
     }
 
 
+    @Deprecated
     public JSONObject delete() {
+        nlogger.logInfo("delete方法禁止使用");
         return null;
     }
 
