@@ -18,6 +18,7 @@ public class SystemDefined {
         public final static int OauthApi = 10002;
         public final static int PrivateApi = 10003;
         public final static int CloseApi = 10004;
+        public final static int MissSession = 10005;
     }
 
     public static class commonConfigUnit {

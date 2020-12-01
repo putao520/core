@@ -1,6 +1,7 @@
 package common.java.httpServer;
 
 import common.java.number.NumberHelper;
+import common.java.rpc.rMsg;
 import common.java.string.StringHelper;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
@@ -405,6 +406,22 @@ public class HttpContext {
         setValueSafe(GrapeHttpHeader.sid, nHeader);
         setValueSafe(GrapeHttpHeader.token, nHeader);
         setValueSafe(GrapeHttpHeader.appid, nHeader);
+        return this;
+    }
+
+    public static final void showMessage(ChannelHandlerContext ctx, String msg) {
+        if (ctx != null) {
+            GrapeHttpServer.writeHttpResponse(ctx, rMsg.netMSG(false, msg));
+            ctx.close();
+            ctx.deregister();
+        }
+    }
+
+    /**
+     * 任意地点抛出返回值
+     */
+    public HttpContext throwOut(String msg) {
+        HttpContext.showMessage(this.channelContext(), msg);
         return this;
     }
 

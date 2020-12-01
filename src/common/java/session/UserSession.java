@@ -1,8 +1,10 @@
 package common.java.session;
 
+import common.java.JGrapeSystem.SystemDefined;
 import common.java.authority.PermissionsPowerDef;
 import common.java.httpServer.HttpContext;
 import common.java.nlogger.nlogger;
+import common.java.rpc.rMsg;
 import org.json.simple.JSONObject;
 
 import java.util.ArrayList;
@@ -29,7 +31,11 @@ public class UserSession {
     }
 
     public static final Session current() {
-        return new Session();
+        Session se = new Session();
+        if (!se.checkSession()) {
+            HttpContext.current().throwOut(rMsg.netMSG(SystemDefined.interfaceSystemErrorCode.MissSession, "会话已失效，请重新登陆"));
+        }
+        return se;
     }
 
     private static final void checkUserKey(JSONObject userInfo, String key) {

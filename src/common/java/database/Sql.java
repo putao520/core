@@ -255,7 +255,8 @@ public class Sql {
         int pageNO = maxCount % max > 0 ? (maxCount / max) + 1 : maxCount / max;
         ConcurrentHashMap<Integer, JSONArray> tempResult;
         tempResult = new ConcurrentHashMap<>();
-        ExecutorService es = Executors.newVirtualThreadExecutor();
+        // ExecutorService es = Executors.newVirtualThreadExecutor();
+        ExecutorService es = Executors.newCachedThreadPool();
         JSONObject condJSON = getCond();
         String _formName = getform();
         try {

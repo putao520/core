@@ -519,17 +519,18 @@ public class GrapeDbLayerModel implements InterfaceDatabase<GrapeDbLayerModel> {
     }
 
     private void reInit() {
-        useField = false;
-        dataCache = null;
-        tempAdmin = false;
-        cacheField = null;
-        if (checker != null) {
-            checker.resumeCheck();
+        if (!isDirty) {
+            useField = false;
+            dataCache = null;
+            tempAdmin = false;
+            cacheField = null;
+            if (checker != null) {
+                checker.resumeCheck();
+            }
         }
     }
 
-    //覆盖父类查询全部
-
+    // 覆盖父类查询全部
     public JSONArray select() {
         JSONArray robj;
         if (!useField && checker != null && !tempAdmin) {//没有使用字段,开启了模型检查,非临时管理模式

@@ -17,6 +17,8 @@ import javax.activation.MimetypesFileTypeMap;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import static io.netty.handler.codec.http.HttpHeaderNames.*;
 import static io.netty.handler.codec.http.HttpResponseStatus.OK;
@@ -26,6 +28,8 @@ public class GrapeHttpServer {
     // private final static ThreadLocal<HttpContext> requestData;
 
     private final static int bufferLen = 8192;
+    // private final static ExecutorService es = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors() * 2 + 1);
+    private final static ExecutorService es = Executors.newCachedThreadPool();
 
     private static final void fixHttpContext(HttpContext ctx) {
         String path = ctx.path();
@@ -61,18 +65,17 @@ public class GrapeHttpServer {
                 fixHttpContext(ctx);
             }
             HttpContext ctxFinal = ctx;
-
+            /*
             Thread.startVirtualThread(() -> {
                 RequestSession.setChannelID(_ctx.channel().id());
                 stubLoop(ctxFinal);
             });
+             */
 
-/*
-            Thread.newThread (0, () -> {
+            es.submit(() -> {
                 RequestSession.setChannelID(_ctx.channel().id());
                 stubLoop(ctxFinal);
-            }).start();
-*/
+            });
         }
     }
 

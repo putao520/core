@@ -1,12 +1,10 @@
 package common.java.JGrapeSystem;
 
 import common.java.Config.nConfig;
-import common.java.httpServer.GrapeHttpServer;
 import common.java.httpServer.GscServer;
 import common.java.httpServer.HttpContext;
 import common.java.nlogger.nlogger;
 import common.java.node.NodeManage;
-import common.java.rpc.rMsg;
 import common.java.time.TimeHelper;
 import io.netty.channel.ChannelHandlerContext;
 
@@ -17,14 +15,6 @@ public class GscBooter {
 
     public static final void startMaster() {
         startServer("GrapeFW", true);
-    }
-
-    private static final void showMessage(ChannelHandlerContext ctx, String msg) {
-        if (ctx != null) {
-            GrapeHttpServer.writeHttpResponse(ctx, rMsg.netMSG(false, msg));
-            ctx.close();
-            ctx.deregister();
-        }
     }
 
     private static final void startServer(String serverName, boolean master) {
@@ -46,7 +36,7 @@ public class GscBooter {
                         + "============================";
                 System.out.println(printInfo);
                 if (nConfig.debug) {
-                    showMessage(ctx, printInfo);
+                    HttpContext.showMessage(ctx, printInfo);
                 }
             };
             // 获得端口

@@ -6,7 +6,7 @@
 
     <groupId>gfw</groupId>
     <artifactId>core</artifactId>
-    <version>1.065</version>
+    <version>1.061</version>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
@@ -62,7 +62,7 @@
         <dependency>
             <groupId>gfw</groupId>
             <artifactId>common</artifactId>
-            <version>1.065</version>
+            <version>1.061</version>
         </dependency>
 
     </dependencies>
@@ -91,8 +91,8 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.8.1</version>
                 <configuration>
-                    <source>16</source>
-                    <target>16</target>
+                    <source>15</source>
+                    <target>15</target>
                     <encoding>UTF-8</encoding>
                 </configuration>
             </plugin>
