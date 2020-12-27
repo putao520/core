@@ -9,7 +9,7 @@ public class ModelServiceConfig {
         this.store = store;
     }
 
-    public static final ModelServiceConfig buildModelServiceConfig(JSONObject info) {
+    public static ModelServiceConfig buildModelServiceConfig(JSONObject info) {
         return new ModelServiceConfig(info);
     }
 

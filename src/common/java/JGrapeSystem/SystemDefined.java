@@ -3,14 +3,12 @@ package common.java.JGrapeSystem;
 import java.net.InetAddress;
 
 public class SystemDefined {
-    public static final String ip() {
-        String ip = null;
+    public static String ip() {
         try {
-            ip = InetAddress.getLocalHost().getHostAddress();
+            return InetAddress.getLocalHost().getHostAddress();
         } catch (Exception e) {
-            ip = null;
         }
-        return ip;
+        return null;
     }
 
     public static class interfaceSystemErrorCode {

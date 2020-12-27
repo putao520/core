@@ -11,15 +11,16 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public class UploadFile {
-    private UploadFileInfo file = null;
+    private final UploadFileInfo file;
 
     public UploadFile(UploadFileInfo file) {
         this.file = file;
     }
 
-    public static final List<UploadFile> getAll() {
+    public static List<UploadFile> getAll() {
         List<UploadFile> fileList = new ArrayList<>();
         JSONObject formData = HttpContext.current().parameter();
         if (formData != null) {
@@ -56,7 +57,7 @@ public class UploadFile {
                 nlogger.debugInfo(e, diskFile.getAbsolutePath() + "文件IO失败");
             } finally {
                 try {
-                    fin.close();
+                    Objects.requireNonNull(fin).close();
                 } catch (IOException e) {
                     nlogger.debugInfo(e, diskFile.getAbsolutePath() + "文件关闭失败");
                 }

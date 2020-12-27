@@ -2,7 +2,7 @@ package common.java.file;
 
 public class FilePointerEx {
     private final FilePointer[] pointerArray;
-    private int beginIdx = 0;
+    private final int beginIdx;
 
     private FilePointerEx(long offset, long length) {
         FilePointer fp = FilePointer.build(offset);
@@ -26,7 +26,7 @@ public class FilePointerEx {
         }
     }
 
-    public static final FilePointerEx build(long offset, long length) {
+    public static FilePointerEx build(long offset, long length) {
         return new FilePointerEx(offset, length);
     }
 

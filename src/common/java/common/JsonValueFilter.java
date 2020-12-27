@@ -15,7 +15,7 @@ public class JsonValueFilter {
         this.userSession = UserSession.current().getDatas();
     }
 
-    public static final JsonValueFilter build(JSONObject in) {
+    public static JsonValueFilter build(JSONObject in) {
         return new JsonValueFilter(in);
     }
 
@@ -39,18 +39,14 @@ public class JsonValueFilter {
         return rJson;
     }
 
-    private final Object conv(Object val) {
+    private Object conv(Object val) {
         Object r = val;
         String[] cap = StringHelper.any2String(val).split("::");
         if (cap.length > 1) {
             String caption = cap[0].toLowerCase();
             switch (caption) {
-                case "session":
-                    r = JSONObject.isInvaild(this.userSession) ? null : this.userSession.get(cap[1]);
-                    break;
-                case "other":
-                    r = this.otherData.getString(cap[1]);
-                    break;
+                case "session" -> r = JSONObject.isInvaild(this.userSession) ? null : this.userSession.get(cap[1]);
+                case "other" -> r = this.otherData.getString(cap[1]);
             }
         }
         return r;

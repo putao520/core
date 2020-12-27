@@ -15,10 +15,7 @@ import io.netty.handler.codec.http.websocketx.WebSocketServerProtocolHandler;
 import io.netty.handler.stream.ChunkedWriteHandler;
 
 public class GscServer {
-    public static void start(String host, int port) throws Exception {
-        // Unirest.setConcurrency(100000, 200);
-        // Unirest.setTimeouts(120000, 240000);
-        //System.out.println("测试:1.2.2.3");
+    public static void start(String host, int port) {
         EventLoopGroup bossGroup = new NioEventLoopGroup();
         EventLoopGroup workerGroup = new NioEventLoopGroup();
         try {
@@ -58,12 +55,17 @@ public class GscServer {
             //.option(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
             //.childOption(ChannelOption.SO_KEEPALIVE, false)
             //.childOption(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT);
+            try {
+                ChannelFuture f = host != null ? b.bind(host, port).sync() : b.bind(port).sync();
+                f.channel().closeFuture().sync();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
 
-            ChannelFuture f = host != null ? b.bind(host, port).sync() : b.bind(port).sync();
-            f.channel().closeFuture().sync();
         } finally {
             workerGroup.shutdownGracefully();
             bossGroup.shutdownGracefully();
         }
     }
+
 }

@@ -10,8 +10,8 @@ public class CheckType {
     }
 
     public boolean forEachOr(Function<int[], Boolean> func) {
-        for (int i = 0, l = orArray.length; i < l; i++) {
-            String[] andArray = orArray[i].split("&");
+        for (String s : orArray) {
+            String[] andArray = s.split("&");
             int[] andIntArray = new int[andArray.length];
             for (int n = 0, m = andArray.length; n < m; n++) {
                 andIntArray[n] = Integer.parseInt(andArray[n]);

@@ -1,10 +1,14 @@
 package common.java.serviceHelper;
 
+import common.java.JGrapeSystem.SystemDefined;
 import common.java.cache.MemCache;
+import common.java.database.DbLayer;
 import common.java.encrypt.GscJson;
 import common.java.httpServer.HttpContext;
 import common.java.interfaceType.ApiType;
+import common.java.rpc.RpcPageInfo;
 import common.java.string.StringHelper;
+import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
 import java.util.HashMap;
@@ -15,21 +19,10 @@ public class MasterServiceTemplate implements MicroServiceTemplateInterface {
 
     static {
         caches = new HashMap<>();
-        /*
-        caches = MemCache.<String,String>buildMemCache().setRefreshDuration(120)
-                .setRefreshTimeUnit(TimeUnit.SECONDS)
-                .setMaxSize(4096)
-                .setGetValueWhenExpired( key ->{
-                    String[] temp = key.split("#");
-                    String url = temp[0];
-                    String param = StringHelper.join(temp,"#", 1, -1);
-                    return MasterProxy.postRpc(url,param);
-                } );
-                */
     }
 
     // private DbLayerHelper db;
-    private fastDBService fdb;
+    private DbLayer fdb;
     private MemCache<String, String> _cache;
     private String commomKey;
 
@@ -45,15 +38,15 @@ public class MasterServiceTemplate implements MicroServiceTemplateInterface {
     /**
      * 获得fastDB 设置各类操作回调
      */
-    public fastDBService getFastDB() {
-        fdb._getDB().clear();
+    public DbLayer getFastDB() {
+        fdb.clear();
         return fdb;
     }
 
     @ApiType(ApiType.type.CloseApi)
     public void init(String tableName) {
-        fdb = new fastDBService(tableName);
-        fdb.fliterPlv();
+        fdb = new DbLayer(SystemDefined.commonConfigUnit.LocalDB);
+        fdb.form(tableName);
         if (caches.containsKey(tableName)) {
             _cache = caches.get(tableName);
         }
@@ -61,7 +54,7 @@ public class MasterServiceTemplate implements MicroServiceTemplateInterface {
             _cache = MemCache.<String, String>buildMemCache().setRefreshDuration(120)
                     .setRefreshTimeUnit(TimeUnit.SECONDS)
                     .setMaxSize(4096)
-                    .setGetValueWhenExpired(key -> fdb.find(commomKey, key));
+                    .setGetValueWhenExpired(key -> fdb.eq(commomKey, key).find().toString());
             caches.put(tableName, _cache);
         }
 
@@ -73,39 +66,39 @@ public class MasterServiceTemplate implements MicroServiceTemplateInterface {
     @ApiType(ApiType.type.SessionApi)
     @ApiType(ApiType.type.OauthApi)
     @Override
-    public String select() {
+    public JSONArray select() {
         return fdb.select();
     }
 
     @ApiType(ApiType.type.SessionApi)
     @ApiType(ApiType.type.OauthApi)
-    /**
-     * @param cond GSC-SQL-JSON:查询条件
-     * */
     @Override
-    public String selectEx(String cond) {
-        return fdb.where(cond) ? fdb.select() : fdb.errorMsg();
+    public JSONArray selectEx(String cond) {
+        if (fdb.where(JSONArray.toJSONArray(cond)).nullCondition()) {
+            return null;
+        }
+        return select();
     }
 
     /**
-     * 分页方式获得计划任务信息
+     * 分页方式
      *
      * @param idx 当前页码
      * @param max 每页最大数量
      */
     @ApiType(ApiType.type.SessionApi)
     @Override
-    public String page(int idx, int max) {
-        return fdb.page(idx, max);
+    public RpcPageInfo page(int idx, int max) {
+        return RpcPageInfo.Instant(idx, max, fdb.dirty().count(), fdb.page(idx, max));
     }
 
     @ApiType(ApiType.type.SessionApi)
-    /**
-     * @param cond GSC-SQL-JSON:查询条件
-     * */
     @Override
-    public String pageEx(int idx, int max, String cond) {
-        return fdb.where(cond) ? fdb.page(idx, max) : fdb.errorMsg();
+    public RpcPageInfo pageEx(int idx, int max, String cond) {
+        if (fdb.where(JSONArray.toJSONArray(cond)).nullCondition()) {
+            return null;
+        }
+        return page(idx, max);
     }
 
     /**
@@ -116,32 +109,29 @@ public class MasterServiceTemplate implements MicroServiceTemplateInterface {
      */
     @ApiType(ApiType.type.SessionApi)
     @Override
-    public String update(String uids, String base64Json) {
+    public int update(String uids, String base64Json) {
         return _update(uids, base64Json, null);
     }
 
     @ApiType(ApiType.type.SessionApi)
-    /**
-     * @param cond GSC-SQL-JSON:查询条件
-     * */
     @Override
-    public String updateEx(String base64Json, String cond) {
+    public int updateEx(String base64Json, String cond) {
         return _update(null, base64Json, cond);
     }
 
-    private String _update(String uids, String base64Json, String cond) {
-        String rString = null;
+    private int _update(String uids, String base64Json, String cond) {
         JSONObject info = GscJson.decode(base64Json);
-        if (info != null) {
-            if (HttpContext.current().appid() > 0) {//非管理员情况下
-                info.remove("appid");
-            }
-            if (!StringHelper.invaildString(cond) && !fdb.where(cond)) {
-                return fdb.errorMsg();
-            }
-            rString = uids != null ? fdb.update(uids, info) : fdb.update(info);
+        if (JSONObject.isInvaild(info)) {
+            return 0;
         }
-        return rString;
+        if (HttpContext.current().appid() > 0) {//非管理员情况下
+            info.remove("appid");
+        }
+        if (fdb.where(JSONArray.toJSONArray(cond)).nullCondition()) {
+            return 0;
+        }
+        fdb.data(info);
+        return (int) (uids != null ? fdb.putAllOr(uids).updateAll() : fdb.updateAll());
     }
 
 
@@ -150,14 +140,14 @@ public class MasterServiceTemplate implements MicroServiceTemplateInterface {
      */
     @ApiType(ApiType.type.SessionApi)
     @Override
-    public String delete(String uids) {
-        return fdb.delete(uids);
+    public int delete(String uids) {
+        return (int) (fdb.putAllOr(uids).nullCondition() ? 0 : fdb.deleteAll());
     }
 
     @ApiType(ApiType.type.SessionApi)
     @Override
-    public String deleteEx(String cond) {
-        return fdb.where(cond) ? fdb.delete() : fdb.errorMsg();
+    public int deleteEx(String cond) {
+        return (int) (fdb.where(JSONArray.toJSONArray(cond)).nullCondition() ? 0 : fdb.deleteAll());
     }
 
     @ApiType(ApiType.type.SessionApi)
@@ -167,7 +157,7 @@ public class MasterServiceTemplate implements MicroServiceTemplateInterface {
         JSONObject nObj = GscJson.decode(base64Json);
         if (nObj != null) {
             nObj.put("appid", HttpContext.current().appid());
-            rString = fdb.insert(nObj);
+            rString = StringHelper.any2String(fdb.data(nObj).insertOnce());
         }
         return rString;
     }
@@ -175,17 +165,13 @@ public class MasterServiceTemplate implements MicroServiceTemplateInterface {
     @ApiType(ApiType.type.SessionApi)
     @Override
     public String find(String key, String val) {
-        /*
-        commomKey = key;
-        return _cache.getValue(val);
-        */
-        return fdb.find(key, val);
+        return StringHelper.any2String(fdb.eq(key, val).find());
     }
 
     @ApiType(ApiType.type.SessionApi)
     @Override
-    public String findEx(String cond) {
-        return fdb.where(cond) ? fdb.find() : fdb.errorMsg();
+    public JSONObject findEx(String cond) {
+        return fdb.where(JSONArray.toJSONArray(cond)).nullCondition() ? null : fdb.find();
     }
 
     @Override

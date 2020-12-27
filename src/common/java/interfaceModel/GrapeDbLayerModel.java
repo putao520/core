@@ -19,6 +19,7 @@ import org.json.simple.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Function;
 //app依赖
 
@@ -55,8 +56,7 @@ public class GrapeDbLayerModel implements InterfaceDatabase<GrapeDbLayerModel> {
         db = new DbLayer();
     }
 
-    public GrapeDbLayerModel(String dataModelName) {//服务模型名
-        // db = new DbLayer( MicroServiceContext.current().config().db() );
+    public GrapeDbLayerModel(String dataModelName) {
         db = new DbLayer();
         this.descriptionModel(dataModelName);
     }
@@ -159,7 +159,7 @@ public class GrapeDbLayerModel implements InterfaceDatabase<GrapeDbLayerModel> {
 
     //开启检查
     private GrapeDbLayerModel enableCheck() {
-        op = (new Permissions(this.db.getformName()));
+        op = (new Permissions(this.db.getFormName()));
         authEnable = true;
         return this;
     }
@@ -171,13 +171,6 @@ public class GrapeDbLayerModel implements InterfaceDatabase<GrapeDbLayerModel> {
         return this;
     }
 
-    /*
-    //设置表单检查器
-    public GrapeDbLayerModel setCheckModel(FormHelper newChecker){
-        checker = newChecker;
-        return this;
-    }
-    */
     //添加数据
     public Object insertEx() {
         boolean auth = true;
@@ -185,12 +178,8 @@ public class GrapeDbLayerModel implements InterfaceDatabase<GrapeDbLayerModel> {
         this.autoComplete();    // 新增数据时,动态生成要检查的gsc-model
         if (checker != null && !tempAdmin) {
             switch (runtimeMode) {
-                case GrapeDBMode.safeMode:
-                    auth = checker.filterAndCheckTable(dataCache, true);
-                    break;
-                case GrapeDBMode.checkMode:
-                    auth = checker.checkTable(dataCache, true);
-                    break;
+                case GrapeDBMode.safeMode -> auth = checker.filterAndCheckTable(dataCache, true);
+                case GrapeDBMode.checkMode -> auth = checker.checkTable(dataCache, true);
             }
 
         }
@@ -206,12 +195,7 @@ public class GrapeDbLayerModel implements InterfaceDatabase<GrapeDbLayerModel> {
     //覆盖父类计数方法
 
     public long count() {
-        long rl = -1;
-        /*
-        if (authStub(Operater.statist)) {//授权通过时
-            rl = this.db.count();
-        }
-        */
+        long rl;
         if (!tempAdmin) {
             List<List<Object>> newCond = authFilter(Operater.statist);
             this.db.and().groupCondition(newCond);
@@ -225,12 +209,7 @@ public class GrapeDbLayerModel implements InterfaceDatabase<GrapeDbLayerModel> {
     //覆盖父类分组方法
 
     public JSONArray group(String groupName) {
-        JSONArray rArray = null;
-        /*
-        if (authStub(Operater.statist)) {//授权通过时
-            rArray = this.db.group(groupName);
-        }
-        */
+        JSONArray rArray;
         if (!tempAdmin) {
             List<List<Object>> newCond = authFilter(Operater.statist);
             this.db.and().groupCondition(newCond);
@@ -244,12 +223,7 @@ public class GrapeDbLayerModel implements InterfaceDatabase<GrapeDbLayerModel> {
     //覆盖父类分组方法
 
     public JSONArray group() {
-        JSONArray rArray = null;
-        /*
-        if (authStub(Operater.statist)) {//授权通过时
-            rArray = this.db.group();
-        }
-        */
+        JSONArray rArray;
         if (!tempAdmin) {
             List<List<Object>> newCond = authFilter(Operater.statist);
             this.db.and().groupCondition(newCond);
@@ -265,8 +239,6 @@ public class GrapeDbLayerModel implements InterfaceDatabase<GrapeDbLayerModel> {
     }
 
     private void restoreField(fieldState fs) {
-        //cacheField = fs.cacheField;
-        //useField = fs.cacheFielduse;
         field(fs.cacheField);
     }
 
@@ -346,7 +318,7 @@ public class GrapeDbLayerModel implements InterfaceDatabase<GrapeDbLayerModel> {
         if (dirtyMode) {
             dirty();
         }
-        isDirty = false;
+        // isDirty = false;
         restoreField(_fs);
         return permissionsObjects == null ? this.mModel.perms() : new MModelPerm(DBPermissionsField2Permissions(permissionsObjects));
     }
@@ -425,12 +397,8 @@ public class GrapeDbLayerModel implements InterfaceDatabase<GrapeDbLayerModel> {
         boolean auth = true;
         if (checker != null && !tempAdmin) {//数据效验通过
             switch (runtimeMode) {
-                case GrapeDBMode.safeMode:
-                    checker.filterProtect(dataCache);//过滤临时字段
-                    break;
-                case GrapeDBMode.checkMode:
-                    auth = checker.checkTable(dataCache, false);
-                    break;
+                case GrapeDBMode.safeMode -> checker.filterProtect(dataCache);//过滤临时字段
+                case GrapeDBMode.checkMode -> auth = checker.checkTable(dataCache, false);
             }
         }
         return auth;
@@ -468,7 +436,7 @@ public class GrapeDbLayerModel implements InterfaceDatabase<GrapeDbLayerModel> {
             nlogger.debugInfo("更新失败 原因:[" + UserSession.current()._getSID() + " 无权操作！]");
         }
         reInit();
-        return rjson instanceof JSONObject;
+        return rjson != null;
     }
 
     //覆盖父类更新全部方法
@@ -499,7 +467,7 @@ public class GrapeDbLayerModel implements InterfaceDatabase<GrapeDbLayerModel> {
             nlogger.debugInfo("删除失败 原因:[" + UserSession.current()._getSID() + " 无权操作！]");
         }
         reInit();
-        return robj instanceof JSONObject;
+        return robj != null;
     }
 
     //覆盖父类删除全部方法
@@ -557,7 +525,7 @@ public class GrapeDbLayerModel implements InterfaceDatabase<GrapeDbLayerModel> {
      * lastObj	上一次查询结果的最大主键值
      * */
     public JSONArray page(int pageidx, int pagemax, Object lastObj) {
-        JSONArray robj = null;
+        JSONArray robj;
         if (!useField && checker != null && !tempAdmin) {//没有使用字段,开启了模型检查,非临时管理模式
             mask(checker.getMaskFields());
         }
@@ -588,10 +556,10 @@ public class GrapeDbLayerModel implements InterfaceDatabase<GrapeDbLayerModel> {
     public boolean isExisting() {
         JSONObject rs = null;
         if (pkField != null) {
-            this.db.field(pkField).find();
+            rs = this.db.field(pkField).find();
         }
         reInit();
-        return (rs instanceof JSONObject);
+        return !JSONObject.isInvaild(rs);
     }
 
     //数据存储
@@ -644,7 +612,7 @@ public class GrapeDbLayerModel implements InterfaceDatabase<GrapeDbLayerModel> {
         tempResult = new JSONArray();
         for (int index = 1; index <= pageNO; index++) {
             jsonArray = dirty().page(index, max);
-            tempResult.addAll(func.apply(jsonArray));
+            tempResult.addAll(Objects.requireNonNull(func).apply(jsonArray));
         }
         return tempResult;
     }
@@ -712,6 +680,11 @@ public class GrapeDbLayerModel implements InterfaceDatabase<GrapeDbLayerModel> {
 
     public GrapeDbLayerModel groupCondition(List<List<Object>> conds) {
         this.db.groupCondition(conds);
+        return this;
+    }
+
+    public GrapeDbLayerModel groupWhere(JSONArray conds) {
+        this.db.groupWhere(conds);
         return this;
     }
 
@@ -838,16 +811,16 @@ public class GrapeDbLayerModel implements InterfaceDatabase<GrapeDbLayerModel> {
         return this;
     }
 
-    public String getfullform() {
-        return this.db.getfullform();
+    public String getFullForm() {
+        return this.db.getFullForm();
     }
 
-    public String getformName() {
-        return this.db.getformName();
+    public String getFormName() {
+        return this.db.getFormName();
     }
 
-    public String getform() {
-        return this.db.getform();
+    public String getForm() {
+        return this.db.getForm();
     }
 
     public void asyncInsert() {
@@ -857,11 +830,6 @@ public class GrapeDbLayerModel implements InterfaceDatabase<GrapeDbLayerModel> {
 
     public GrapeDbLayerModel bind(String ownerID) {
         this.db.bind(ownerID);
-        return this;
-    }
-
-    public GrapeDbLayerModel bindApp() {
-        this.db.bindApp();
         return this;
     }
 
@@ -894,12 +862,12 @@ public class GrapeDbLayerModel implements InterfaceDatabase<GrapeDbLayerModel> {
         return this.db.getAllTables();
     }
 
-    public class GrapeDBMode {
+    public static class GrapeDBMode {
         public static final int safeMode = 0;//对数据做过滤，尽可能保证操作可以完成
         public static final int checkMode = 1;//对数据做检查，尽可能保证数据安全性，一致性
     }
 
-    public class fieldState {
+    public static class fieldState {
         public String[] cacheField;
     }
 }

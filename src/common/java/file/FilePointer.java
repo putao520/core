@@ -16,19 +16,19 @@ public class FilePointer {
         this.length = length;
     }
 
-    public static final FilePointer build(int blockID, int offset, int length) {
+    public static FilePointer build(int blockID, int offset, int length) {
         return new FilePointer(blockID, offset, length);
     }
 
-    public static final FilePointer build(long offset) {
+    public static FilePointer build(long offset) {
         return new FilePointer(offset);
     }
 
-    public static final int getBlockIdx(long offset) {
+    public static int getBlockIdx(long offset) {
         return (int) offset / FileEx.MAX_BLOCK_LENGTH;
     }
 
-    public static final int getBlockPoint(long offset) {
+    public static int getBlockPoint(long offset) {
         return (int) offset / FileEx.MAX_BLOCK_LENGTH;
     }
 

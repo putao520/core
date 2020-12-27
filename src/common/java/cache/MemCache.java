@@ -9,14 +9,13 @@ import com.google.common.util.concurrent.MoreExecutors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.concurrent.Callable;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
 public class MemCache<K, V> {
     // 数据刷新线程池
-    protected static ListeningExecutorService refreshPool = MoreExecutors.listeningDecorator(Executors.newFixedThreadPool(20));
+    protected static final ListeningExecutorService refreshPool = MoreExecutors.listeningDecorator(Executors.newFixedThreadPool(20));
     /**
      * @description: 利用guava实现的内存缓存。缓存加载之后永不过期，后台线程定时刷新缓存值。刷新失败时将继续返回旧缓存。
      * 在调用getValue之前，需要设置 refreshDuration， refreshTimeunit， maxSize 三个参数
@@ -46,19 +45,8 @@ public class MemCache<K, V> {
         return new MemCache<>();
     }
 
-    /**
-     * 用于初始化缓存值（某些场景下使用，例如系统启动检测缓存加载是否征程）
-     */
     // public abstract void loadValueWhenStarted();
 
-    /**
-     * @description: 定义缓存值的计算方法
-     * @description: 新值计算失败时抛出异常，get操作时将继续返回旧的缓存
-     * @param key
-     * @author: luozhuo
-     * @throws Exception
-     * @date: 2017年6月14日 下午7:11:10
-     */
     // protected abstract V getValueWhenExpired(K key) throws Exception;
 
 
@@ -138,26 +126,22 @@ public class MemCache<K, V> {
                             .maximumSize(maxSize);
 
                     if (refreshDuration > 0) {
-                        cacheBuilder = cacheBuilder.refreshAfterWrite(refreshDuration, refreshTimeunit);
+                        cacheBuilder.refreshAfterWrite(refreshDuration, refreshTimeunit);
                     }
                     if (expireDuration > 0) {
-                        cacheBuilder = cacheBuilder.expireAfterWrite(expireDuration, expireTimeunit);
+                        cacheBuilder.expireAfterWrite(expireDuration, expireTimeunit);
                     }
 
-                    cache = cacheBuilder.build(new CacheLoader<K, V>() {
+                    cache = cacheBuilder.build(new CacheLoader<>() {
                         @Override
-                        public V load(K key) throws Exception {
+                        public V load(K key) {
                             return _getValueWhenExpired.apply(key);
                         }
 
                         @Override
                         public ListenableFuture<V> reload(final K key,
-                                                          V oldValue) throws Exception {
-                            return refreshPool.submit(new Callable<V>() {
-                                public V call() throws Exception {
-                                    return _getValueWhenExpired.apply(key);
-                                }
-                            });
+                                                          V oldValue) {
+                            return refreshPool.submit(() -> _getValueWhenExpired.apply(key));
                         }
                     });
                 }

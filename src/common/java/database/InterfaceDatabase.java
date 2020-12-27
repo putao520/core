@@ -33,6 +33,8 @@ public interface InterfaceDatabase<T> {
 
     T groupCondition(List<List<Object>> conds);
 
+    T groupWhere(JSONArray conds);
+
     T eq(String field, Object value);
 
     T ne(String field, Object value);
@@ -89,35 +91,33 @@ public interface InterfaceDatabase<T> {
 
     JSONArray select();
 
-    String condString();
-
     JSONArray group();
 
     JSONArray group(String groupName);
 
     JSONArray distinct(String fieldName);
 
-    JSONArray page(int pageidx, int pagemax);
+    JSONArray page(int pageIdx, int pageMax);
 
-    JSONArray page(int pageidx, int pagemax, int lastid, String fastfield);
+    JSONArray page(int pageIdx, int pageMax, int lastId, String fastField);
 
     long count();
 
-    T count(String groupbyString);
+    T count(String groupByString);
 
-    T max(String groupbyString);
+    T max(String groupByString);
 
-    T min(String groupbyString);
+    T min(String groupByString);
 
-    T avg(String groupbyString);
+    T avg(String groupByString);
 
-    T sum(String groupbyString);
+    T sum(String groupByString);
 
-    String getformName();
+    String getFormName();
 
-    String getform();
+    String getForm();
 
-    String getfullform();
+    String getFullForm();
 
     void asyncInsert();
 
@@ -126,8 +126,6 @@ public interface InterfaceDatabase<T> {
     T bind(String ownerID);
 
     T bind();
-
-    T bindApp();
 
     int limit();
 

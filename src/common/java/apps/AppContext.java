@@ -33,7 +33,7 @@ public class AppContext {
         init(domain);
     }
 
-    public static final AppContext current() {
+    public static AppContext current() {
         AppContext r = RequestSession.getValue(AppContext.SessionKey);
         if (r == null) {
             r = new AppContext();
@@ -45,7 +45,7 @@ public class AppContext {
     /**
      * 根据指定的appid创建虚拟上下文
      */
-    public static final AppContext virualAppContext(int appid, String serviceName) {
+    public static AppContext virualAppContext(int appid, String serviceName) {
         ChannelId cid = new ChannelId() {
             private final String shortText = StringHelper.createRandomCode(6);
             private final String longText = shortText + "_" + StringHelper.createRandomCode(6);
@@ -90,10 +90,10 @@ public class AppContext {
             this.domain = this.appInfo.getString("domain");
             this.microServiceInfo = new HashMap<>();
             String[] meta = this.appInfo.getString("meta").split(",");
-            for (int i = 0; i < meta.length; i++) {
-                MicroServiceContext msc = new MicroServiceContext(meta[i]);
+            for (String s : meta) {
+                MicroServiceContext msc = new MicroServiceContext(s);
                 if (msc.hasData()) {
-                    this.microServiceInfo.put(meta[i], msc);
+                    this.microServiceInfo.put(s, msc);
                 }
             }
             this.msc = new ModelServiceConfig(this.appInfo.getJson("configName"));

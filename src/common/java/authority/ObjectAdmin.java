@@ -19,7 +19,7 @@ public class ObjectAdmin extends DbLayer {
         super(AppContext.current().config().db());
         adminInfo = null;
         Session se = new Session();
-        form(ObjectAdminDef.tableName).bindApp();
+        form(ObjectAdminDef.tableName).bind();
         String tempUID = se.getUID();
         if (tempUID != null) {
             uid = tempUID;
@@ -56,8 +56,8 @@ public class ObjectAdmin extends DbLayer {
                 rs = true;
             } else {
                 int len = adminInfo.length;
-                for (int i = 0; i < len; i++) {
-                    if (adminInfo[i].equals(objName)) {
+                for (String s : adminInfo) {
+                    if (s.equals(objName)) {
                         rs = true;
                         break;
                     }

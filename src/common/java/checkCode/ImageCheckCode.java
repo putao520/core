@@ -18,10 +18,9 @@ public class ImageCheckCode {
     private static final String[] fontNames = {"宋体", "华文楷体", "黑体", "微软雅黑", "楷体_GB2312"};
     private static final Random r = new Random();
 
-    public static final byte[] getCodeimage(String code) {
+    public static byte[] getCodeimage(String code) {
         Random random = new Random();
         int size = 5;
-        String vCode = code;
         // 验证码图片的生成
         // 定义图片的宽度和高度
         int width = (int) Math.ceil(size * 20);
@@ -47,11 +46,11 @@ public class ImageCheckCode {
         // 设置字体，画验证码
         gr.setColor(randomColor());
         gr.setFont(randomFont());
-        gr.drawString(vCode, 10, 22);
+        gr.drawString(code, 10, 22);
         // 图像生效
         gr.dispose();
 
-        byte[] rsByte = null;
+        byte[] rsByte;
         ByteArrayOutputStream imageOut = new ByteArrayOutputStream();
         try {
             ImageIO.write(image, "JPEG", imageOut);
@@ -87,11 +86,11 @@ public class ImageCheckCode {
      * @param data
      * @return
      */
-    public static final String CreateTextWaterMark(List<String> data) {
+    public static String CreateTextWaterMark(List<String> data) {
         return CreateTextWaterMark(data, randomFont());
     }
 
-    public static final String CreateTextWaterMark(List<String> data, Font font) {
+    public static String CreateTextWaterMark(List<String> data, Font font) {
         int width = 200;
         int height = 200;
         //Font font = randomFont();
@@ -105,7 +104,7 @@ public class ImageCheckCode {
             g2.setColor(new Color(230, 230, 230));
 
             int l = data.size();
-            int i = 0;
+            int i;
             for (i = 0; i < l; i++) {
                 g2.drawString(data.get(i), 30, 50 + i * 30);
             }

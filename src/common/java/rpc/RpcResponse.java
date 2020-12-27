@@ -14,11 +14,11 @@ public class RpcResponse {
         this.r = rJson;
     }
 
-    public static final RpcResponse build(String rString) {
+    public static RpcResponse build(String rString) {
         return new RpcResponse(rString);
     }
 
-    public static final RpcResponse build(JSONObject rJson) {
+    public static RpcResponse build(JSONObject rJson) {
         return new RpcResponse(rJson);
     }
 
@@ -73,7 +73,7 @@ public class RpcResponse {
         return t0;
     }
 
-    public class RpcResponsePage {
+    public static class RpcResponsePage {
         private final JSONObject r;
 
         public RpcResponsePage(JSONObject data) {

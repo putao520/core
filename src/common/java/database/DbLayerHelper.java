@@ -30,7 +30,6 @@ public class DbLayerHelper extends DbLayer {
     }
 
     void reint() {
-
     }
 
     private void _initload(String fromName) {
@@ -70,12 +69,8 @@ public class DbLayerHelper extends DbLayer {
      * @return
      */
     public DbLayerHelper field(String[] field) {
-        String newfield;
-        if (useChecker) {
-            newfield = checker.filterMask(field);
-        }
-        newfield = useChecker ? checker.filterMask(field) : StringHelper.join(field, ",");
-        field(newfield);
+        String newField = useChecker ? checker.filterMask(field) : StringHelper.join(field, ",");
+        field(newField);
         return this;
     }
 
@@ -102,12 +97,11 @@ public class DbLayerHelper extends DbLayer {
      * @return 唯一标识符
      */
     public String insert(JSONObject JSONObject) {
-        Object tObject = null;
-        JSONObject _JSONObject = JSONObject;
+        Object tObject;
         String rString = "";
-        if (_JSONObject != null) {
-            if (!useChecker || checker.checkTable(_JSONObject, true)) {
-                tObject = data(_JSONObject).insertOnce();
+        if (JSONObject != null) {
+            if (!useChecker || checker.checkTable(JSONObject, true)) {
+                tObject = data(JSONObject).insertOnce();
                 if (tObject != null) {
                     rString = tObject.toString();//自增值
                 }
@@ -197,7 +191,7 @@ public class DbLayerHelper extends DbLayer {
         String rString = "";
         JSONObject jObject;
         if (pkfield != null) {
-            jObject = (id != null && id.toString() != "") ? eq(pkfield, id).find() : find();
+            jObject = (id != null && !id.toString().equals("")) ? eq(pkfield, id).find() : find();
             if (jObject != null) {
                 rString = safeObject(jObject);
             }
@@ -210,7 +204,7 @@ public class DbLayerHelper extends DbLayer {
         String rString = "";
         JSONObject jObject;
         if (pkfield != null) {
-            jObject = (id != null && id != "") ? eq(pkfield, id).find() : find();
+            jObject = (id != null && !id.equals("")) ? eq(pkfield, id).find() : find();
             if (jObject != null) {
                 rString = safeObject(jObject);
             }
@@ -225,7 +219,7 @@ public class DbLayerHelper extends DbLayer {
 
 
         if (pkfield != null) {
-            jArray = (id != null && id != "") ? eq(pkfield, id).select() : select();
+            jArray = (id != null && !id.equals("")) ? eq(pkfield, id).select() : select();
             if (jArray != null) {
                 rString = safeResultSet(jArray);
             }
@@ -274,10 +268,9 @@ public class DbLayerHelper extends DbLayer {
      * @return
      */
     public String _page(int idx, int max, String lastIdx) {
-        Object val = null;
+        Object val;
         try {
-            long testLong = Long.valueOf(lastIdx);
-            val = testLong;
+            val = Long.parseLong(lastIdx);
         } catch (Exception e) {
             val = lastIdx;
         }

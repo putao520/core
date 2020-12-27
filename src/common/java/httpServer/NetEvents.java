@@ -9,10 +9,7 @@ import common.java.xml.XmlHelper;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
-import io.netty.handler.codec.http.HttpContent;
-import io.netty.handler.codec.http.HttpMethod;
-import io.netty.handler.codec.http.HttpRequest;
-import io.netty.handler.codec.http.QueryStringDecoder;
+import io.netty.handler.codec.http.*;
 import io.netty.handler.codec.http.multipart.Attribute;
 import io.netty.handler.codec.http.multipart.FileUpload;
 import io.netty.handler.codec.http.multipart.HttpPostRequestDecoder;
@@ -20,7 +17,6 @@ import io.netty.handler.codec.http.multipart.HttpPostRequestDecoder.EndOfDataDec
 import io.netty.handler.codec.http.multipart.InterfaceHttpData;
 import io.netty.handler.codec.http.multipart.InterfaceHttpData.HttpDataType;
 import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
-import io.netty.handler.codec.http.websocketx.WebSocketFrame;
 import org.json.simple.JSONObject;
 
 import java.io.File;
@@ -29,14 +25,12 @@ import java.nio.charset.StandardCharsets;
 
 class NetEvents extends ChannelInboundHandlerAdapter {
     private HttpRequest _req;
-    private HttpPostRequestDecoder decoder;
 
-    public static final String tryfixURL(String content) {
-        String _url = StringHelper.join(StringHelper.path2list(content), "/");
-        return _url;
+    public static String tryfixURL(String content) {
+        return StringHelper.join(StringHelper.path2list(content), "/");
     }
 
-    public static final JSONObject postContent2JSON(String _httpContent) {
+    public static JSONObject postContent2JSON(String _httpContent) {
         JSONObject rString = null;
         try {
             String httpContent = _httpContent;
@@ -63,31 +57,11 @@ class NetEvents extends ChannelInboundHandlerAdapter {
         String[] gr = UrlCode.decode(StringHelper.build(url).trimFrom('/').toString().split("/"));
         Object rs = null;
         try {
-            switch (gr[0]) {
-                /*
-                case "@wechatCode":
-                    if (gr.length >= 3) {
-                        String paramString = StringHelper.join(gr, "/", 2, -1);
-                        String nurl = WechatHelper.getRedirectURL(NumberHelper.number2int(gr[1]), paramString);
-                        if (nurl != null) {
-                            GrapeHttpServer.location(ctx, nurl, new JSONObject("User-Agent", "Mozilla/5.0 (iPhone; CPU iPhone OS 9_1 like Mac OS X) AppleWebKit/601.1.46 (KHTML, like Gecko) Version/9.0 Mobile/13B143 Safari/601.1 wechatdevtools/0.7.0 MicroMessenger/6.3.9 Language/zh_CN webview/0"));
-                        }
-                    } else {
-                        rs = "调用参数数量异常";
-                    }
-                    rs = "";
-                    break;
-                    */
-                case "@redirect":
-                    if (gr.length == 2) {
-                        GrapeHttpServer.location(ctx, gr[1]);
-                    } else {
-                        rs = "调用参数数量异常";
-                    }
-                    rs = "";
-                    break;
-                default:
-                    break;
+            if ("@redirect".equals(gr[0])) {
+                if (gr.length == 2) {
+                    GrapeHttpServer.location(ctx, gr[1]);
+                }
+                rs = "";
             }
         } catch (Exception e) {
             rs = "调用参数类型异常";
@@ -98,15 +72,6 @@ class NetEvents extends ChannelInboundHandlerAdapter {
     //传统get参数转换成内部参数
     private QueryStringDecoder isNotGscGet(String uri) {
         QueryStringDecoder decoder = new QueryStringDecoder(uri);
-        /*
-        List<String> paramList = new ArrayList<>();
-        decoder.parameters().entrySet().forEach(entry -> {
-            // entry.getValue()是一个List, 只取第一个元素
-            //parmMap.put(entry.getKey(), entry.getValue().get(0));
-            paramList.add(entry.getValue().get(0));
-        });
-        return decoder.path() + StringHelper.join(paramList, "/");
-        */
         return decoder.parameters().size() > 0 ? decoder : null;
     }
 
@@ -114,11 +79,10 @@ class NetEvents extends ChannelInboundHandlerAdapter {
         /*
          * get:{"path":"url","header":{header},"param":{postparam},}
          * */
-        WebSocketFrame frame = msg;
-        ByteBuf buf = frame.content();  //真正的数据是放在buf里面的
+        ByteBuf buf = msg.content();  //真正的数据是放在buf里面的
         String wsData = buf.toString(StandardCharsets.UTF_8);  //将数据按照utf-8的方式转化为字符串
         String[] wsCmd = wsData.split(":");
-        JSONObject json = new JSONObject();
+        JSONObject json;
         if (wsCmd.length > 1) {//不仅仅包含方法
             wsData = StringHelper.join(wsCmd, ":", 1, -1);
             json = JSONObject.toJSON(wsData);
@@ -127,10 +91,6 @@ class NetEvents extends ChannelInboundHandlerAdapter {
     }
 
     private String filterURLencodeWord(String url) {
-        /*
-        String[] uris = UrlCode.decode( url.split("/") );
-        return StringHelper.join(uris, "/");
-        */
         //return url;
         return UrlCode.decode(url);
     }
@@ -150,12 +110,36 @@ class NetEvents extends ChannelInboundHandlerAdapter {
         return rString;
     }
 
+    /**
+     * 包含头部信息的get
+     */
+    private String updateHeaderFromURL(String path) {
+        String[] paths = StringHelper.build(path).trimFrom('/').toString().split("/");
+        if (paths[0].equals("gscHeader_start")) {
+            int end_idx = 0;
+            for (int i = 0; i < paths.length; i++) {
+                if (paths[i].equals("gscHeader_end")) {
+                    end_idx = i;
+                    break;
+                }
+            }
+            if (end_idx > 0) {
+                HttpHeaders h = _req.headers();
+                for (int l = 1; l < end_idx; l += 2) {
+                    h.add(paths[l], paths[l + 1]);
+                }
+                path = "/" + StringHelper.join(paths, "/", end_idx + 1, -1);
+            }
+        }
+        return path;
+    }
+
     private void httpRequest(ChannelHandlerContext _ctx, HttpContent msg) {
         JSONObject postParam = null;
         String _url = filterURLencodeWord(_req.uri());
         boolean vaild = false;
         if (_req.method().equals(HttpMethod.POST)) {
-            String appendURL = null;
+            String appendURL;
             String tempBody = convertByteBufToString(msg.content().copy());
             // 是gsc-post
             if (isGscPost(tempBody)) {
@@ -183,6 +167,8 @@ class NetEvents extends ChannelInboundHandlerAdapter {
                 nlogger.debugInfo("normal-get:" + _url);
             } else {
                 nlogger.debugInfo("gsc-get:" + _url);
+                // 判断是不是带上各类header参数的GET请求
+                _url = updateHeaderFromURL(_url);
             }
             vaild = true;
         }
@@ -230,7 +216,7 @@ class NetEvents extends ChannelInboundHandlerAdapter {
 
     private JSONObject postParamter(Object req) {
         JSONObject parmMap = new JSONObject();
-        decoder = new HttpPostRequestDecoder(_req);
+        HttpPostRequestDecoder decoder = new HttpPostRequestDecoder(_req);
         decoder.offer((HttpContent) req);
         try {
             while (decoder.hasNext()) {
@@ -271,7 +257,6 @@ class NetEvents extends ChannelInboundHandlerAdapter {
                                     }
                                 }
                                 parmMap.put(_data.getName(), fileInfo);
-                                continue;
                             }
                         }
                     } catch (Exception e) {
@@ -286,7 +271,7 @@ class NetEvents extends ChannelInboundHandlerAdapter {
         } finally {
             decoder.destroy();
         }
-        return parmMap != null ? parmMap.isEmpty() ? null : parmMap : null;
+        return parmMap.isEmpty() ? null : parmMap;
     }
 
     @Override

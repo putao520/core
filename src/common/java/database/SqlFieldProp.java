@@ -2,12 +2,12 @@ package common.java.database;
 
 public class SqlFieldProp {
     private final String preType = "";
+    private final String colName;
     private boolean isNull = false;
     private boolean isAutoIncrement = false;
     private boolean primaryKey = false;
     private String typeName = "";
     private Object defaultValue = null;
-    private String colName = "";
 
     public SqlFieldProp(String colName) {
         this.colName = colName;
@@ -16,10 +16,7 @@ public class SqlFieldProp {
     public String build() {
         String tempSql = "";
         if (colName != null && typeName != null) {
-            tempSql = colName + " " + typeName + " " +
-                    (isNull ? "" : "NOT NULL") + " " +
-                    (isAutoIncrement ? "AUTO_INCREMENT" : "") + " " +
-                    defaultValue != null ? "DEFAULT '" + defaultValue.toString() + "' " : "";
+            tempSql = "DEFAULT '" + defaultValue.toString() + "' ";
         }
         return tempSql;
     }
@@ -58,7 +55,6 @@ public class SqlFieldProp {
     }
 
     public SqlFieldProp initType(String typeName, int len, int init, boolean unsgined, boolean zerofill) {
-        typeName = typeName + (len > 0 ? "(" + len + (init >= 0 ? "," + init : "") + ")" : "") + " " + (unsgined ? "unsgined" : "") + (zerofill ? "zerofill" : "");
         return this;
     }
 

@@ -34,6 +34,27 @@ public class DbLayer implements InterfaceDatabase<DbLayer> {
         init(configName);
     }
 
+    /**
+     * 自动生成多OR条件
+     */
+    public DbLayer putAllOr(String ids) {
+        return putAllOr(ids, getGeneratedKeys());
+    }
+
+    public DbLayer putAllOr(String ids, String field) {
+        DbFilter dbf = DbFilter.buildDbFilter();
+        if (!StringHelper.invaildString(ids)) {
+            String[] idList = ids.split(",");
+            if (idList.length > 0) {
+                for (String s : idList) {
+                    dbf.or().eq(field, s);
+                }
+                groupCondition(dbf.buildEx());
+            }
+        }
+        return this;
+    }
+
     public DbLayer addFieldOutPipe(String fieldName, Function<Object, Object> func) {
         if (func != null) {
             List<Function<Object, Object>> link = outHookFunc.get(fieldName);
@@ -97,22 +118,26 @@ public class DbLayer implements InterfaceDatabase<DbLayer> {
             if (_configString != null) {
                 obj = JSONObject.toJSON(_configString);
                 if (obj != null) {
-                    dbName = obj.getString("dbName");
+                    dbName = obj.getString("dbName").toLowerCase();
                     switch (dbName) {
-                        case "mongodb":
+                        case "mongodb" -> {
                             _db = (new _reflect(Mongodb.class)).newInstance(_configString);
                             _dbName = dbType.mongodb;
-                            break;
-                        default://mysql
+                        }
+                        case "oracle" -> {
+                            _db = (new _reflect(Oracle.class)).newInstance(_configString);
+                            _dbName = dbType.oracle;
+                        }
+                        default -> {
                             _db = (new _reflect(Sql.class)).newInstance(_configString);
                             _dbName = dbType.mysql;
-                            break;
+                        }
                     }
                 } else {
                     nlogger.logInfo("DB配置信息格式错误 ：" + _configString);
                 }
             } else {
-                nlogger.logInfo("DB配置信息[" + cN + "]为空:=>" + _configString);
+                nlogger.logInfo("DB配置信息[" + cN + "]为空:=>" + null);
             }
             _db.privateMode();//内部调用，启动私有模式
         } catch (Exception e) {
@@ -179,7 +204,7 @@ public class DbLayer implements InterfaceDatabase<DbLayer> {
      */
     public JSONArray selectbyCache(int second) {
         JSONArray rs = null;
-        String key = getformName() + condString();
+        String key = getFormName() + condString();
         Cache c = getCache();
         if (c != null) {
             rs = JSONArray.toJSONArray(c.get(key));
@@ -187,7 +212,7 @@ public class DbLayer implements InterfaceDatabase<DbLayer> {
         if (rs == null) {//不存在
             rs = select();
             if (rs != null && c != null) {
-                if (rs.size() > 0 && c != null) {
+                if (rs.size() > 0) {
                     c.set(key, rs.toJSONString(), second);
                 }
             }
@@ -196,7 +221,7 @@ public class DbLayer implements InterfaceDatabase<DbLayer> {
     }
 
     public void InvaildCache() {
-        String key = getformName() + condString();
+        String key = getFormName() + condString();
         Cache c = getCache();
         if (c != null) {
             c.delete(key);
@@ -205,7 +230,7 @@ public class DbLayer implements InterfaceDatabase<DbLayer> {
 
     public JSONObject findbyCache(int second) {
         JSONObject rs = null;
-        String key = getformName() + condString();
+        String key = getFormName() + condString();
         Cache c = getCache();
         if (c != null) {
             rs = JSONObject.toJSON(c.get(key));
@@ -213,7 +238,7 @@ public class DbLayer implements InterfaceDatabase<DbLayer> {
         if (rs == null) {//不存在
             rs = this.find();
             if (rs != null && c != null) {
-                if (rs.size() > 0 && c != null) {
+                if (rs.size() > 0) {
                     c.set(key, rs.toJSONString(), second);
                 }
             }
@@ -270,15 +295,12 @@ public class DbLayer implements InterfaceDatabase<DbLayer> {
         // System.out.println(getCond());
         return this;
     }
-	/*
-	public DbLayer where(List<List<Object>> condList){
-		if( condList == null ){
-			condList = new ArrayList<>();
-		}
-		_db._call(Thread.currentThread().getStackTrace()[1].getMethodName(),condList);
-		return this;
-	}
-	*/
+
+    public DbLayer groupWhere(JSONArray conds) {
+        _db._call(Thread.currentThread().getStackTrace()[1].getMethodName(), conds);
+        // System.out.println(getCond());
+        return this;
+    }
 
     public DbLayer eq(String field, Object value) {//One Condition
         _db._call(Thread.currentThread().getStackTrace()[1].getMethodName(), field, value);
@@ -481,22 +503,16 @@ public class DbLayer implements InterfaceDatabase<DbLayer> {
         return this;
     }
 
-    /*
-    public String getformName() {
-        return formName;
-        //return (String)_db._call(Thread.currentThread().getStackTrace()[1].getMethodName());
-    }
-    */
-    public String getformName() {
+    public String getFormName() {
         return formName;
         //return (String)_db._call(Thread.currentThread().getStackTrace()[1].getMethodName());
     }
 
-    public String getform() {
+    public String getForm() {
         return (String) _db._call(Thread.currentThread().getStackTrace()[1].getMethodName());
     }
 
-    public String getfullform() {
+    public String getFullForm() {
         return (String) _db._call(Thread.currentThread().getStackTrace()[1].getMethodName());
     }
 
@@ -518,9 +534,7 @@ public class DbLayer implements InterfaceDatabase<DbLayer> {
 
     public DbLayer bind() {
         int appid = HttpContext.current().appid();
-        if (appid == 0) {
-            //throw new NullPointerException("appid or intid is zero");
-        } else {
+        if (appid != 0) {
             try {
                 ownid = StringHelper.any2String(appid);
                 bind(ownid);
@@ -528,11 +542,6 @@ public class DbLayer implements InterfaceDatabase<DbLayer> {
                 nlogger.logInfo(e, "appid is not a integer");
             }
         }
-        return this;
-    }
-
-    public DbLayer bindApp() {
-        bind();
         return this;
     }
 
@@ -581,5 +590,6 @@ public class DbLayer implements InterfaceDatabase<DbLayer> {
     public static class dbType {
         public final static int mongodb = 1;
         public final static int mysql = 2;
+        public final static int oracle = 3;
     }
 }

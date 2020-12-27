@@ -14,7 +14,7 @@ public class MasterConnect {
 
     static {
         String configString = lConfig.localConfig("zookeeper");
-        if (configString == null) {
+        if (StringHelper.invaildString(configString)) {
             configString = MasterProxy.serviceName("MasterClient").custom("getClient");
         }
         if (StringHelper.invaildString(configString)) {
@@ -23,11 +23,11 @@ public class MasterConnect {
         ins = Zookeeper.build(configString);
     }
 
-    public static final Zookeeper getMasterClient() {
+    public static Zookeeper getMasterClient() {
         return ins;
     }
 
-    public static final CuratorFramework getZookeeperClient() {
+    public static CuratorFramework getZookeeperClient() {
         return ins.instance();
     }
 }

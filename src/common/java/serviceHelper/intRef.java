@@ -4,7 +4,7 @@ package common.java.serviceHelper;
  * 模拟按址方式传递int类型参数
  * */
 public class intRef {
-    private int value = 0;
+    private int value;
 
     public intRef(int initValue) {
         value = initValue;

@@ -13,14 +13,13 @@ import java.util.concurrent.ConcurrentHashMap;
 // public class Cache implements InterfaceCache{ // 仅校对接口时使用
 public class Cache {
     // 子缓存会用到该缓存对象
-    public static ConcurrentHashMap<String, Object> CacheClient;
+    public static final ConcurrentHashMap<String, Object> CacheClient;
 
     static {
         CacheClient = new ConcurrentHashMap<>();
     }
 
     private _reflect _cache;            //缓存抽象对象
-    private int _cacheName;             //缓存名
 
     public Cache() {
         init(null);
@@ -30,11 +29,11 @@ public class Cache {
         init(configName);
     }
 
-    public static final Cache getInstance() {
+    public static Cache getInstance() {
         return new Cache();
     }
 
-    public static final Cache getInstance(String configName) {
+    public static Cache getInstance(String configName) {
         return new Cache();
     }
 
@@ -47,32 +46,35 @@ public class Cache {
                 obj = JSONObject.toJSON(_configString);
                 if (obj != null) {
                     cacheName = obj.getString("cacheName");
+                    //缓存名
+                    int _cacheName;
                     switch (cacheName) {
-                        case "redis":
+                        case "redis" -> {
                             _cache = (new _reflect(RedisSingle.class)).newInstance(_configString);
                             _cacheName = cacheType.redis;
-                            break;
-                        case "redis-cluster":
+                        }
+                        case "redis-cluster" -> {
                             _cache = (new _reflect(RedisCluster.class)).newInstance(_configString);
                             _cacheName = cacheType.redis;
-                            break;
-                        case "redis-sentinel":
+                        }
+                        case "redis-sentinel" -> {
                             _cache = (new _reflect(RedisSentinel.class)).newInstance(_configString);
                             _cacheName = cacheType.redis;
-                            break;
-                        case "redis-masterslave":
+                        }
+                        case "redis-masterslave" -> {
                             _cache = (new _reflect(RedisMasterSlave.class)).newInstance(_configString);
                             _cacheName = cacheType.redis;
-                            break;
-                        default:
+                        }
+                        default -> {
                             _cache = new _reflect(EhCache.class);
                             _cacheName = cacheType.ehcache;
+                        }
                     }
                 } else {
                     nlogger.logInfo("Cache配置信息格式错误 ：" + _configString);
                 }
             } else {
-                nlogger.logInfo("cache配置信息[" + cN + "]为空:=>" + _configString);
+                nlogger.logInfo("cache配置信息[" + cN + "]为空:=>" + null);
             }
             _cache.privateMode();//内部调用，启动私有模式
         } catch (Exception e) {

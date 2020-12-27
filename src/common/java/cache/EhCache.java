@@ -8,6 +8,7 @@ import org.ehcache.config.builders.ExpiryPolicyBuilder;
 import org.ehcache.config.builders.ResourcePoolsBuilder;
 
 import java.time.Duration;
+import java.util.Objects;
 
 public class EhCache implements InterfaceCache {
     private static final org.ehcache.Cache<String, String> static_jdc;
@@ -83,7 +84,7 @@ public class EhCache implements InterfaceCache {
         if (rs == null) {
             set(objectName, objectValue);
         }
-        return rs.toString();
+        return Objects.requireNonNull(rs).toString();
     }
 
     @Override
@@ -92,7 +93,7 @@ public class EhCache implements InterfaceCache {
         if (rs == null) {
             set(objectName, expire, objectValue);
         }
-        return rs.toString();
+        return Objects.requireNonNull(rs).toString();
     }
 
     @Override

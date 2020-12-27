@@ -73,7 +73,7 @@ public class MicroModel {
         buildUpdateParam(1, oldPerm, nowPerm, tempDbCondition, newData);
         buildUpdateParam(2, oldPerm, nowPerm, tempDbCondition, newData);
         buildUpdateParam(3, oldPerm, nowPerm, tempDbCondition, newData);
-        if (!tempDbCondition.nullCondition()) {
+        if (tempDbCondition.nullCondition()) {
             DbLayer db = new DbLayer(MicroServiceContext.current().config().db());  // 声明DB类
             db.where(tempDbCondition.build()).data(newData).updateAll();            // 更新数据
             rb = true;
@@ -91,30 +91,30 @@ public class MicroModel {
         String valueString = null;
         if (op < 4) {
             switch (op) {
-                case 0:
+                case 0 -> {
                     oldValue = oldPerm.createPerm().type();
                     newValue = newPerm.createPerm().type();
                     modeString = PermissionsPowerDef.createMode;
                     valueString = PermissionsPowerDef.createValue;
-                    break;
-                case 1:
+                }
+                case 1 -> {
                     oldValue = oldPerm.deletePerm().type();
                     newValue = newPerm.deletePerm().type();
                     modeString = PermissionsPowerDef.deleteMode;
                     valueString = PermissionsPowerDef.deleteValue;
-                    break;
-                case 2:
+                }
+                case 2 -> {
                     oldValue = oldPerm.readPerm().type();
                     newValue = newPerm.readPerm().type();
                     modeString = PermissionsPowerDef.readMode;
                     valueString = PermissionsPowerDef.readValue;
-                    break;
-                case 3:
+                }
+                case 3 -> {
                     oldValue = oldPerm.updatePerm().type();
                     newValue = newPerm.updatePerm().type();
                     modeString = PermissionsPowerDef.updateMode;
                     valueString = PermissionsPowerDef.updateValue;
-                    break;
+                }
             }
             if (oldValue != newValue) {   // 比较权限类型有没有改变
                 filter.eq(modeString, oldValue);

@@ -34,15 +34,15 @@ public class LazyTask {
         this.delay = delay;
     }
 
-    public static final LazyTask build(Runnable task) {
+    public static LazyTask build(Runnable task) {
         return build(task, 500, 5);
     }
 
-    public static final LazyTask build(Runnable task, int maxCnt) {
+    public static LazyTask build(Runnable task, int maxCnt) {
         return build(task, maxCnt, 5);
     }
 
-    public static final LazyTask build(Runnable task, int maxCnt, long seconds) {
+    public static LazyTask build(Runnable task, int maxCnt, long seconds) {
         LazyTask lt = new LazyTask(task, maxCnt, seconds);
         LazyTask.TaskStore.put(lt.hashCode(), lt);
         return lt;

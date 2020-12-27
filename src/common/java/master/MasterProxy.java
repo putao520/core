@@ -4,7 +4,7 @@ import common.java.Config.nConfig;
 import common.java.cache.MemCache;
 import common.java.nlogger.nlogger;
 import common.java.rpc.ExecRequest;
-import common.java.serviceHelper.MicroServiceTemplateInterface;
+import common.java.serviceHelper.MasterServiceTemplateInterface;
 import common.java.string.StringHelper;
 import kong.unirest.Unirest;
 
@@ -15,7 +15,7 @@ import java.util.concurrent.TimeUnit;
  * 与标准master服务接口保持一致
  * PS:需要对结果作缓存支持
  */
-public class MasterProxy implements MicroServiceTemplateInterface {
+public class MasterProxy implements MasterServiceTemplateInterface {
     private static final String hostAndPost;
     private static final MemCache<String, String> caches;
 
@@ -39,11 +39,11 @@ public class MasterProxy implements MicroServiceTemplateInterface {
         this.serviceName = serviceName;
     }
 
-    public static final MasterProxy serviceName(String serviceName) {
+    public static MasterProxy serviceName(String serviceName) {
         return new MasterProxy(serviceName);
     }
 
-    private static final String postRpc(String url, String param) {
+    private static String postRpc(String url, String param) {
         String rs;
         try {
             rs = Unirest.post(url).body(param).asString().getBody();

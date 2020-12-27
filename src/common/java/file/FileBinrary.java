@@ -17,11 +17,11 @@ public class FileBinrary extends FileEx<FileBinrary> {
         super(file);
     }
 
-    public static final FileBinrary build(String filePath) {
+    public static FileBinrary build(String filePath) {
         return new FileBinrary(new File(filePath));
     }
 
-    public static final FileBinrary build(File file) {
+    public static FileBinrary build(File file) {
         return new FileBinrary(file);
     }
 

@@ -15,11 +15,6 @@ public class PermissionsPowerDef {
     public final static String deleteValue = "dValue";//删除权限值字段
 
 
-	/*
-	public final static String permissionsType = "chkType";//权限类型
-	public final static String permissionsValue = "chkCond";//权限值
-	*/
-
     /**
      * gsc-tree 不可少字段
      */

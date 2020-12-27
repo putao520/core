@@ -14,7 +14,7 @@ public class MModelPermInfo {
         this.info = info;
     }
 
-    public static final MModelPermInfo buildPermInfo() {
+    public static MModelPermInfo buildPermInfo() {
         return new MModelPermInfo(new JSONObject());
     }
 

@@ -16,11 +16,11 @@ public class RpcTask {
         }
     }
 
-    public static final RpcTask newTask(JSONObject info) {
+    public static RpcTask newTask(JSONObject info) {
         return new RpcTask(info);
     }
 
-    public static final RpcTask newTask() {
+    public static RpcTask newTask() {
         return new RpcTask(new JSONObject());
     }
 

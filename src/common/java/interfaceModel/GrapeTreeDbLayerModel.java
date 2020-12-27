@@ -1,21 +1,23 @@
 package common.java.interfaceModel;
 
+import common.java.apps.AppContext;
 import common.java.authority.PermissionsPowerDef;
+import common.java.httpServer.HttpContext;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
+import java.util.concurrent.ForkJoinPool;
 import java.util.function.Function;
 
 
 public class GrapeTreeDbLayerModel extends GrapeDbLayerModel {
     private final List<Function<JSONArray, JSONArray>> pipeJSONArray_Out;
+    private final ForkJoinPool pStreamExec = new ForkJoinPool(10);
     private List<String> fields;
     private List<String> maskfields;
     private boolean realMode = false;
+    private aggregation aggregationJSONArray_Out;
 
     private GrapeTreeDbLayerModel() {
         super();
@@ -29,11 +31,11 @@ public class GrapeTreeDbLayerModel extends GrapeDbLayerModel {
         init();
     }
 
-    public static final GrapeTreeDbLayerModel getInstance() {
+    public static GrapeTreeDbLayerModel getInstance() {
         return new GrapeTreeDbLayerModel();
     }
 
-    public static final GrapeTreeDbLayerModel getInstance(String modelName) {
+    public static GrapeTreeDbLayerModel getInstance(String modelName) {
         return new GrapeTreeDbLayerModel(modelName);
     }
 
@@ -47,17 +49,40 @@ public class GrapeTreeDbLayerModel extends GrapeDbLayerModel {
         return this;
     }
 
+    // 数据管道
     public GrapeTreeDbLayerModel outPipe(Function<JSONArray, JSONArray> func) {
         pipeJSONArray_Out.add(func);
         return this;
     }
 
+    // 数据聚合
+    public void outAggregation(aggregation func) {
+        aggregationJSONArray_Out = func;
+    }
 
+
+    // map-reduce执行
     private JSONArray runOutPipe(JSONArray input) {
         JSONArray r = input;
         if (input != null) {
-            for (Function<JSONArray, JSONArray> func : pipeJSONArray_Out) {
-                r = func.apply(r);
+            if (aggregationJSONArray_Out != null) {
+                Vector<JSONArray> resultArray = new Vector<>();
+                // 并发执行piper
+                JSONArray finalR = r;
+                HttpContext hCtx = HttpContext.current();
+                pipeJSONArray_Out.parallelStream().forEach(func -> {
+                    AppContext.virualAppContext(hCtx.appid(), hCtx.serviceName());
+                    resultArray.add(func.apply(finalR));
+                });
+                // 线性聚合data
+                for (JSONArray array : resultArray) {
+                    r = aggregationJSONArray_Out.run(r, array);
+                }
+            } else {
+                // 顺序执行
+                for (Function<JSONArray, JSONArray> func : pipeJSONArray_Out) {
+                    r = func.apply(r);
+                }
             }
         }
         return r;
@@ -65,6 +90,7 @@ public class GrapeTreeDbLayerModel extends GrapeDbLayerModel {
 
 
     private void init() {
+        aggregationJSONArray_Out = null;
         fields = null;
         maskfields = null;
     }
@@ -178,7 +204,6 @@ public class GrapeTreeDbLayerModel extends GrapeDbLayerModel {
     }
 
     //删除数据（实际标注数据删除状态为1）
-
     public boolean deleteEx() {
         return data(new JSONObject(PermissionsPowerDef.deleteField, 1)).updateEx();
     }
@@ -247,7 +272,11 @@ public class GrapeTreeDbLayerModel extends GrapeDbLayerModel {
             }
             json = JSONArray.isInvaild(rArray) ? null : (JSONObject) rArray.get(0);
             if (json != null) {
-                json = (count() > 10) ? getAllChildren0(json) : getAllChildren1(json);
+                if ((count() > 10)) {
+                    getAllChildren0(json);
+                } else {
+                    getAllChildren1(json);
+                }
             }
         }
         fields = null;
@@ -296,9 +325,7 @@ public class GrapeTreeDbLayerModel extends GrapeDbLayerModel {
                 rArray = eq(PermissionsPowerDef.fatherIDField, fid).select();
             } else {
                 // 找到所有fatherIDField == fid的数据
-                Iterator<JSONObject> it = array.iterator();
-                while (it.hasNext()) {
-                    JSONObject obj = it.next();
+                for (JSONObject obj : (Iterable<JSONObject>) array) {
                     if (obj.get(PermissionsPowerDef.fatherIDField).equals(fid)) {
                         rArray.add(obj);
                     }
@@ -315,7 +342,7 @@ public class GrapeTreeDbLayerModel extends GrapeDbLayerModel {
             // 下一层
             if (isAll) {
                 JSONObject tempJson;
-                int l = rArray.size();
+                int l = Objects.requireNonNull(rArray).size();
                 for (int i = 0; i < l; i++) {
                     tempJson = (JSONObject) (rArray.get(i));
                     getChildren(tempJson, array, true);
@@ -389,11 +416,9 @@ public class GrapeTreeDbLayerModel extends GrapeDbLayerModel {
 
 
     public JSONArray page(int pageidx, int pagemax) {
-        /*
         if (!realMode) {
             niceCond();
         }
-        */
         return runOutPipe(super.page(pageidx, pagemax));
     }
 
@@ -425,18 +450,18 @@ public class GrapeTreeDbLayerModel extends GrapeDbLayerModel {
         String fieldName = null;
         String vFieldName = null;
         switch (op) {
-            case 0:
+            case 0 -> {
                 fieldName = PermissionsPowerDef.readMode;
                 vFieldName = PermissionsPowerDef.readValue;
-                break;
-            case 1:
+            }
+            case 1 -> {
                 fieldName = PermissionsPowerDef.updateMode;
                 vFieldName = PermissionsPowerDef.updateValue;
-                break;
-            case 2:
+            }
+            case 2 -> {
                 fieldName = PermissionsPowerDef.deleteMode;
                 vFieldName = PermissionsPowerDef.deleteValue;
-                break;
+            }
         }
         if (fieldName != null) {
             JSONObject json = (new JSONObject(fieldName, type)).puts(vFieldName, val);
@@ -462,18 +487,12 @@ public class GrapeTreeDbLayerModel extends GrapeDbLayerModel {
 
     private JSONObject getAuth(int op) {
         JSONObject rs = null;
-        String fieldName = null;
-        switch (op) {
-            case 0:
-                fieldName = PermissionsPowerDef.readMode;
-                break;
-            case 1:
-                fieldName = PermissionsPowerDef.updateMode;
-                break;
-            case 2:
-                fieldName = PermissionsPowerDef.deleteMode;
-                break;
-        }
+        String fieldName = switch (op) {
+            case 0 -> PermissionsPowerDef.readMode;
+            case 1 -> PermissionsPowerDef.updateMode;
+            case 2 -> PermissionsPowerDef.deleteMode;
+            default -> null;
+        };
         if (fieldName != null) {
             JSONObject json = field(fieldName)._find();
             if (json != null && json.containsKey(fieldName)) {

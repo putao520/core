@@ -15,7 +15,7 @@ public class PathMapped {
     private PathChildrenCache pathCache;
     private boolean loaded = false;
 
-    public static final PathMapped build() {
+    public static PathMapped build() {
         return new PathMapped();
     }
 
@@ -33,27 +33,20 @@ public class PathMapped {
         //添加目录数据监听
         pathCache.getListenable().addListener((c, e) -> {
             ChildData child = e.getData();
+            // 初始化缓存
+            // 新增缓存
+            // 删除缓存
+            // 更新缓存
             switch (e.getType()) {
-                case INITIALIZED:
-                    // 初始化缓存
+                case INITIALIZED -> {
                     List<ChildData> initDatas = e.getInitialData();
                     for (ChildData _child : initDatas) {
                         store.put(ZookeeperUnit.nodeName(_child.getPath()), ZookeeperUnit.byteArray2Strinf(_child.getData()));
                     }
                     loaded = true;
-                    break;
-                case CHILD_ADDED:
-                    // 新增缓存
-                    store.put(ZookeeperUnit.nodeName(child.getPath()), ZookeeperUnit.byteArray2Strinf(child.getData()));
-                    break;
-                case CHILD_REMOVED:
-                    // 删除缓存
-                    store.remove(ZookeeperUnit.nodeName(child.getPath()));
-                    break;
-                case CHILD_UPDATED:
-                    // 更新缓存
-                    store.put(ZookeeperUnit.nodeName(child.getPath()), ZookeeperUnit.byteArray2Strinf(child.getData()));
-                    break;
+                }
+                case CHILD_ADDED, CHILD_UPDATED -> store.put(ZookeeperUnit.nodeName(child.getPath()), ZookeeperUnit.byteArray2Strinf(child.getData()));
+                case CHILD_REMOVED -> store.remove(ZookeeperUnit.nodeName(child.getPath()));
             }
         });
         return this;

@@ -1,6 +1,7 @@
 package common.java.file;
 
 import com.google.common.io.Files;
+import sun.misc.Unsafe;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -16,9 +17,9 @@ import java.util.function.Consumer;
 
 public class FileEx<T extends FileEx> {
     protected static final int MAX_BLOCK_LENGTH = 0xffffffff;
+    protected final File file;
     public long readPoint = 0;
     public long writePoint = 0;
-    protected File file;
     private FileInputStream inStream;
     private FileOutputStream outStream;
     private MappedByteBuffer[] fileMap;
@@ -205,24 +206,21 @@ public class FileEx<T extends FileEx> {
     }
 
     protected void unmap(MappedByteBuffer fmap) {
-        AccessController.doPrivileged(new PrivilegedAction() {
-            public Object run() {
-                try {
-                    Method getCleanerMethod = fmap.getClass().getMethod("cleaner");
-                    getCleanerMethod.setAccessible(true);
-                    sun.misc.Unsafe.getUnsafe().invokeCleaner(fmap);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-                return null;
+        AccessController.doPrivileged((PrivilegedAction) () -> {
+            try {
+                Method getCleanerMethod = fmap.getClass().getMethod("cleaner");
+                getCleanerMethod.setAccessible(true);
+                Unsafe.getUnsafe().invokeCleaner(fmap);
+            } catch (Exception e) {
+                e.printStackTrace();
             }
+            return null;
         });
     }
 
     private void unmapAll() {
         if (fileMap != null) {
-            for (int i = 0, l = fileMap.length; i < l; i++) {
-                MappedByteBuffer fmap = fileMap[i];
+            for (MappedByteBuffer fmap : fileMap) {
                 if (fmap != null && fmap.isLoaded()) {
                     this.unmap(fmap);
                 }
@@ -241,7 +239,7 @@ public class FileEx<T extends FileEx> {
                 fmap.load();
             }
         }
-        return mapList.toArray(new MappedByteBuffer[mapList.size()]);
+        return mapList.toArray(new MappedByteBuffer[0]);
     }
 
     protected MappedByteBuffer getFileBuffer(long offset) {
@@ -268,15 +266,15 @@ public class FileEx<T extends FileEx> {
                 for (int i = 0; i < blockSize; i++) {
                     tCmp = fc.size() - i * MAX_BLOCK_LENGTH;
                     tSize = (tCmp > MAX_BLOCK_LENGTH) ? MAX_BLOCK_LENGTH : tCmp;
-                    mapList.add(fc.map(FileChannel.MapMode.READ_WRITE, 0 + i * MAX_BLOCK_LENGTH, tSize));
+                    mapList.add(fc.map(FileChannel.MapMode.READ_WRITE, i * MAX_BLOCK_LENGTH, tSize));
                 }
-                fileMap = mapList.toArray(new MappedByteBuffer[mapList.size()]);
+                fileMap = mapList.toArray(new MappedByteBuffer[0]);
             } catch (Exception e) {
                 fileMap = null;
             }
         } else {
-            for (int i = 0, l = fileMap.length; i < l; i++) {
-                fileMap[i].reset();
+            for (MappedByteBuffer mappedByteBuffer : fileMap) {
+                mappedByteBuffer.reset();
             }
         }
         return fileMap;

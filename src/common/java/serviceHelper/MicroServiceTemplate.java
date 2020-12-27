@@ -3,28 +3,52 @@ package common.java.serviceHelper;
 import common.java.apps.MModelRuleNode;
 import common.java.apps.MicroServiceContext;
 import common.java.database.DbFilter;
-import common.java.encrypt.GscJson;
 import common.java.interfaceModel.GrapeTreeDbLayerModel;
+import common.java.interfaceModel.aggregation;
+import common.java.rpc.RpcPageInfo;
 import common.java.rpc.rMsg;
 import common.java.string.StringHelper;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 public class MicroServiceTemplate implements MicroServiceTemplateInterface {
-    private final GrapeTreeDbLayerModel db;
-    private final String modelName;
+    private final String[] aggr_key = {"", ""};
+    public GrapeTreeDbLayerModel db;
+    private String modelName;
+    private Consumer<MicroServiceTemplate> InitDB_fn;
 
     public MicroServiceTemplate(String ModelName) {
+        init(ModelName, null);
+    }
+
+    public MicroServiceTemplate(String ModelName, Consumer<MicroServiceTemplate> fn) {
+        init(ModelName, fn);
+    }
+
+    private void init(String ModelName, Consumer<MicroServiceTemplate> fn) {
         this.modelName = ModelName;
         db = GrapeTreeDbLayerModel.getInstance(ModelName);
+        if (fn != null) {
+            InitDB_fn = fn;
+            InitDB_fn.accept(this);
+        }
     }
 
     protected GrapeTreeDbLayerModel getDB() {
+        if (InitDB_fn != null) {
+            InitDB_fn.accept(this);
+        }
+        return db;
+    }
+
+    public GrapeTreeDbLayerModel reset() {
         db.clear();
         return db;
     }
@@ -39,16 +63,18 @@ public class MicroServiceTemplate implements MicroServiceTemplateInterface {
         return this;
     }
 
+    protected JSONArray toJsonArray(Object o) {
+        if (o instanceof JSONObject) {
+            return JSONArray.addx(o);
+        }
+        return (JSONArray) o;
+    }
 
     protected JSONArray joinOn(String localKey, JSONArray localArray, String foreignKey, Function<String, JSONArray> func) {
-        return joinOn(localKey, localArray, foreignKey, func, null);
+        return joinOn(localKey, localArray, foreignKey, func, false);
     }
 
-    protected JSONArray joinOn(String localKey, JSONArray localArray, String foreignKey, Function<String, JSONArray> func, String prefix) {
-        return joinOn(localKey, localArray, foreignKey, func, prefix, false);
-    }
-
-    protected JSONArray joinOn(String localKey, JSONArray localArray, String foreignKey, Function<String, JSONArray> func, String prefix, boolean save_null_item) {
+    protected JSONArray joinOn(String localKey, JSONArray localArray, String foreignKey, Function<String, JSONArray> func, boolean save_null_item) {
         if (JSONArray.isInvaild(localArray)) {
             return localArray;
         }
@@ -59,11 +85,12 @@ public class MicroServiceTemplate implements MicroServiceTemplateInterface {
             if (JSONObject.isInvaild(_obj)) {
                 continue;
             }
-            String _id = _obj.getString(localKey);
-            if (StringHelper.invaildString(_id)) {
+            String _ids = _obj.getString(localKey);
+            if (StringHelper.invaildString(_ids)) {
                 continue;
             }
-            ids.add(_id);
+            // 填入多个值
+            ids.addAll(Arrays.asList(_ids.split(",")));
         }
         if (ids.size() == 0) {
             return localArray;
@@ -71,70 +98,76 @@ public class MicroServiceTemplate implements MicroServiceTemplateInterface {
 
         String _ids = StringHelper.join(ids);
         JSONArray foreignArray = func.apply(_ids);
-        if (prefix != null) {
-            prefix = prefix + "#";
-        }
-        localArray.joinOn(localKey, foreignKey, foreignArray, prefix, save_null_item);
+        localArray.joinOn(localKey, foreignKey, foreignArray, save_null_item);
         // 设置返回数据
         return localArray;
     }
 
     protected JSONObject joinOn(String localKey, JSONObject localObject, String foreignKey, Function<String, JSONArray> func) {
-        return joinOn(localKey, localObject, foreignKey, func, null);
-    }
-
-    protected JSONObject joinOn(String localKey, JSONObject localObject, String foreignKey, Function<String, JSONArray> func, String prefix) {
-        JSONArray newArray = joinOn(localKey, JSONArray.addx(localObject), foreignKey, func, prefix);
+        JSONArray newArray = joinOn(localKey, JSONArray.addx(localObject), foreignKey, func);
         return JSONArray.isInvaild(newArray) ? localObject : (JSONObject) newArray.get(0);
     }
 
 
     @Override
-    public String insert(String fastJson) {
-        Object obj = null;
-        JSONObject newData = GscJson.decode(fastJson);
+    public Object insert(String json) {
+        return insert(JSONObject.toJSON(json));
+    }
+
+    public Object insert(JSONObject newData) {
         if (!JSONObject.isInvaild(newData)) {
-            obj = db.data(newData).insertEx();
+            return db.data(newData).insertEx();
         }
-        return rMsg.netMSG(obj != null, obj);
+        return null;
     }
 
     @Override
-    public String delete(String uids) {
+    public int delete(String uids) {
         return _delete(uids, null);
     }
 
     @Override
-    public String deleteEx(String cond) {
+    public int deleteEx(String cond) {
         return _delete(null, JSONArray.toJSONArray(cond));
     }
 
-    private String _delete(String ids, JSONArray cond) {
+    private int _delete(String ids, JSONArray cond) {
         int r = 0;
         _ids(db.getPk(), ids);
         _condition(cond);
         if (!db.nullCondition()) {
             r = (int) db.deleteAll();
         }
-        /*
-        else{
-            r = db.delete_() ? 1 : 0;
-        }
-         */
-        return rMsg.netMSG(true, r);
+        return r;
     }
 
     @Override
-    public String update(String uids, String base64Json) {
-        return _update(uids, GscJson.decode(base64Json), null);
+    public int update(String uids, String json) {
+        return _update(uids, JSONObject.toJSON(json), null);
+    }
+
+    public int update(String uids, JSONObject data) {
+        return _update(uids, data, null);
     }
 
     @Override
-    public String updateEx(String base64Json, String cond) {
-        return _update(null, GscJson.decode(base64Json), JSONArray.toJSONArray(cond));
+    public int updateEx(String json, String cond) {
+        return _update(null, JSONObject.toJSON(json), JSONArray.toJSONArray(cond));
     }
 
-    private String _update(String ids, JSONObject info, JSONArray cond) {
+    public int updateEx(String json, JSONArray cond) {
+        return _update(null, JSONObject.toJSON(json), cond);
+    }
+
+    public int updateEx(JSONObject info, String cond) {
+        return _update(null, info, JSONArray.toJSONArray(cond));
+    }
+
+    public int updateEx(JSONObject info, JSONArray cond) {
+        return _update(null, info, cond);
+    }
+
+    private int _update(String ids, JSONObject info, JSONArray cond) {
         int r = 0;
         if (!JSONObject.isInvaild(info)) {
             _ids(db.getPk(), ids);
@@ -143,58 +176,72 @@ public class MicroServiceTemplate implements MicroServiceTemplateInterface {
                 r = (int) db.data(info).updateAll();
             }
         }
-        return rMsg.netMSG(true, r);
+        return r;
     }
 
     @Override
-    public String page(int idx, int max) {
-        return pageEx(idx, max, null);
+    public RpcPageInfo page(int idx, int max) {
+        return pageEx(idx, max, (String) null);
     }
 
     @Override
-    public String pageEx(int idx, int max, String cond) {
-        _condition(JSONArray.toJSONArray(cond));
-        return rMsg.netPAGE(idx, max, db.dirty().count(), db.page(idx, max));
+    public RpcPageInfo pageEx(int idx, int max, String cond) {
+        return pageEx(idx, max, JSONArray.toJSONArray(cond));
+    }
+
+    public RpcPageInfo pageEx(int idx, int max, JSONArray cond) {
+        _condition(cond);
+        return RpcPageInfo.Instant(idx, max, db.dirty().count(), db.page(idx, max));
     }
 
     @Override
-    public String select() {
-        return selectEx(null);
+    public JSONArray select() {
+        return selectEx((JSONArray) null);
     }
 
     @Override
-    public String selectEx(String cond) {
-        _condition(JSONArray.toJSONArray(cond));
-        return rMsg.netMSG(true, db.select());
+    public JSONArray selectEx(String cond) {
+        return selectEx(JSONArray.toJSONArray(cond));
+    }
+
+    public JSONArray selectEx(JSONArray cond) {
+        _condition(cond);
+        return db.select();
     }
 
     @Override
-    public String find(String field, String val) {
+    public Object find(String field, String val) {
         int idNo = _ids(field, val);
-        Object r = idNo <= 1 ? db.find() : db.select();
-        return rMsg.netMSG(r != null, r);
+        return idNo == 1 ? db.find() : db.select();
     }
 
     @Override
-    public String findEx(String cond) {
-        _condition(JSONArray.toJSONArray(cond));
-        return rMsg.netMSG(true, db.find());
+    public JSONObject findEx(String cond) {
+        return findEx(JSONArray.toJSONArray(cond));
+    }
+
+    public JSONObject findEx(JSONArray cond) {
+        _condition(cond);
+        return db.find();
     }
 
     /**
      * @apiNote 获得tree-json结构的全表数据,获得行政机构json树
      */
     @Override
-    public String tree(String cond) {
-        String rs;
-        JSONArray condArray = JSONArray.toJSONArray(cond);
+    public Object tree(String cond) {
+        return tree(JSONArray.toJSONArray(cond));
+    }
+
+    public Object tree(JSONArray cond) {
+        Object rs;
         GrapeTreeDbLayerModel db = getDB();
-        _condition(condArray);
+        _condition(cond);
         long n = db.dirty().count();
         if (n != 1) {
-            rs = rMsg.netMSG(false, "错误条件,必须仅有一条数据满足条件方可生成树JSON");
+            rs = false;
         } else {
-            rs = rMsg.netMSG(true, db.getAllChildren());
+            rs = db.getAllChildren();
         }
         return rs;
     }
@@ -215,22 +262,31 @@ public class MicroServiceTemplate implements MicroServiceTemplateInterface {
     }
 
 
-    private int _ids(String fieldName, String ids) {
+    public int _ids(String fieldName, String ids) {
         DbFilter dbf = DbFilter.buildDbFilter();
         String[] _ids = StringHelper.invaildString(ids) ? null : ids.split(",");
         if (_ids != null) {
             if (_ids.length > 1) {
-                for (int i = 0; i < _ids.length; i++) {
-                    dbf.or().eq(fieldName, _ids[i]);
+                JSONObject rJson = new JSONObject();
+                for (String id : _ids) {
+                    rJson.put(id, "");
                 }
-                if (!dbf.nullCondition()) {
-                    db.and().groupCondition(dbf.buildex());
+                List<String> idArray = new ArrayList<>();
+                for (String key : rJson.keySet()) {
+                    idArray.add(key);
+                }
+
+                for (String id : idArray) {
+                    dbf.or().eq(fieldName, id);
+                }
+                if (dbf.nullCondition()) {
+                    db.and().groupCondition(dbf.buildEx());
                 }
             } else if (_ids.length == 1) {
                 db.and().eq(fieldName, _ids[0]);
             }
         }
-        return _ids.length;
+        return _ids != null ? _ids.length : 0;
     }
 
     private void _condition(JSONArray cond) {
@@ -242,5 +298,38 @@ public class MicroServiceTemplate implements MicroServiceTemplateInterface {
     public MicroServiceTemplate outPipe(Function<JSONArray, JSONArray> func) {
         db.outPipe(func);
         return this;
+    }
+
+    public void aggregation(aggregation func) {
+        db.outAggregation(func);
+    }
+
+    public MicroServiceTemplate setAggregationKey(String aggr_key) {
+        this.aggr_key[0] = aggr_key;
+        this.aggr_key[1] = aggr_key;
+        return this;
+    }
+
+    public MicroServiceTemplate setAggregationKey(String local_key, String foreign_key) {
+        this.aggr_key[0] = local_key;
+        this.aggr_key[1] = foreign_key;
+        return this;
+    }
+
+    public JSONArray aggregation(JSONArray store, JSONArray result) {
+        JSONObject map = store.mapsByKey(aggr_key[0]);
+        for (Object _o : result) {
+            JSONObject o = (JSONObject) _o;
+            String k = o.getString(aggr_key[1]);
+            // 如果传递对象对应KEY有值，按字段覆盖替换
+            if (map.containsKey(k)) {
+                map.getJson(k).putAll(o);
+            }
+            // 如果不存在，直接填充
+            else {
+                map.put(aggr_key[0], o);
+            }
+        }
+        return new JSONArray(map.values());
     }
 }

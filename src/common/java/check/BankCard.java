@@ -352,7 +352,7 @@ public class BankCard {
         if (cardnumber.length() > 6) {
             String charBin = cardnumber.substring(0, 6);
             int bin, index;
-            bin = Integer.valueOf(charBin);
+            bin = Integer.parseInt(charBin);
             index = binarySearch(bankBin, bin);
             if (index == -1 || index > bankName.length) {
                 return null;

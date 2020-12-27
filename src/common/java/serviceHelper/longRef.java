@@ -1,7 +1,7 @@
 package common.java.serviceHelper;
 
 public class longRef {
-    private long value = 0;
+    private long value;
 
     public longRef(long initValue) {
         value = initValue;

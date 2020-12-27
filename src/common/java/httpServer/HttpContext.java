@@ -58,22 +58,27 @@ public class HttpContext {
         method = Method.websocket;
     }
 
-    public static final HttpContext current() {
+    public static HttpContext current() {
         HttpContext r = RequestSession.getValue(HttpContext.SessionKey);
-        if (r == null) {
-            // nlogger.errorInfo("http上下文引用必须在GrapeHttpServer.startService->EventLoop后");
-        }
         return r;
     }
 
-    public static final HttpContext newHttpContext() {
+    public static HttpContext newHttpContext() {
         return new HttpContext();
     }
 
-    public static final HttpContext setNewHttpContext() {
+    public static HttpContext setNewHttpContext() {
         HttpContext httpCtx = new HttpContext();
         RequestSession.setValue(HttpContext.SessionKey, httpCtx);
         return httpCtx;
+    }
+
+    public static void showMessage(ChannelHandlerContext ctx, String msg) {
+        if (ctx != null) {
+            GrapeHttpServer.writeHttpResponse(ctx, rMsg.netMSG(false, msg));
+            ctx.close();
+            ctx.deregister();
+        }
     }
 
     public void initHttpRequest(HttpRequest _header) {
@@ -278,13 +283,11 @@ public class HttpContext {
      */
 
     public int appid() {
-        int appid = 0;
         try {
-            appid = NumberHelper.number2int(values.get(GrapeHttpHeader.appid, 0));
+            return NumberHelper.number2int(values.get(GrapeHttpHeader.appid, 0));
         } catch (Exception e) {
-            appid = 0;
         }
-        return appid;
+        return 0;
     }
 
     public HttpContext appid(int appid) {
@@ -320,48 +323,32 @@ public class HttpContext {
             int idx = i - offset;
             if (stype.length > 0) {//包含类型信息
                 switch (stype[0]) {
-                    case "s"://string
-                        arglist[idx] = svalue.substring(2);
-                        break;
-                    case "int"://int
-                        arglist[idx] = Integer.parseInt(svalue.substring(4));
-                        break;
-                    case "long"://long
-                        arglist[idx] = Long.parseLong(svalue.substring(5));
-                        break;
-                    case "char"://char
-                        arglist[idx] = svalue.charAt(5);
-                        break;
-                    case "float"://float
-                        arglist[idx] = Float.parseFloat(svalue.substring(6));
-                        break;
-                    case "double"://double
-                        arglist[idx] = Double.parseDouble(svalue.substring(7));
-                        break;
-                    case "short"://short
-                        arglist[idx] = Short.parseShort(svalue.substring(6));
-                        break;
-                    case "i"://Integer
-                        arglist[idx] = Integer.parseInt(svalue.substring(2));
-                        break;
-                    case "b"://boolean
-                        arglist[idx] = Boolean.parseBoolean(svalue.substring(2));
-                        break;
-                    case "f"://float
-                        arglist[idx] = Float.parseFloat(svalue.substring(2));
-                        break;
-                    case "l"://long
-                        arglist[idx] = Long.parseLong(svalue.substring(2));
-                        break;
-                    case "d"://double
-                        arglist[idx] = Double.parseDouble(svalue.substring(2));
-                        break;
-                    case "bool"://boolean
-                        arglist[idx] = Boolean.parseBoolean((svalue.substring(2)));
-                        break;
-                    default:
-                        arglist[idx] = svalue;
-                        break;
+//string
+                    case "s" -> arglist[idx] = svalue.substring(2);
+//int
+                    case "int" -> arglist[idx] = Integer.parseInt(svalue.substring(4));
+//long
+                    case "long" -> arglist[idx] = Long.parseLong(svalue.substring(5));
+//char
+                    case "char" -> arglist[idx] = svalue.charAt(5);
+//float
+                    case "float" -> arglist[idx] = Float.parseFloat(svalue.substring(6));
+//double
+                    case "double" -> arglist[idx] = Double.parseDouble(svalue.substring(7));
+//short
+                    case "short" -> arglist[idx] = Short.parseShort(svalue.substring(6));
+//Integer
+                    case "i" -> arglist[idx] = Integer.parseInt(svalue.substring(2));
+//boolean
+                    case "b", "bool" -> arglist[idx] = Boolean.parseBoolean(svalue.substring(2));
+//float
+                    case "f" -> arglist[idx] = Float.parseFloat(svalue.substring(2));
+//long
+                    case "l" -> arglist[idx] = Long.parseLong(svalue.substring(2));
+//double
+                    case "d" -> arglist[idx] = Double.parseDouble(svalue.substring(2));
+//boolean
+                    default -> arglist[idx] = svalue;
                 }
             } else {
                 arglist[i] = svalue;
@@ -409,20 +396,12 @@ public class HttpContext {
         return this;
     }
 
-    public static final void showMessage(ChannelHandlerContext ctx, String msg) {
-        if (ctx != null) {
-            GrapeHttpServer.writeHttpResponse(ctx, rMsg.netMSG(false, msg));
-            ctx.close();
-            ctx.deregister();
-        }
-    }
-
     /**
      * 任意地点抛出返回值
      */
     public HttpContext throwOut(String msg) {
         HttpContext.showMessage(this.channelContext(), msg);
-        return this;
+        throw new RuntimeException(msg);
     }
 
     private HttpContext setValueSafe(String key, JSONObject nHeader) {
@@ -482,18 +461,18 @@ public class HttpContext {
             xmls.add(xml.xmldata);
         }
 
-        public class WebSocket {
+        public static class WebSocket {
             public final static String url = "path";
             public final static String header = "header";
             public final static String param = "param";
             public final static String wsid = "wsID";
         }
 
-        public class xml {
+        public static class xml {
             public final static String xmldata = "xmldata";
         }
 
-        public class App {
+        public static class App {
             public final static String fullurl = "requrl";
         }
     }

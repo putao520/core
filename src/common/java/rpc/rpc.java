@@ -13,38 +13,41 @@ import kong.unirest.Unirest;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
+import java.util.Arrays;
+
 public class rpc {
     private final String servName;
     private final MicroServiceContext msc;
-    private final boolean nullContext;
     private String servPath;
     private HttpContext ctx;
     private boolean needApiAuth;
 
     private rpc(String servName) {
         this.servName = servName;
-        this.nullContext = false;
+        boolean nullContext = false;
         this.needApiAuth = false;
         msc = new MicroServiceContext(this.servName);
     }
 
     // 静态起步方法
-    public static final rpc service(String servName) {
+    public static rpc service(String servName) {
         return new rpc(servName);
     }
 
-    public static final RpcResponse call(String path, HttpContext ctx, Object... args) {
+    public static RpcResponse call(String path, HttpContext ctx, Object... args) {
         return call(path, ctx, false, args);
     }
 
-    public static final RpcResponse call(String path, HttpContext ctx, boolean api_auth, Object... args) {
+    public static RpcResponse call(String path, HttpContext ctx, boolean api_auth, Object... args) {
         String url = path;
         // 构造http协议rpc完整地址
         if (!path.toLowerCase().startsWith("http://")) {
             String[] strArr = path.split("/");
             url = rpc.service(strArr[1]).setPath(strArr[2], strArr[3]).toString();
+        } else {
+            path = path.split("//")[1];
         }
-        String[] rArr = url.split("/");
+        String[] rArr = path.split("/");
         // 设置请求参数[get]
         // url += (( args != null ) ? ExecRequest.objects2string(args) : "");
         // 创建http对象[get]
@@ -80,11 +83,20 @@ public class rpc {
         return RpcResponse.build(rs);
     }
 
-    public static final void broadCast(String servPath) {
+    /**
+     * @apiNote 包含参数的URL的使用
+     */
+    public static RpcResponse call(String url, HttpContext ctx, boolean api_auth) {
+        String[] strArr = url.split("/");
+        Object[] args = Arrays.stream(strArr).skip(4).toArray();
+        return call(StringHelper.join(strArr, "/", 0, 4), ctx, api_auth, args);
+    }
+
+    public static void broadCast(String servPath) {
         broadCast(servPath, HttpContext.current());
     }
 
-    public static final void broadCast(String servPath, HttpContext ctx, Object... args) {
+    public static void broadCast(String servPath, HttpContext ctx, Object... args) {
         JSONArray nodes = NodeManage.getNodes();
         for (Object obj : nodes) {
             JSONObject info = (JSONObject) obj;
@@ -147,8 +159,7 @@ public class rpc {
         return "http://" + msc.bestServer() + "/" + this.servName + this.servPath;
     }
 
-    public void broadcast(Object... args) {
-        broadcast(this.servPath, this.ctx, args);
+    public void broadCast(Object... args) {
+        broadCast(this.servPath, this.ctx, args);
     }
-
 }

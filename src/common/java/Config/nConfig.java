@@ -1,10 +1,3 @@
-/**
- * @author Administrator
- */
-/**
- * @author Administrator
- *
- */
 package common.java.Config;
 
 import common.java.Coordination.PathMapped;
@@ -29,6 +22,8 @@ public class nConfig {
     public static boolean debug;
     public static boolean localDebug;
     public static String nodeID;
+    public static String appID;
+
     private static PathMapped configs;
 
     static {
@@ -40,20 +35,22 @@ public class nConfig {
         try {
             prop.load(new FileInputStream("pt520config.properties"));
             masterHost = prop.getProperty("masterhost", "http://127.0.0.1");//read putao520system host url
-            masterPort = Integer.valueOf(prop.getProperty("masterport", "80"));
+            masterPort = Integer.parseInt(prop.getProperty("masterport", "80"));
             bindip = prop.getProperty("bindip", "0.0.0.0");//本地服务节点通信Ip
             // 下面是增强选项
-            port = Integer.valueOf(prop.getProperty("port", "80"));
-            debug = Boolean.valueOf(prop.getProperty("debug", "false")).booleanValue();
-            localDebug = Boolean.valueOf(prop.getProperty("localdebug", "false")).booleanValue();
+            port = Integer.parseInt(prop.getProperty("port", "80"));
+            debug = Boolean.parseBoolean(prop.getProperty("debug", "false"));
+            localDebug = Boolean.parseBoolean(prop.getProperty("localdebug", "false"));
             nodeID = createNodeID(SystemDefined.ip(), port);
+            // 附加选项
+            appID = prop.getProperty("appID", "0");
             // 添加path映射
         } catch (IOException e) {
             // nlogger.logInfo(e);
         }
     }
 
-    public static final String createNodeID(String ip, int port) {
+    public static String createNodeID(String ip, int port) {
         return ip + "_" + port;
     }
 

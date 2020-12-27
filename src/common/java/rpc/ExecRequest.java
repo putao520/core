@@ -1,26 +1,16 @@
-/**
- * 请求url说明
- * http://host/app/module/function/p1/p2/p3/.../pN
- *
- * @author Administrator
- */
-/**
- * @author Administrator
- *
- */
 package common.java.rpc;
 
 import common.java.Config.nConfig;
 import common.java.JGrapeSystem.GrapeJar;
 import common.java.JGrapeSystem.SystemDefined;
 import common.java.Reflect._reflect;
-import common.java.apps.MicroServiceContext;
 import common.java.httpServer.HttpContext;
 import common.java.httpServer.RequestSession;
 import common.java.nlogger.nlogger;
 import common.java.string.StringHelper;
 import org.json.simple.JSONObject;
 
+import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
@@ -58,7 +48,7 @@ public class ExecRequest {//框架内请求类
         appsURL = null;
     }
 
-    private static final String getAppsURL() {
+    private static String getAppsURL() {
         if (appsURL == null) {
             AppRepository();
         }
@@ -78,42 +68,19 @@ public class ExecRequest {//框架内请求类
 
     /**
      * 执行当前上下文环境下的调用
-     * */
+     */
     public static Object _run(HttpContext ctx) {
-        // return autoExecute(ctx , ctx.appid() == 0 );
-        return autoExecute(ctx, true);
-    }
-
-    /**
-     * 执行接收到的请求
-     * */
-    public static Object autoExecute(HttpContext ctx, boolean localService) {
-        Class<?> _cls = null;
         HttpContext hCtx = HttpContext.current();
         String className = hCtx.className();
-        String path = ctx.path();
-        JSONObject paramter = ctx.parameter();
-
+        String actionName = hCtx.actionName();
         Object rs = null;
         try {
-            // 获得class
-            if (!localService) {// 需要加载目标jar包
-                MicroServiceContext msc = MicroServiceContext.current();
-                String jarName = msc.serviceFileName();
-                String appsURL = getAppsURL();
-                ClassLoader _loader = clsLoader("http://" + appsURL + "/" + jarName + ".jar");
-                if (_loader != null) {// 远程jar包存在
-                    if (className.equals(clsDesp)) {// 获得包内类方法
-                        return getPackageClassInfo("main/java/interfaceApplication");
-                    }
-                    _cls = _loader.loadClass("interfaceApplication." + className);
-                }
-            } else {
-                _cls = Class.forName("main.java.interfaceApplication" + "." + className);
-            }
-
-            // 执行call
-            if (_cls != null) {
+            // 执行前置类
+            Object[] _objs = beforeExecute(className, actionName, hCtx.invokeParamter());
+            if (_objs != null) {
+                // 载入主类
+                Class<?> _cls = Class.forName("main.java._api" + "." + className);
+                // 执行call
                 try {
                     // 创建类反射
                     _reflect obj = new _reflect(_cls);
@@ -121,18 +88,65 @@ public class ExecRequest {//框架内请求类
                     RequestSession.setCurrent(obj);
                     // 构造反射类实例
                     obj.newInstance();
-                    rs = (obj._call(hCtx.actionName(), hCtx.invokeParamter()));
+                    // 调用主要类,后置类,固定返回结构
+                    rs = obj._call(actionName, _objs);
+                    rs = afterExecute(className, actionName, rs);
+                    rs = RpcResult(rs);
                 } catch (Exception e) {
                     nlogger.logInfo(e, "实例化 " + _cls.toString() + " ...失败");
                 }
             }
-
         } catch (Exception e) {
             nlogger.logInfo(e, "类:" + className + " : 不存在");
         }
         return rs;
     }
 
+    // 过滤函数改变输入参数
+    private static Object[] beforeExecute(String className, String actionName, Object[] objs) {
+        try {
+            // 载入主类的前置类
+            Class<?> _before_cls = Class.forName("main.java.before_api" + "." + className);
+            Method fn = _before_cls.getMethod("filter", String.class, Object[].class);
+            return (Object[]) fn.invoke(null, actionName, objs);
+        } catch (ClassNotFoundException e1) {
+            return objs;
+        } catch (Exception e) {
+            e.printStackTrace();
+            // System.out.println("类:" + className + "_前置类,异常！");
+            return null;
+        }
+    }
+
+    // 结果函数改变输入参数
+    private static Object afterExecute(String className, String actionName, Object obj) {
+        try {
+            // 载入主类的前置类
+            Class<?> _after_cls = Class.forName("main.java.after_api" + "." + className);
+            Method fn = _after_cls.getMethod("filter", String.class, Object.class);
+            return fn.invoke(null, actionName, obj);
+        } catch (Exception e) {
+            // System.out.println("类:" + className + "_后置类,异常！");
+        }
+        return obj;
+    }
+
+    private static Object RpcResult(Object o) {
+        if (o == null) {
+            return "";
+        }
+        if (o instanceof byte[]) {
+            return o;
+        } else if (o instanceof RpcPageInfo) {
+            return o.toString();
+        } else if (o instanceof Boolean) {
+            return rMsg.netState(o);
+        } else if (o instanceof RpcError) {
+            return o.toString();
+        } else {
+            return rMsg.netMSG(true, o);
+        }
+    }
 
     /**
      * java类型转成字符串类型
@@ -141,18 +155,25 @@ public class ExecRequest {//框架内请求类
         return class2string.containsKey(cls) ? class2string.get(cls).split(",")[0] : cls.getName();
     }
 
+    private static boolean is_grape_args(String arg) {
+        return arg != null && arg.split(":").length > 1;
+    }
+
     public static String objects2string(Object[] objs) {
         if (objs == null) {
             return "";
         }
         String value;
-        String rString = "";
-        for (int i = 0; i < objs.length; i++) {
-            Object val = objs[i];
-            value = class2string(val.getClass());
-            rString += "/" + value + ":" + StringHelper.any2String(val);
+        StringBuilder rString = new StringBuilder();
+        for (Object val : objs) {
+            rString.append("/");
+            if (!is_grape_args(val.toString())) {
+                value = class2string(val.getClass());
+                rString.append(value).append(":");
+            }
+            rString.append(StringHelper.any2String(val));
         }
-        return rString;
+        return rString.toString();
     }
 
     public static String objects2poststring(Object... args) {
@@ -180,24 +201,22 @@ public class ExecRequest {//框架内请求类
             return "";
         }
         // String[] GetParams = StringHelper.build(ExecRequest.objects2string(args)).trimFrom('/').toString().split("/");
-        String GetParams = "";
+        StringBuilder GetParams = new StringBuilder();
         for (String key : info.keySet()) {
-            GetParams += info.getString(key) + ":;";
+            GetParams.append(info.getString(key)).append(":;");
         }
-        return "gsc-post:" + StringHelper.build(GetParams).removeTrailingFrom(2).toString();
+        return "gsc-post:" + StringHelper.build(GetParams.toString()).removeTrailingFrom(2).toString();
     }
 
     private static ClassLoader clsLoader(String url) {
-        ClassLoader clr = null;
         try {
-            clr = new URLClassLoader(new URL[]{new URL(url)});
+            return new URLClassLoader(new URL[]{new URL(url)});
         } catch (Exception e) {
-            clr = null;
         }
-        return clr;
+        return null;
     }
 
-    private static final String getPackageClassInfo(String packagePath) {
+    private static String getPackageClassInfo(String packagePath) {
         List<Class<?>> clsList = GrapeJar.getClass(packagePath, true);
         List<String> rList = new ArrayList<>();
         for (Class<?> c : clsList) {

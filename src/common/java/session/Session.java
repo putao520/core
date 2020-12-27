@@ -1,10 +1,3 @@
-/**
- * @author Administrator
- */
-/**
- * @author Administrator
- *
- */
 package common.java.session;
 
 import common.java.apps.AppContext;
@@ -14,8 +7,10 @@ import common.java.cache.CacheHelper;
 import common.java.httpServer.HttpContext;
 import common.java.nlogger.nlogger;
 import common.java.number.NumberHelper;
+import common.java.string.StringHelper;
 import org.json.simple.JSONObject;
 
+import java.util.Objects;
 import java.util.UUID;
 
 public class Session {
@@ -56,7 +51,7 @@ public class Session {
         return new CacheHelper(appCache);
     }
 
-    public static final Session createSession(String uid, String jsonString, int expire) {
+    public static Session createSession(String uid, String jsonString, int expire) {
         CacheHelper cacher = getCacher();
         String sid = uniqueUUID(uid);//申请会话id
         JSONObject exJson = JSONObject.toJSON(jsonString);
@@ -67,7 +62,7 @@ public class Session {
                 .puts("_GrapeFW_SID", sid)
                 .puts(uid + "_GrapeFW_AppInfo_", HttpContext.current().appid()).toJSONString();//补充appid参数
         // 先获得上次的会话实体ID并删除
-        JSONObject lastInfo = JSONObject.toJSON(cacher.get(uid));
+        JSONObject lastInfo = JSONObject.toJSON(Objects.requireNonNull(cacher).get(uid));
         if (lastInfo != null) {
             String lastSID = lastInfo.getString("_GrapeFW_SID");
             if (lastSID != null) {
@@ -102,7 +97,7 @@ public class Session {
      * @param jsonString 需要传入的数据集
      * @return
      */
-    public static final Session createSession(String uid, String jsonString) {
+    public static Session createSession(String uid, String jsonString) {
         return createSession(uid, jsonString, sessiontime);
     }
 
@@ -113,7 +108,7 @@ public class Session {
      * @param json
      * @return
      */
-    public static final Session createSession(String uid, JSONObject json) {
+    public static Session createSession(String uid, JSONObject json) {
         return createSession(uid, json.toJSONString(), sessiontime);
     }
 
@@ -126,41 +121,47 @@ public class Session {
         return temp;
     }
 
-    public static final boolean checkSession(String sid) {
-        Object ro = getCacher().get(sid);
-        return ro != null;
+    public static boolean checkSession(String sid) {
+        CacheHelper ch = getCacher();
+        return ch != null && !StringHelper.invaildString(ch.get(sid));
     }
 
-    /**创建临时会话
-     * @param code            临时会话id
-     * @param expire        有效期(秒)
+    /**
+     * 创建临时会话
+     *
+     * @param code   临时会话id
+     * @param expire 有效期(秒)
      * @return
      */
-    public static final String createGuessSession(String code, String data, int expire) {
+    public static String createGuessSession(String code, String data, int expire) {
         String sid = uuidkey(code, "gu");
-        getCacher().getSet(sid, data, expire);
+        Objects.requireNonNull(getCacher()).getSet(sid, data, expire);
         return sid;
     }
 
-    /**创建临时会话
-     * @param code            临时会话id
-     * @param expire        有效期(秒)
+    /**
+     * 创建临时会话
+     *
+     * @param code   临时会话id
+     * @param expire 有效期(秒)
      * @return
      */
-    public static final String createGuessSession(String code, int expire) {
+    public static String createGuessSession(String code, int expire) {
         return createGuessSession(code, "", expire);
     }
 
-    /**创建临时会话
-     * @param code            临时会话id
-     * @param expire        有效期(秒)
+    /**
+     * 创建临时会话
+     *
+     * @param code   临时会话id
+     * @param expire 有效期(秒)
      * @return
      */
-    public static final String createGuessSession(String code, JSONObject data, int expire) {
+    public static String createGuessSession(String code, JSONObject data, int expire) {
         return createGuessSession(code, data.toJSONString(), expire);
     }
 
-    public static final Session createSession(String uid, JSONObject json, int expireTime) {
+    public static Session createSession(String uid, JSONObject json, int expireTime) {
         return createSession(uid, json.toJSONString(), expireTime);
     }
 
@@ -168,13 +169,13 @@ public class Session {
         return getSID() != null;
     }
 
-    private static final String uniqueUUID(String uid) {
-        String tempUUID = "";
+    private static String uniqueUUID(String uid) {
+        String tempUUID;
         CacheHelper cacher = getCacher();
         do {
             tempUUID = uuidkey(uid, "pt");
         }
-        while (cacher.get(tempUUID) != null);
+        while (Objects.requireNonNull(cacher).get(tempUUID) != null);
         return tempUUID;
     }
 
@@ -218,7 +219,9 @@ public class Session {
         return ro != null;
     }
 
-    /**替换会话数据
+    /**
+     * 替换会话数据
+     *
      * @return
      */
     public JSONObject setDatas(JSONObject newData) {
@@ -239,11 +242,12 @@ public class Session {
         return this;
     }
 
-    /**向本次会话内追加数据
+    /**
+     * 向本次会话内追加数据
+     *
      * @param newData
      * @return
      */
-    @SuppressWarnings("unchecked")
     public JSONObject pushAll(JSONObject newData) {
         JSONObject data = getDatas();
         if (data != null) {
@@ -278,7 +282,6 @@ public class Session {
      *
      * @return
      */
-    @SuppressWarnings("unchecked")
     public JSONObject push(String key, Object val) {
         JSONObject data = getDatas();
         if (data != null) {
@@ -288,17 +291,18 @@ public class Session {
         return data;
     }
 
-    /**更新会话内数据
+    /**
+     * 更新会话内数据
      *
      * @param newData
      * @return
      */
-    @SuppressWarnings("unchecked")
     public JSONObject edit(String key, Object newData) {
         return push(key, newData);
     }
 
-    /**获得会话内某一项值
+    /**
+     * 获得会话内某一项值
      *
      * @param key
      * @return
@@ -312,7 +316,8 @@ public class Session {
         return val;
     }
 
-    /**获得会话内某一项值
+    /**
+     * 获得会话内某一项值
      *
      * @param key
      * @return
@@ -322,7 +327,8 @@ public class Session {
         return (rd instanceof String) ? (String) rd : "";
     }
 
-    /**获得会话内某一项值
+    /**
+     * 获得会话内某一项值
      *
      * @param key
      * @return
@@ -332,7 +338,8 @@ public class Session {
         return NumberHelper.number2int(rd);
     }
 
-    /**获得会话内某一项值
+    /**
+     * 获得会话内某一项值
      *
      * @param key
      * @return
@@ -357,8 +364,6 @@ public class Session {
                 }
                 rb = true;
             }
-        } else {
-            //throw new RuntimeException("不存在会话的");
         }
         return rb;
     }

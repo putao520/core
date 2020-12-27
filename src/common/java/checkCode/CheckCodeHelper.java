@@ -8,18 +8,18 @@ import java.util.Random;
 public class CheckCodeHelper {
     private static final String VERIFY_CODES = "23456789ABCDEFGHJKMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz";
 
-    public static final String getCheckCode(String ssid, int len) {
+    public static String getCheckCode(String ssid, int len) {
         String randNo = generateVerifyCode(len);
         CacheAuth cacheAuth = new CacheAuth();
         cacheAuth.breakRun(ssid, randNo);
         return randNo;
     }
 
-    public static final byte[] getCheckImage(String ssid, int len) {
+    public static byte[] getCheckImage(String ssid, int len) {
         return ImageCheckCode.getCodeimage(getCheckCode(ssid, len));
     }
 
-    public static final boolean checkCode(String ssid, String code) {
+    public static boolean checkCode(String ssid, String code) {
         CacheAuth cacheAuth = new CacheAuth();
         return cacheAuth.resumeRun(ssid, code);
     }

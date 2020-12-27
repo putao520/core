@@ -11,45 +11,43 @@ public class RequestSession {
     private final static ThreadLocal<ChannelId> channelID = new ThreadLocal<>();
     private final static ThreadLocal<_reflect> currentClass = new ThreadLocal<>();
 
-    public static final void setCurrent(_reflect _currentClass) {
+    public static void setCurrent(_reflect _currentClass) {
         currentClass.set(_currentClass);
     }
 
-    public static final _reflect getCurrentClass() {
+    public static _reflect getCurrentClass() {
         return currentClass.get();
     }
 
-    public final static void create(ChannelId cid) {
+    public static void create(ChannelId cid) {
         requestCache.put(cid, new ConcurrentHashMap<>());
     }
 
-    public final static <T> T getValue(String key) {
-        T r = null;
+    public static <T> T getValue(String key) {
         try {
-            r = (T) requestCache.get(channelID.get()).get(key);
+            return (T) requestCache.get(channelID.get()).get(key);
         } catch (Exception e) {
-            r = null;
         }
-        return r;
+        return null;
     }
 
-    public final static <T> void setValue(String key, T val) {
+    public static <T> void setValue(String key, T val) {
         ChannelId cid = channelID.get();
         if (cid == null) {
-            setChannelID(cid);
+            setChannelID(null);
         }
         requestCache.get(cid).put(key, val);
     }
 
-    public final static void remove(ChannelId cid) {
+    public static void remove(ChannelId cid) {
         requestCache.remove(cid);
     }
 
-    public final static ChannelId getChannelID() {
+    public static ChannelId getChannelID() {
         return channelID.get();
     }
 
-    public static final void setChannelID(ChannelId cid) {
+    public static void setChannelID(ChannelId cid) {
         channelID.set(cid);
     }
 }

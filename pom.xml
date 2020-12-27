@@ -6,7 +6,7 @@
 
     <groupId>gfw</groupId>
     <artifactId>core</artifactId>
-    <version>1.061</version>
+    <version>1.071</version>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
@@ -35,11 +35,17 @@
             <artifactId>mysql-connector-java</artifactId>
             <version>5.1.49</version>
         </dependency>
+        <!-- https://mvnrepository.com/artifact/com.oracle.database.jdbc/ojdbc10 -->
+        <dependency>
+            <groupId>com.oracle.database.jdbc</groupId>
+            <artifactId>ojdbc10</artifactId>
+            <version>19.8.0.0</version>
+        </dependency>
         <!-- https://mvnrepository.com/artifact/io.lettuce/lettuce-core -->
         <dependency>
             <groupId>io.lettuce</groupId>
             <artifactId>lettuce-core</artifactId>
-            <version>6.0.1.RELEASE</version>
+            <version>5.3.5.RELEASE</version>
         </dependency>
         <!-- https://mvnrepository.com/artifact/org.ehcache/ehcache -->
         <dependency>
@@ -57,12 +63,12 @@
         <dependency>
             <groupId>org.apache.curator</groupId>
             <artifactId>curator-recipes</artifactId>
-            <version>5.0.0</version>
+            <version>4.3.0</version>
         </dependency>
         <dependency>
             <groupId>gfw</groupId>
             <artifactId>common</artifactId>
-            <version>1.061</version>
+            <version>1.071</version>
         </dependency>
 
     </dependencies>

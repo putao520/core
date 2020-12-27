@@ -10,7 +10,7 @@ public class NodeMapped {
     private String store;
     private NodeCache nodeCache;
 
-    public static final NodeMapped build() {
+    public static NodeMapped build() {
         return new NodeMapped();
     }
 

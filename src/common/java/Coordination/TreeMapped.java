@@ -14,7 +14,7 @@ public class TreeMapped {
     private String rootPath;
     private TreeCache treeCache;
 
-    public static final TreeMapped build() {
+    public static TreeMapped build() {
         return new TreeMapped();
     }
 
@@ -30,26 +30,17 @@ public class TreeMapped {
             nlogger.debugInfo(e, "建立树映射失败");
         }
         //添加错误监听器
-        treeCache.getUnhandledErrorListenable().addListener((msg, e) -> {
-            nlogger.debugInfo(msg);
-        });
+        treeCache.getUnhandledErrorListenable().addListener((msg, e) -> nlogger.debugInfo(msg));
 
         //添加树数据监听
         treeCache.getListenable().addListener((c, e) -> {
             ChildData child = e.getData();
+            // 新增缓存
+            // 删除缓存
+            // 更新缓存
             switch (e.getType()) {
-                case NODE_ADDED:
-                    // 新增缓存
-                    store.put(child.getPath(), ZookeeperUnit.byteArray2Strinf(child.getData()));
-                    break;
-                case NODE_REMOVED:
-                    // 删除缓存
-                    store.remove(child.getPath());
-                    break;
-                case NODE_UPDATED:
-                    // 更新缓存
-                    store.put(child.getPath(), ZookeeperUnit.byteArray2Strinf(child.getData()));
-                    break;
+                case NODE_ADDED, NODE_UPDATED -> store.put(child.getPath(), ZookeeperUnit.byteArray2Strinf(child.getData()));
+                case NODE_REMOVED -> store.remove(child.getPath());
             }
         });
         return this;

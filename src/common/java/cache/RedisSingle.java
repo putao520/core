@@ -20,138 +20,133 @@ import io.lettuce.core.api.async.RedisAsyncCommands;
  * }
  */
 public class RedisSingle implements InterfaceCache {
-	// private RedisConn<StatefulRedisConnection<String, String>> conn = null;
-	private RedisAsyncCommands<String, String> command;
+    // private RedisConn<StatefulRedisConnection<String, String>> conn = null;
+    private RedisAsyncCommands<String, String> command;
 
-	public RedisSingle(String configString) {
-		init(configString);
-	}
+    public RedisSingle(String configString) {
+        init(configString);
+    }
 
-	public RedisSingle() {
-		init(nConfig.netConfig(MicroServiceContext.current().config().cache()));
-	}
+    public RedisSingle() {
+        init(nConfig.netConfig(MicroServiceContext.current().config().cache()));
+    }
 
-	private void init(String config) {
-		this.command = ((StatefulRedisConnection<String, String>) RedisConn.build(config).getConnect()).async();
-	}
-	// 关闭连接
-	/*
-	private void reinit(){
-		conn.close();
-	}
-	 */
+    private void init(String config) {
+        this.command = ((StatefulRedisConnection<String, String>) RedisConn.build(config).getConnect()).async();
+    }
+    // 关闭连接
 
-	@Override
-	public String get(String objectName) {
-		try {
-			return command.get(objectName).get();
-		} catch (Exception e) {
-			return null;
-		}
-	}
+    @Override
+    public String get(String objectName) {
+        try {
+            return command.get(objectName).get();
+        } catch (Exception e) {
+            return null;
+        }
+    }
 
 
-	/**
-	 * @param objectName
-	 * @param expire     秒
-	 * @return
-	 */
-	@Override
-	public boolean setExpire(String objectName, int expire) {
-		try {
-			return command.expire(objectName, Integer.valueOf(expire).longValue()).get();
-		} catch (Exception e) {
-			return true;
-		}
-	}
+    /**
+     * @param objectName
+     * @param expire     秒
+     * @return
+     */
+    @Override
+    public boolean setExpire(String objectName, int expire) {
+        try {
+            return command.expire(objectName, Integer.valueOf(expire).longValue()).get();
+        } catch (Exception e) {
+            return true;
+        }
+    }
 
-	@Override
-	public String set(String objectName, Object objectValue) {
-		try {
-			return command.set(objectName, objectValue.toString()).get();
-		} catch (Exception e) {
-			return null;
-		}
-	}
+    @Override
+    public String set(String objectName, Object objectValue) {
+        try {
+            return command.set(objectName, objectValue.toString()).get();
+        } catch (Exception e) {
+            return null;
+        }
+    }
 
-	@Override
-	public String set(String objectName, int expire, Object objectValue) {
-		try {
-			return command.setex(objectName, Integer.valueOf(expire).longValue(), objectValue.toString()).get();
-		} catch (Exception e) {
-			return null;
-		}
-	}
+    @Override
+    public String set(String objectName, int expire, Object objectValue) {
+        try {
+            return command.setex(objectName, Integer.valueOf(expire).longValue(), objectValue.toString()).get();
+        } catch (Exception e) {
+            return null;
+        }
+    }
 
-	@Override
-	public boolean setNX(String objectName, Object objectValue) {
-		try {
-			return command.setnx(objectName, StringHelper.any2String(objectName)).get();
-		} catch (Exception e) {
-			return true;
-		}
-	}
+    @Override
+    public boolean setNX(String objectName, Object objectValue) {
+        try {
+            return command.setnx(objectName, StringHelper.any2String(objectName)).get();
+        } catch (Exception e) {
+            return true;
+        }
+    }
 
-	@Override
-	public String getset(String objectName, Object objectValue) {
-		try {
-			return command.getset(objectName, objectValue.toString()).get();
-		} catch (Exception e) {
-			return null;
-		}
-	}
+    @Override
+    public String getset(String objectName, Object objectValue) {
+        try {
+            return command.getset(objectName, objectValue.toString()).get();
+        } catch (Exception e) {
+            return null;
+        }
+    }
 
-	@Override
-	public String getset(String objectName, int expire, Object objectValue) {
-		try {
-			return command.getset(objectName, objectValue.toString()).get();
-		} catch (Exception e) {
-			return null;
-		}
-	}
+    @Override
+    public String getset(String objectName, int expire, Object objectValue) {
+        try {
+            return command.getset(objectName, objectValue.toString()).get();
+        } catch (Exception e) {
+            return null;
+        }
+    }
 
-	@Override
-	public long inc(String objectName) {
-		try {
-			return command.incr(objectName).get();
-		} catch (Exception e) {
-			return -1;
-		}
-	}
+    @Override
+    public long inc(String objectName) {
+        try {
+            return command.incr(objectName).get();
+        } catch (Exception e) {
+            return -1;
+        }
+    }
 
-	@Override
-	public long incby(String objectName, long num) {
-		try {
-			return command.incrby(objectName, num).get();
-		} catch (Exception e) {
-			return -1;
-		}
-	}
+    @Override
+    public long incby(String objectName, long num) {
+        try {
+            return command.incrby(objectName, num).get();
+        } catch (Exception e) {
+            return -1;
+        }
+    }
 
-	@Override
-	public long dec(String objectName) {
-		try {
-			return command.decr(objectName).get();
-		} catch (Exception e) {
-			return -1;
-		}
-	}
+    @Override
+    public long dec(String objectName) {
+        try {
+            return command.decr(objectName).get();
+        } catch (Exception e) {
+            return -1;
+        }
+    }
 
-	@Override
-	public long decby(String objectName, long num) {
-		try {
-			return command.decrby(objectName, num).get();
-		} catch (Exception e) {
-			return -1;
-		}
-	}
+    @Override
+    public long decby(String objectName, long num) {
+        try {
+            return command.decrby(objectName, num).get();
+        } catch (Exception e) {
+            return -1;
+        }
+    }
 
-	@Override
-	public long delete(String objectName) {
-		try {
-			return command.del(objectName).get();
-		} catch (Exception e) {
-			return -1;
-		}
-	}
+    @Override
+    public long delete(String objectName) {
+        try {
+            return command.del(objectName).get();
+        } catch (Exception e) {
+            return -1;
+        }
+    }
 }

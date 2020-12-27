@@ -19,6 +19,7 @@ import org.json.simple.JSONObject;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 public class RedisConn {
@@ -44,7 +45,7 @@ public class RedisConn {
         }
     }
 
-    public static final RedisConn build(String config) {
+    public static RedisConn build(String config) {
         JSONObject configJson = JSONObject.toJSON(config);
         if (JSONObject.isInvaild(configJson)) {
             nlogger.errorInfo("配置信息格式错误 ->[" + config + "]");
@@ -52,7 +53,7 @@ public class RedisConn {
         return new RedisConn(configJson);
     }
 
-    public static final RedisConn build(JSONObject config) {
+    public static RedisConn build(JSONObject config) {
         return new RedisConn(config);
     }
 
@@ -76,16 +77,14 @@ public class RedisConn {
         String uri = configs.getString("single");
         String[] uris = uri.split(":");
         List<String> uriValues = new ArrayList<>();
-        for (int i = 0; i < uris.length; i++) {
-            uriValues.add(uris[i]);
-        }
+        Collections.addAll(uriValues, uris);
         if (uriValues.size() == 1) {
             uriValues.add(String.valueOf(RedisURI.DEFAULT_REDIS_PORT));
         }
-        RedisURI.Builder redisBuilder = RedisURI.Builder.redis(uriValues.get(0), Integer.valueOf(uriValues.get(1)));
+        RedisURI.Builder redisBuilder = RedisURI.Builder.redis(uriValues.get(0), Integer.parseInt(uriValues.get(1)));
         redisBuilder.withDatabase(0);
         if (configs.containsKey("password")) {
-            redisBuilder.withPassword(configs.getString("password"));
+            redisBuilder.withPassword(configs.getString("password").toCharArray());
         }
         if (configs.containsKey("ssl")) {
             redisBuilder.withSsl(configs.getBoolean("ssl"));
@@ -104,13 +103,13 @@ public class RedisConn {
         List<String> uriArray = Arrays.asList(uris.split(","));
         // List<RedisURI> links = new ArrayList<>();
         List<String> uriValues = fixRedisURI(uriArray.get(0));
-        RedisURI.Builder redisBuilder = RedisURI.Builder.sentinel(uriValues.get(0), Integer.valueOf(uriValues.get(1)));
+        RedisURI.Builder redisBuilder = RedisURI.Builder.sentinel(uriValues.get(0), Integer.parseInt(uriValues.get(1)));
         for (int i = 0; i < uriArray.size(); i++) {
             List<String> _uriValues = fixRedisURI(uriArray.get(0));
-            redisBuilder.withSentinel(_uriValues.get(0), Integer.valueOf(_uriValues.get(1)));
+            redisBuilder.withSentinel(_uriValues.get(0), Integer.parseInt(_uriValues.get(1)));
         }
         if (configs.containsKey("password")) {
-            redisBuilder.withPassword(configs.getString("password"));
+            redisBuilder.withPassword(configs.getString("password").toCharArray());
         }
         if (configs.containsKey("ssl")) {
             redisBuilder.withSsl(configs.getBoolean("ssl"));
@@ -131,17 +130,17 @@ public class RedisConn {
         List<String> uriValues = fixRedisURI(uriArray.get(0));
         RedisURI.Builder redisBuilder = null;
         if (uriArray.size() == 1) {//standalone mode
-            redisBuilder = RedisURI.Builder.redis(uriValues.get(0), Integer.valueOf(uriValues.get(1)));
+            redisBuilder = RedisURI.Builder.redis(uriValues.get(0), Integer.parseInt(uriValues.get(1)));
         }
         if (uriArray.size() > 1) {
-            redisBuilder = RedisURI.Builder.sentinel(uriValues.get(0), Integer.valueOf(uriValues.get(1)));
+            redisBuilder = RedisURI.Builder.sentinel(uriValues.get(0), Integer.parseInt(uriValues.get(1)));
             for (int i = 1; i < uriArray.size(); i++) {
                 List<String> _uriValues = fixRedisURI(uriArray.get(0));
-                redisBuilder.withSentinel(_uriValues.get(0), Integer.valueOf(_uriValues.get(1)));
+                redisBuilder.withSentinel(_uriValues.get(0), Integer.parseInt(_uriValues.get(1)));
             }
         }
         if (configs.containsKey("password")) {
-            redisBuilder.withPassword(configs.getString("password"));
+            redisBuilder.withPassword(configs.getString("password").toCharArray());
         }
         if (configs.containsKey("ssl")) {
             redisBuilder.withSsl(configs.getBoolean("ssl"));
@@ -161,10 +160,10 @@ public class RedisConn {
             if (uriValues.size() == 1) {
                 uriValues.add(String.valueOf(RedisURI.DEFAULT_REDIS_PORT));
             }
-            RedisURI.Builder redisBuilder = RedisURI.Builder.redis(uriValues.get(0), Integer.valueOf(uriValues.get(1)));
+            RedisURI.Builder redisBuilder = RedisURI.Builder.redis(uriValues.get(0), Integer.parseInt(uriValues.get(1)));
             redisBuilder.withDatabase(0);
             if (configs.containsKey("password")) {
-                redisBuilder.withPassword(configs.getString("password"));
+                redisBuilder.withPassword(configs.getString("password").toCharArray());
             }
             if (configs.containsKey("ssl")) {
                 redisBuilder.withSsl(configs.getBoolean("ssl"));

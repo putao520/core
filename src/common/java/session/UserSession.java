@@ -1,10 +1,8 @@
 package common.java.session;
 
-import common.java.JGrapeSystem.SystemDefined;
 import common.java.authority.PermissionsPowerDef;
 import common.java.httpServer.HttpContext;
 import common.java.nlogger.nlogger;
-import common.java.rpc.rMsg;
 import org.json.simple.JSONObject;
 
 import java.util.ArrayList;
@@ -21,7 +19,7 @@ public class UserSession {
         keyArray.add(PermissionsPowerDef.userField);
     }
 
-    public static final Session createUserSession(String uid, JSONObject userInfo) {
+    public static Session createUserSession(String uid, JSONObject userInfo) {
         for (String key : keyArray) {
             checkUserKey(userInfo, key);
         }
@@ -30,15 +28,11 @@ public class UserSession {
         return se;
     }
 
-    public static final Session current() {
-        Session se = new Session();
-        if (!se.checkSession()) {
-            HttpContext.current().throwOut(rMsg.netMSG(SystemDefined.interfaceSystemErrorCode.MissSession, "会话已失效，请重新登陆"));
-        }
-        return se;
+    public static Session current() {
+        return new Session();
     }
 
-    private static final void checkUserKey(JSONObject userInfo, String key) {
+    private static void checkUserKey(JSONObject userInfo, String key) {
         if (!userInfo.containsKey(key)) {
             nlogger.errorInfo("用户信息关键字段:\"" + key + "\" 不存在");
         }

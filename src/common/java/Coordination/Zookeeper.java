@@ -27,7 +27,7 @@ public class Zookeeper {
         client = getClient(configString);
     }
 
-    public static final Zookeeper build(String configString) {
+    public static Zookeeper build(String configString) {
         return new Zookeeper(configString);
     }
 
@@ -37,9 +37,6 @@ public class Zookeeper {
 
     private CuratorFramework getClient(String configString) {
         JSONObject configInfo = JSONObject.toJSON(configString);
-        if (JSONObject.isInvaild(configInfo)) {
-            // nlogger.debugInfo( "Zookeeper连接信息->错误!");
-        }
         client = clientCache.get(configString);
         JSONObject authInfo = configInfo.getJson("auth");
         if (client == null) {

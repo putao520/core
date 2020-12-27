@@ -55,24 +55,18 @@ public class Permissions {
         int chkType = pInfo.type();
         Object val = pInfo.value();
         Session se = getSE();
-        if (se != null) {
-            switch (chkType) {
-                case plvType.powerVal:
-                    if (powvalFieldName != null) {
-                        int nowPowerVal = se.getInt(powvalFieldName);
-                        rs = nowPowerVal >= NumberHelper.number2int(val);
-                    }
-                    break;
-                case plvType.userOwn:
-                    String nowUID = se.getUID();
-                    rs = nowUID.equals(val);
-                    break;
-                case plvType.groupOwn:
-                    if (fatherIDFieldName != null) {
-                        String nowgid = se.get(fatherIDFieldName).toString();
-                        rs = val.equals(nowgid);
-                    }
-                    break;
+        switch (chkType) {
+            case plvType.powerVal -> {
+                int nowPowerVal = se.getInt(powvalFieldName);
+                rs = nowPowerVal >= NumberHelper.number2int(val);
+            }
+            case plvType.userOwn -> {
+                String nowUID = se.getUID();
+                rs = nowUID.equals(val);
+            }
+            case plvType.groupOwn -> {
+                String nowgid = se.get(fatherIDFieldName).toString();
+                rs = val.equals(nowgid);
             }
         }
         return rs;
@@ -86,24 +80,20 @@ public class Permissions {
         Session se = getSE();
         int chkType = pInfo.type();
         switch (chkType) {
-            case plvType.userOwn:
+            case plvType.userOwn -> {
                 String nowUID = se.getUID();
                 newCond.eq(valueCaption, nowUID);
-                break;
-            case plvType.groupOwn:
-                if (fatherIDFieldName != null) {
-                    String nowgid = se.get(fatherIDFieldName).toString();
-                    newCond.eq(fatherIDFieldName, nowgid);
-                }
-                break;
-            case plvType.powerVal:
-                if (powvalFieldName != null) {
-                    int nowPowerVal = se.getInt(powvalFieldName);
-                    newCond.lte(valueCaption, nowPowerVal);
-                }
-                break;
+            }
+            case plvType.groupOwn -> {
+                String nowgid = se.get(fatherIDFieldName).toString();
+                newCond.eq(fatherIDFieldName, nowgid);
+            }
+            case plvType.powerVal -> {
+                int nowPowerVal = se.getInt(powvalFieldName);
+                newCond.lte(valueCaption, nowPowerVal);
+            }
         }
-        return newCond.buildex();
+        return newCond.buildEx();
     }
 
     private Session getSE() {
@@ -129,20 +119,13 @@ public class Permissions {
     }
 
     public List<List<Object>> filterCond(int plvOperate) {
-        List<List<Object>> rs = null;
+        List<List<Object>> rs = switch (plvOperate) {
+            case PlvDef.Operater.read, PlvDef.Operater.statist -> getAuthCond(PermissionsPowerDef.readValue, tempMode.readPerm());
+            case PlvDef.Operater.update -> getAuthCond(PermissionsPowerDef.updateValue, tempMode.updatePerm());
+            case PlvDef.Operater.delete -> getAuthCond(PermissionsPowerDef.deleteValue, tempMode.deletePerm());
+            default -> null;
+        };
         //普通用户判断
-        switch (plvOperate) {
-            case PlvDef.Operater.read:
-            case PlvDef.Operater.statist:
-                rs = getAuthCond(PermissionsPowerDef.readValue, tempMode.readPerm());
-                break;
-            case PlvDef.Operater.update:
-                rs = getAuthCond(PermissionsPowerDef.updateValue, tempMode.updatePerm());
-                break;
-            case PlvDef.Operater.delete:
-                rs = getAuthCond(PermissionsPowerDef.deleteValue, tempMode.deletePerm());
-                break;
-        }
         return rs;
     }
 
@@ -152,30 +135,19 @@ public class Permissions {
         boolean rs = false;
         Session se = getSE();
         //管理员判定
-        if (adminFieldName != null && se != null) {
-            if (se.getInt(adminFieldName) >= UserMode.admin) {//是管理员模式
-                rs = _checkObject(se.getUID());
-                return rs;
-            }
+        if (se.getInt(adminFieldName) >= UserMode.admin) {//是管理员模式
+            rs = _checkObject(se.getUID());
+            return rs;
         }
         //普通用户判断
-        switch (plvOperate) {
-            case PlvDef.Operater.create:
-                rs = _operateChk(tempMode.createPerm());
-                break;
-            case PlvDef.Operater.statist:
-                rs = _operateChk(tempMode.statisticsPerm());
-                break;
-            case PlvDef.Operater.read:
-                rs = _operateChk(tempMode.readPerm());
-                break;
-            case PlvDef.Operater.update:
-                rs = _operateChk(tempMode.updatePerm());
-                break;
-            case PlvDef.Operater.delete:
-                rs = _operateChk(tempMode.deletePerm());
-                break;
-        }
+        rs = switch (plvOperate) {
+            case PlvDef.Operater.create -> _operateChk(tempMode.createPerm());
+            case PlvDef.Operater.statist -> _operateChk(tempMode.statisticsPerm());
+            case PlvDef.Operater.read -> _operateChk(tempMode.readPerm());
+            case PlvDef.Operater.update -> _operateChk(tempMode.updatePerm());
+            case PlvDef.Operater.delete -> _operateChk(tempMode.deletePerm());
+            default -> false;
+        };
         return rs;
     }
 }

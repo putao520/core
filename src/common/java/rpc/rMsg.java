@@ -10,7 +10,7 @@ public class rMsg {
         return netMSG(NumberHelper.number2int(state), "", msg);
     }
 
-    public static final String netMSG(int state, String message, Object data) {
+    public static String netMSG(int state, String message, Object data) {
         JSONObject newData = new JSONObject();
         newData.puts("errorcode", state).puts("record", data);
         if (state > 0) {
@@ -19,7 +19,7 @@ public class rMsg {
         return newData.toJSONString();
     }
 
-    public static final String netPAGE(int idx, int max, long count, JSONArray record) {
+    public static String netPAGE(int idx, int max, long count, JSONArray record) {
         JSONObject rs = new JSONObject();
         if (record != null) {
             rs.put("data", record);
@@ -36,7 +36,7 @@ public class rMsg {
         return netMSG(0, rs);
     }
 
-    public static final String netState(Object state) {
+    public static String netState(Object state) {
         return netMSG(state, "");
     }
 }

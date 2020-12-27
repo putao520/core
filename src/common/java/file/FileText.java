@@ -20,19 +20,19 @@ public class FileText extends FileEx<FileText> {
         this.charset = charset;
     }
 
-    public static final FileText build(String filePath, Charset charset) {
+    public static FileText build(String filePath, Charset charset) {
         return new FileText(new File(filePath), charset);
     }
 
-    public static final FileText build(File file, Charset charset) {
+    public static FileText build(File file, Charset charset) {
         return new FileText(file, charset);
     }
 
-    public static final FileText build(String filePath) {
+    public static FileText build(String filePath) {
         return new FileText(new File(filePath));
     }
 
-    public static final FileText build(File file) {
+    public static FileText build(File file) {
         return new FileText(file);
     }
 

@@ -25,7 +25,7 @@ public class MicroServiceContext {
         init(servName);
     }
 
-    public static final MicroServiceContext current() {
+    public static MicroServiceContext current() {
         return new MicroServiceContext();
     }
 

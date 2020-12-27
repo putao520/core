@@ -33,7 +33,7 @@ public class GrapeJar {
      * @return 该包名下的所有类
      */
     public static List<Class<?>> getClass(String packageName, boolean recursive) {
-        List<Class<?>> classList = new ArrayList<Class<?>>();
+        List<Class<?>> classList = new ArrayList<>();
         try {
             //获取当前线程的类装载器中相应包名对应的资源
             Enumeration<URL> iterator = Thread.currentThread().getContextClassLoader().getResources(packageName.replace(DOT_CHAR, File.separatorChar));
@@ -105,7 +105,7 @@ public class GrapeJar {
         if (!Files.exists(path)) {
             return Collections.emptyList();
         }
-        List<Class<?>> classList = new ArrayList<Class<?>>();
+        List<Class<?>> classList = new ArrayList<>();
         if (Files.isDirectory(path)) {
             if (!recursive) {
                 return Collections.emptyList();
@@ -115,7 +115,7 @@ public class GrapeJar {
                 Stream<Path> stream = Files.list(path);
                 Iterator<Path> iterator = stream.iterator();
                 while (iterator.hasNext()) {
-                    classList.addAll(getClassInFile(iterator.next(), packageName, recursive));
+                    classList.addAll(getClassInFile(iterator.next(), packageName, true));
                 }
             } catch (IOException e) {
                 nlogger.logInfo(e);
@@ -137,9 +137,7 @@ public class GrapeJar {
                 }
                 className = lastDotIndex == -1 ? className.substring(beginIndex) : className.substring(beginIndex, lastDotIndex);
                 classList.add(Class.forName(className));
-            } catch (IOException e) {
-                nlogger.logInfo(e);
-            } catch (ClassNotFoundException e) {
+            } catch (IOException | ClassNotFoundException e) {
                 nlogger.logInfo(e);
             }
         }
@@ -191,7 +189,7 @@ public class GrapeJar {
      * @return 该包名下的所有类
      */
     public static List<Class<?>> getClassInJar(JarFile jar, String packageName, boolean recursive) {
-        List<Class<?>> classList = new ArrayList<Class<?>>();
+        List<Class<?>> classList = new ArrayList<>();
         //该迭代器会递归得到该jar底下所有的目录和文件
         Enumeration<JarEntry> iterator = jar.entries();
         while (iterator.hasMoreElements()) {

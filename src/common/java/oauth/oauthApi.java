@@ -5,7 +5,7 @@ import common.java.httpServer.HttpContext;
 import common.java.string.StringHelper;
 
 public class oauthApi {
-    public final static oauthApi getInstance() {
+    public static oauthApi getInstance() {
         return new oauthApi();
     }
 

@@ -4,12 +4,15 @@ import com.alibaba.druid.pool.DruidDataSource;
 import com.alibaba.druid.pool.DruidPooledConnection;
 import com.mongodb.BasicDBObject;
 import common.java.nlogger.nlogger;
+import common.java.number.NumberHelper;
 import common.java.string.StringHelper;
 import common.java.time.TimeHelper;
 import common.java.worker.Worker;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
+import java.io.BufferedReader;
+import java.io.Reader;
 import java.sql.*;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -18,29 +21,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
-/***
- * mysql配置解析
- {
- "dbName": "mysql",
- "user": "",
- "password": "",
- "database": "grape_cloud_dev",
- "initsize": 2,
- "maxactive": 200,
- "minidle": 0,
- "maxwait": 60000,
- "validationquery": "select 1",
- "testinborrow": true,
- "testwhileidle": true,
- "poolpreparedstatements": false,
- "useUnicode": true,
- "characterEncoding": "UTF-8",
- "nodeAddresses": ["mysql://putao282.mysql.rds.aliyuncs.com:3306"]
- }
- *
- */
-
-public class Sql {
+public class Oracle {
     /**
      *
      */
@@ -67,6 +48,7 @@ public class Sql {
     private boolean _distinct;
     private boolean _atom;
     private List<List<Object>> conditionJSON;    //条件
+    private List<List<Object>> conditionJSON_backup;    //条件
     private List<JSONObject> dataJSON;
     private List<String> fieldList;
     private String fastfieldString;
@@ -80,7 +62,7 @@ public class Sql {
 
     //配置说明，参考官方网址
     //http://blog.163.com/hongwei_benbear/blog/static/1183952912013518405588/
-    public Sql(String configString) {
+    public Oracle(String configString) {
         isDirty = false;
         formName = "";
         _configString = configString;
@@ -120,6 +102,7 @@ public class Sql {
         boolean useunicode;
         boolean useSSL;
         String charName;
+        String sid;
         int initSize;
         int minIdle;
         int maxWait;
@@ -132,14 +115,13 @@ public class Sql {
             obj = JSONObject.toJSON(_configString);
             user = obj.getString("user");
             password = obj.getString("password");
+            sid = obj.getString("sid");
             databaseName = obj.getString("database");
-            charName = obj.getString("characterEncoding");
-            useunicode = obj.getBoolean("useUnicode");
-            useSSL = obj.getBoolean("useSSL");
-            String url = obj.getString("host") + "/" + databaseName + "?useUnicode=" + useunicode + "&characterEncoding=" + charName + "&useSSL=" + useSSL;
-            if (obj.containsKey("timezone")) {
-                url += ("&serverTimezone=" + obj.getString("timezone"));
-            }
+            // charName = obj.getString("characterEncoding");
+            // useunicode = obj.getBoolean("useUnicode");
+            // useSSL = obj.getBoolean("useSSL");
+            // jdbc:oracle:thin:59.203.206.51:1521
+            String url = "oracle:thin:@" + obj.getString("host") + ":" + sid;
             initSize = obj.getInt("initsize");
             minIdle = obj.getInt("minidle");
             maxWait = obj.getInt("maxwait");
@@ -149,6 +131,7 @@ public class Sql {
             DruidDataSource ds = DataSource.getOrDefault(_configString, null);
             if (ds == null || ds.isClosed() || !ds.isEnable()) {
                 ds = new DruidDataSource();
+
                 if (!user.equals("") && !password.equals("")) {
                     ds.setUsername(user);
                     ds.setPassword(password);
@@ -192,19 +175,23 @@ public class Sql {
             nlogger.logInfo("scan 每页最大值不能小于等于0");
         }
 
-        int maxCount = (int) dirty().count();
-        int pageNO = maxCount % max > 0 ? (maxCount / max) + 1 : maxCount / max;
-        JSONArray jsonArray, tempResult;
-        tempResult = new JSONArray();
-        for (int index = 1; index <= pageNO; index++) {
-            jsonArray = dirty().page(index, max);
-            assert func != null;
-            jsonArray = func.apply(jsonArray);
-            if (jsonArray != null) {
-                tempResult.addAll(jsonArray);
+        try {
+            int maxCount = (int) dirty().count();
+            int pageNO = maxCount % max > 0 ? (maxCount / max) + 1 : maxCount / max;
+            JSONArray jsonArray, tempResult;
+            tempResult = new JSONArray();
+            for (int index = 1; index <= pageNO; index++) {
+                jsonArray = dirty().page(index, max);
+                assert func != null;
+                jsonArray = func.apply(jsonArray);
+                if (jsonArray != null) {
+                    tempResult.addAll(jsonArray);
+                }
             }
+            return tempResult;
+        } finally {
+            reinit();
         }
-        return tempResult;
     }
 
     /**
@@ -246,7 +233,7 @@ public class Sql {
                 es.execute(() -> {
                     try {
                         JSONArray jsonArray;
-                        Sql db = new Sql(_configString);
+                        Oracle db = new Oracle(_configString);
                         db.form(_formName);
                         db.setCond(condJSON);
                         jsonArray = db.page(_index, _max);
@@ -333,6 +320,7 @@ public class Sql {
             isDirty = false;
             return;
         }
+        conditionJSON_backup = new ArrayList<>();
         conditionJSON = new ArrayList<>();
         conditiobLogicAnd = true;
         fieldList = new ArrayList<>();
@@ -403,47 +391,47 @@ public class Sql {
         eq(fieldName, CondValue);//载入的时候填入条件
     }
 
-    public Sql and() {
+    public Oracle and() {
         conditiobLogicAnd = true;
         return this;
     }
 
-    public Sql or() {
+    public Oracle or() {
         conditiobLogicAnd = false;
         return this;
     }
 
-    public Sql eq(String field, Object value) {//One Condition
+    public Oracle eq(String field, Object value) {//One Condition
         addCondition(field, value, "=");
         return this;
     }
 
-    public Sql ne(String field, Object value) {//One Condition
+    public Oracle ne(String field, Object value) {//One Condition
         addCondition(field, value, "!=");
         return this;
     }
 
-    public Sql gt(String field, Object value) {//One Condition
+    public Oracle gt(String field, Object value) {//One Condition
         addCondition(field, value, ">");
         return this;
     }
 
-    public Sql lt(String field, Object value) {//One Condition
+    public Oracle lt(String field, Object value) {//One Condition
         addCondition(field, value, "<");
         return this;
     }
 
-    public Sql gte(String field, Object value) {//One Condition
+    public Oracle gte(String field, Object value) {//One Condition
         addCondition(field, value, ">=");
         return this;
     }
 
-    public Sql lte(String field, Object value) {//One Condition
+    public Oracle lte(String field, Object value) {//One Condition
         addCondition(field, value, "<=");
         return this;
     }
 
-    public Sql like(String field, Object value) {//One Condition
+    public Oracle like(String field, Object value) {//One Condition
         addCondition(field, "%" + value.toString() + "%", "like");
         return this;
     }
@@ -457,12 +445,12 @@ public class Sql {
         return conditionJSON.size() == 0;
     }
 
-    public Sql where(List<List<Object>> condArray) {
+    public Oracle where(List<List<Object>> condArray) {
         conditionJSON.addAll(condArray);
         return this;
     }
 
-    public Sql where(JSONArray condArray) {
+    public Oracle where(JSONArray condArray) {
         JSONObject tmpJSON;
         String field, logic, link_login;
         Object value;
@@ -523,24 +511,24 @@ public class Sql {
         }
     }
 
-    public Sql data(String jsonString) {
+    public Oracle data(String jsonString) {
         data(JSONObject.toJSON(jsonString));
 
         return this;
     }
 
-    public Sql data(JSONObject doc) {
+    public Oracle data(JSONObject doc) {
         dataJSON.add(doc);
         return this;
     }
 
-    public Sql field(String fieldString) {
+    public Oracle field(String fieldString) {
         fastfieldString = fieldString;
         field(fieldString.split(","));
         return this;
     }
 
-    public Sql field() {
+    public Oracle field() {
         fastfieldString = "*";
         fieldList = new ArrayList<>();
         return this;
@@ -568,7 +556,7 @@ public class Sql {
         return rs.toString();
     }
 
-    public Sql field(String[] _fieldList) {
+    public Oracle field(String[] _fieldList) {
         if (fastfieldString.equals("*")) {
             fastfieldString = stringList2string(_fieldList);
         }
@@ -576,12 +564,12 @@ public class Sql {
         return this;
     }
 
-    public Sql mask(String fieldString) {
+    public Oracle mask(String fieldString) {
         String[] maskField = fieldString.split(",");
         return mask(maskField);
     }
 
-    public Sql mask(String[] _FieldList) {
+    public Oracle mask(String[] _FieldList) {
         //getGeneratedKeys();
         List<String> tempField = new ArrayList<>();
         if (tableFields.size() < 1) {
@@ -646,7 +634,7 @@ public class Sql {
         DruidPooledConnection conn = getNewConnection();
         try {
             smt = conn.createStatement();
-            String sql = "select * from " + tableName + " limit 1";
+            String sql = "select * from " + tableName + " where rownum = 1";
             rs = smt.executeQuery(sql);
             if (rs != null) {
                 sqlString = result2create(rs);
@@ -757,7 +745,7 @@ public class Sql {
         return rs;
     }
 
-    public Sql form(String _formName) {
+    public Oracle form(String _formName) {
         formName = _formName;
         safeTable();
         return this;
@@ -771,27 +759,28 @@ public class Sql {
         return formName;
     }
 
-    public Sql skip(int no) {
+    public Oracle skip(int no) {
         skipNo = no;
+        limitNo += skipNo;
         return this;
     }
 
-    public Sql limit(int no) {
-        limitNo = no;
+    public Oracle limit(int no) {
+        limitNo = skipNo + no;
         return this;
     }
 
-    public Sql asc(String field) {
+    public Oracle asc(String field) {
         sortBSON.put(field, "asc");
         return this;
     }
 
-    public Sql desc(String field) {
+    public Oracle desc(String field) {
         sortBSON.put(field, "desc");
         return this;
     }
 
-    public Sql findOne() {
+    public Oracle findOne() {
         _atom = true;
         return this;
     }
@@ -846,7 +835,7 @@ public class Sql {
         }
     }
 
-    public Sql clearResult() {
+    public Oracle clearResult() {
 
         return this;
     }
@@ -912,7 +901,7 @@ public class Sql {
         try {
             smt = conn.createStatement();
             for (String _sql : lStrings) {
-                String nsql = TransactSQLInjection(_sql + (isall ? "" : " limit 1"));
+                String nsql = TransactSQLInjection(_sql + (isall ? "" : " rownum = 1"));
                 // nlogger.logInfo(nsql);
                 rs += smt.executeUpdate(nsql);
             }
@@ -944,16 +933,16 @@ public class Sql {
     }
 
     @SuppressWarnings("unchecked")
-    public Sql setCond(List<List<Object>> conJSON) {
+    public Oracle setCond(List<List<Object>> conJSON) {
         conditionJSON = conJSON;
         return this;
     }
 
-    public Sql groupWhere(JSONArray condArray) {
+    public Oracle groupWhere(JSONArray condArray) {
         return groupCondition(DbFilter.buildDbFilter(condArray).buildEx());
     }
 
-    public Sql groupCondition(List<List<Object>> conds) {
+    public Oracle groupCondition(List<List<Object>> conds) {
         if (conds != null && conds.size() > 0) {
             List<Object> block = new ArrayList<>();
             block.add(conditiobLogicAnd ? "and" : "or");
@@ -963,9 +952,24 @@ public class Sql {
         return this;
     }
 
+    private void appendOracleConds() {
+        if (conditionJSON_backup.size() > 0) {
+            conditionJSON.clear();
+            conditionJSON.addAll(conditionJSON_backup);
+        } else {
+            conditionJSON_backup.addAll(conditionJSON);
+        }
+        // 发现 skipNo 补充限制条件
+        if (skipNo > 0) {
+            gt((limitNo > 0 ? "rn" : "rownum "), skipNo);
+        } else if (limitNo > 0) {
+            lte("rownum ", limitNo);
+        }
+    }
+
     private String whereSQL() {//不支持自由条件，必须严格区分and和or2个组
         StringBuilder rString = new StringBuilder();
-        String tempString;
+        appendOracleConds();
         if (conditionJSON.size() > 0) {
             int cnt = 0;
             for (List<Object> item : conditionJSON) {
@@ -981,6 +985,7 @@ public class Sql {
     private String whereSQL(List<Object> conds, boolean isfirst) {
         StringBuilder r = new StringBuilder();
         int cnt = 0;
+        // 生成条件
         for (Object item : conds) {
             Object idx0 = conds.get(0);
             if (item instanceof ArrayList) {//列表对象是list
@@ -1045,7 +1050,7 @@ public class Sql {
             DruidPooledConnection conn = getNewConnection();
             try {
                 smt = conn.createStatement();
-                String sql = TransactSQLInjection("delete from " + getfullform() + whereSQL() + (isall ? "" : " limit 1"));
+                String sql = TransactSQLInjection("delete from " + getfullform() + whereSQL() + (isall ? "" : " rownum = 1"));
                 TransactSQLInjection(sql);
                 rs = smt.executeUpdate(sql);
             } catch (Exception e) {
@@ -1089,10 +1094,6 @@ public class Sql {
         return _find(true);
     }
 
-    private String limitSQl() {
-        return limitNo > 0 ? " limit " + (skipNo > 0 ? skipNo + "," : "") + limitNo : "";
-    }
-
     private String sortSQL() {//只有第一个有效
         String rs = "";
         if (sortBSON.size() > 0) {
@@ -1102,6 +1103,15 @@ public class Sql {
             }
         }
         return rs;
+    }
+
+    private String getfullformSQL() {
+        // 包含需要跳过的数据行
+        if (limitNo > 0 && skipNo > 0) {
+            return "(select rownum rn,a.* from " + getfullform() + " a where rownum <= " + limitNo + ")";
+        } else {
+            return getfullform();
+        }
     }
 
     private Object _findex(boolean isall) {
@@ -1114,7 +1124,7 @@ public class Sql {
                 if (limitNo == 0)
                     limitNo = 1;
             }
-            String sql = TransactSQLInjection("select " + fastfieldString + " from " + getfullform() + whereSQL() + sortSQL() + limitSQl());
+            String sql = TransactSQLInjection("select " + fastfieldString + " from " + getfullformSQL() + whereSQL() + sortSQL());
             TransactSQLInjection(sql);
             rs = col2jsonArray(smt.executeQuery(sql));
         } catch (Exception e) {
@@ -1166,7 +1176,7 @@ public class Sql {
             otherfield += ", avg(" + _distinctfield(_valueName) + ") as avg";
         String condString = whereSQL();
         groupSQL = groupName == null || groupName.equals("") ? "" : (condString) + " group by " + groupName;
-        sql = TransactSQLInjection("select " + fastfieldString + otherfield + " from " + getfullform() + groupSQL + sortSQL() + limitSQl());
+        sql = TransactSQLInjection("select " + fastfieldString + otherfield + " from " + getfullform() + groupSQL + sortSQL());
         TransactSQLInjection(sql);
         JSONArray fd;
         Statement smt;
@@ -1193,7 +1203,7 @@ public class Sql {
         return rs;
     }
 
-    public Sql distinct() {
+    public Oracle distinct() {
         _distinct = true;
         return this;
     }
@@ -1217,7 +1227,7 @@ public class Sql {
                 fieldString.insert(0, "DISTINCT(" + fieldName + "),");
             }
             fieldString = new StringBuilder(StringHelper.build(fieldString.toString()).trimFrom(',').toString());
-            String sql = TransactSQLInjection("select " + fieldString + " from " + getfullform() + whereSQL() + sortSQL() + limitSQl());
+            String sql = TransactSQLInjection("select " + fieldString + " from " + getfullform() + whereSQL() + sortSQL());
             TransactSQLInjection(sql);
             return col2jsonArray(smt.executeQuery(sql));
         } catch (Exception e) {
@@ -1230,7 +1240,7 @@ public class Sql {
     }
 
     public JSONArray page(int pageidx, int pagemax) {//普通分页
-        return skip((pageidx - 1) * pagemax).limit(pagemax).select();
+        return skip(((pageidx - 1) * pagemax)).limit(pagemax).select();
     }
 
     private long _count() {
@@ -1240,7 +1250,7 @@ public class Sql {
             Statement smt = conn.createStatement();
             String sql = TransactSQLInjection("select count(*) from " + getfullform());
             TransactSQLInjection(sql);
-            return (long) Result(smt.executeQuery(sql));
+            return NumberHelper.number2long(Result(smt.executeQuery(sql)));
         } catch (Exception e) {
             nlogger.logInfo(e);
         } finally {
@@ -1259,7 +1269,7 @@ public class Sql {
             Statement smt = conn.createStatement();
             String sql = TransactSQLInjection("select count(*) from " + getfullform() + whereSQL());
             //TransactSQLInjection(Sql);
-            return (long) Result(smt.executeQuery(sql));
+            return NumberHelper.number2long(Result(smt.executeQuery(sql)));
         } catch (Exception e) {
             nlogger.logInfo(e);
         } finally {
@@ -1271,31 +1281,31 @@ public class Sql {
         return 0;
     }
 
-    public Sql count(String groupbyString) {//某字段分组后数量
+    public Oracle count(String groupbyString) {//某字段分组后数量
         groupbyfield = groupbyString;
         _count = true;
         return this;
     }
 
-    public Sql max(String groupbyString) {
+    public Oracle max(String groupbyString) {
         groupbyfield = groupbyString;
         _max = true;
         return this;
     }
 
-    public Sql min(String groupbyString) {
+    public Oracle min(String groupbyString) {
         groupbyfield = groupbyString;
         _min = true;
         return this;
     }
 
-    public Sql avg(String groupbyString) {
+    public Oracle avg(String groupbyString) {
         groupbyfield = groupbyString;
         _avg = true;
         return this;
     }
 
-    public Sql sum(String groupbyString) {
+    public Oracle sum(String groupbyString) {
         groupbyfield = groupbyString;
         _sum = true;
         return this;
@@ -1329,6 +1339,30 @@ public class Sql {
         return tableList;
     }
 
+    private String ClobToString(Clob clob) {
+        try {
+            Reader is = clob.getCharacterStream();
+            BufferedReader br = new BufferedReader(is);
+            String s = br.readLine();
+            StringBuffer sb = new StringBuffer();
+            while (s != null) {// 执行循环将字符串全部取出付值给StringBuffer由StringBuffer转成STRING
+                sb.append(s);
+                s = br.readLine();
+            }
+            return sb.toString();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return "";
+    }
+
+    private Object ConvertObj(Object o) {
+        if (o instanceof Clob) {
+            return ClobToString((Clob) o);
+        }
+        return o;
+    }
+
     @SuppressWarnings("unchecked")
     private JSONArray col2jsonArray(ResultSet rst) {
         JSONArray rsj = new JSONArray();
@@ -1344,7 +1378,7 @@ public class Sql {
                 for (int i = 1; i <= columns; i++) {
                     Object tobj = null;
                     try {
-                        tobj = rst.getObject(i);
+                        tobj = ConvertObj(rst.getObject(i));
                     } catch (SQLException sqle) {
                         if (sqle.getSQLState().equals("S1009")) {
                             tobj = 0;
@@ -1414,7 +1448,7 @@ public class Sql {
         return rValue;
     }
 
-    public Sql bind(String ownerID) {
+    public Oracle bind(String ownerID) {
         ownid = ownerID == null ? "" : ownerID;
         return this;
     }
@@ -1429,7 +1463,7 @@ public class Sql {
         return (int) Math.ceil(d);
     }
 
-    public Sql dirty() {
+    public Oracle dirty() {
         isDirty = true;
         return this;
     }

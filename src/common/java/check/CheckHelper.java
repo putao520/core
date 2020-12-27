@@ -32,32 +32,32 @@ public class CheckHelper {
      */
     public static boolean eqZero(String str) {
         if (IntTest(str)) {
-            return Integer.valueOf(str) == 0;
+            return Integer.parseInt(str) == 0;
         }
         if (LongTest(str)) {
-            return Long.valueOf(str) == 0;
+            return Long.parseLong(str) == 0;
         }
         if (FloatTest(str)) {
-            return Float.valueOf(str) == (float) 0.0;
+            return Float.parseFloat(str) == (float) 0.0;
         }
         if (DoubleTest(str)) {
-            return Double.valueOf(str) == 0.00;
+            return Double.parseDouble(str) == 0.00;
         }
         return false;
     }
 
     public static boolean bigZero(String str) {
         if (IntTest(str)) {
-            return Integer.valueOf(str) > 0;
+            return Integer.parseInt(str) > 0;
         }
         if (LongTest(str)) {
-            return Long.valueOf(str) > 0;
+            return Long.parseLong(str) > 0;
         }
         if (FloatTest(str)) {
-            return Float.valueOf(str) > (float) 0.0;
+            return Float.parseFloat(str) > (float) 0.0;
         }
         if (DoubleTest(str)) {
-            return Double.valueOf(str) > 0.00;
+            return Double.parseDouble(str) > 0.00;
         }
         return false;
     }
@@ -187,7 +187,7 @@ public class CheckHelper {
     }
 
     public static boolean noSpace(String str) {
-        return !(str.indexOf(" ") >= 0);
+        return !(str.contains(" "));
     }
 
     /**
@@ -247,14 +247,9 @@ public class CheckHelper {
         for (String _formatYMD : timeFormatYMD) {
             for (String _formatHMS : timeFormatHMS) {
                 try {
-                    if (timeFormatYMD != null) {
-                        _format = _formatHMS == null ? _formatYMD : _formatYMD + " " + _formatHMS;
-                    }
-                    if (timeFormatHMS != null) {
-                        _format = _formatYMD == null ? _formatHMS : _formatYMD + " " + _formatHMS;
-                    }
+                    _format = _formatHMS == null ? _formatYMD : _formatYMD + " " + _formatHMS;
+                    _format = _formatYMD == null ? _formatHMS : _formatYMD + " " + _formatHMS;
                     if (_formatYMD == null && _formatHMS == null) {
-                        flag = false;
                         break;
                     }
                     nlogger.logInfo(_format);
@@ -262,11 +257,10 @@ public class CheckHelper {
                     LocalDateTime.parse(str, format);
                     return true;
                 } catch (Exception e) {
-                    flag = false;
                 }
             }
         }
-        return flag;
+        return false;
     }
 
     /**
@@ -285,48 +279,24 @@ public class CheckHelper {
             }
             _char = StringHelper.build(str).charAtFrist().toString();
             switch (_char) {
-                case "周":
-                case "星":
-                case "期":
-                case "礼":
-                case "拜":
+                case "周", "星", "期", "礼", "拜" -> {
                     str = StringHelper.build(str).removeTrailingFrom().toString();
                     state = true;
-                    break;
-                default:
-                    state = false;
-                    break;
+                }
+                default -> state = false;
             }
         }
-        switch (str) {
-            case "一":
-                tmp = "1";
-                break;
-            case "二":
-                tmp = "2";
-                break;
-            case "三":
-                tmp = "3";
-                break;
-            case "四":
-                tmp = "4";
-                break;
-            case "五":
-                tmp = "5";
-                break;
-            case "六":
-                tmp = "6";
-                break;
-            case "日":
-            case "天":
-            case "七":
-                tmp = "7";
-                break;
-            default:
-                tmp = str;
-                break;
-        }
-        return isInt(tmp) && (Integer.valueOf(tmp) > 0 && Integer.valueOf(tmp) < 8);
+        tmp = switch (str) {
+            case "一" -> "1";
+            case "二" -> "2";
+            case "三" -> "3";
+            case "四" -> "4";
+            case "五" -> "5";
+            case "六" -> "6";
+            case "日", "天", "七" -> "7";
+            default -> str;
+        };
+        return isInt(tmp) && (Integer.parseInt(tmp) > 0 && Integer.parseInt(tmp) < 8);
     }
 
     /**
@@ -345,59 +315,30 @@ public class CheckHelper {
             }
             _char = StringHelper.build(str).charAtLast().toString();
             switch (_char) {
-                case "月":
-                case "份":
+                case "月", "份" -> {
                     str = StringHelper.build(str).removeTrailingFrom().toString();
                     state = true;
-                    break;
-                default:
-                    state = false;
-                    break;
+                }
+                default -> state = false;
             }
         }
 
-        switch (str) {
-            case "一":
-                tmp = "1";
-                break;
-            case "二":
-                tmp = "2";
-                break;
-            case "三":
-                tmp = "3";
-                break;
-            case "四":
-                tmp = "4";
-                break;
-            case "五":
-                tmp = "5";
-                break;
-            case "六":
-                tmp = "6";
-                break;
-            case "七":
-                tmp = "7";
-                break;
-            case "八":
-                tmp = "8";
-                break;
-            case "九":
-                tmp = "9";
-                break;
-            case "十":
-                tmp = "10";
-                break;
-            case "十一":
-                tmp = "11";
-                break;
-            case "十二":
-                tmp = "12";
-                break;
-            default:
-                tmp = str;
-                break;
-        }
-        return isInt(tmp) && (Integer.valueOf(tmp) > 0 && Integer.valueOf(tmp) < 13);
+        tmp = switch (str) {
+            case "一" -> "1";
+            case "二" -> "2";
+            case "三" -> "3";
+            case "四" -> "4";
+            case "五" -> "5";
+            case "六" -> "6";
+            case "七" -> "7";
+            case "八" -> "8";
+            case "九" -> "9";
+            case "十" -> "10";
+            case "十一" -> "11";
+            case "十二" -> "12";
+            default -> str;
+        };
+        return isInt(tmp) && (Integer.parseInt(tmp) > 0 && Integer.parseInt(tmp) < 13);
     }
 
     /**
@@ -427,8 +368,6 @@ public class CheckHelper {
             rs = false;
         }
         return rs;
-        //String regex = "http(s)?://([\\w-]+\\.)+[\\w-]+(/[\\w- ./?%&=]*)?";
-        //return match(regex, str);
     }
 
     /**

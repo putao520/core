@@ -8,14 +8,14 @@ public class SqlHelper {
     /**
      * 10位unixtime
      */
-    public static final String nowTimestamp() {
+    public static String nowTimestamp() {
         return SqlHelper.func("now()");
     }
 
     /**
      * 10位unixtime
      */
-    public static final String nowTimeFormat(long unixTime) {
+    public static String nowTimeFormat(long unixTime) {
         return func("from_unixtime(" + unixTime + ")");
     }
 }
