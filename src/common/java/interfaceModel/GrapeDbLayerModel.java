@@ -70,6 +70,10 @@ public class GrapeDbLayerModel implements InterfaceDatabase<GrapeDbLayerModel> {
         return op;
     }
 
+    public DbLayer _getDB() {
+        return this.db;
+    }
+
     //自动补齐字段初始值
     private GrapeDbLayerModel autoComplete() {
         if (checker != null && dataCache != null) {
@@ -772,6 +776,10 @@ public class GrapeDbLayerModel implements InterfaceDatabase<GrapeDbLayerModel> {
 
     public JSONObject add(String fieldName, long num) {
         return this.db.add(fieldName, num);
+    }
+
+    public JSONObject sub(String fieldName, long num) {
+        return this.db.sub(fieldName, num);
     }
 
     public String condString() {

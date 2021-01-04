@@ -1072,6 +1072,12 @@ public class Sql {
         return update();
     }
 
+    public JSONObject sub(String fieldName, long num) {
+        data("{\"" + fieldName + "\":\"" + fieldName + "-" + Math.abs(num) + "\"}");
+        findOne();//open atom mode
+        return update();
+    }
+
     public JSONObject find() {
         limit(1);
         JSONArray fd = _find(false);

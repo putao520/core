@@ -434,6 +434,11 @@ public class DbLayer implements InterfaceDatabase<DbLayer> {
         return (JSONObject) _db._call(Thread.currentThread().getStackTrace()[1].getMethodName(), fieldName, num);
     }
 
+    public JSONObject sub(String fieldName, long num) {
+        updatefix();
+        return (JSONObject) _db._call(Thread.currentThread().getStackTrace()[1].getMethodName(), fieldName, num);
+    }
+
     public JSONObject find() {
         updatefix();
         return (JSONObject) fieldOutPiper(_db._call(Thread.currentThread().getStackTrace()[1].getMethodName()));

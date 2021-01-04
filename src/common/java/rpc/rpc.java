@@ -148,7 +148,7 @@ public class rpc {
      * 调用RPC
      */
     public RpcResponse call(Object... args) {
-        return call(this.toString(), this.ctx, args);
+        return call(this.toString(), this.ctx, this.needApiAuth, args);
     }
 
     /**

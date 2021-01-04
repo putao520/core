@@ -2,6 +2,7 @@ package common.java.interfaceModel;
 
 import common.java.apps.AppContext;
 import common.java.authority.PermissionsPowerDef;
+import common.java.database.DbLayer;
 import common.java.httpServer.HttpContext;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -23,6 +24,11 @@ public class GrapeTreeDbLayerModel extends GrapeDbLayerModel {
         super();
         pipeJSONArray_Out = new ArrayList<>();
         init();
+    }
+
+    @Override
+    public DbLayer _getDB() {
+        return super._getDB();
     }
 
     private GrapeTreeDbLayerModel(String modelName) {

@@ -3,6 +3,7 @@ package common.java.serviceHelper;
 import common.java.apps.MModelRuleNode;
 import common.java.apps.MicroServiceContext;
 import common.java.database.DbFilter;
+import common.java.database.DbLayer;
 import common.java.interfaceModel.GrapeTreeDbLayerModel;
 import common.java.interfaceModel.aggregation;
 import common.java.rpc.RpcPageInfo;
@@ -39,6 +40,10 @@ public class MicroServiceTemplate implements MicroServiceTemplateInterface {
             InitDB_fn = fn;
             InitDB_fn.accept(this);
         }
+    }
+
+    public DbLayer _getDB() {
+        return this.db._getDB();
     }
 
     protected GrapeTreeDbLayerModel getDB() {

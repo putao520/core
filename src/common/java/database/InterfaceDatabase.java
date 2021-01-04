@@ -87,6 +87,8 @@ public interface InterfaceDatabase<T> {
 
     JSONObject add(String fieldName, long num);
 
+    JSONObject sub(String fieldName, long num);
+
     JSONObject find();
 
     JSONArray select();
