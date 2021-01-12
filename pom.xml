@@ -70,7 +70,6 @@
             <artifactId>common</artifactId>
             <version>1.071</version>
         </dependency>
-
     </dependencies>
 
     <build>

@@ -97,13 +97,20 @@ public class MicroServiceTemplate implements MicroServiceTemplateInterface {
             // 填入多个值
             ids.addAll(Arrays.asList(_ids.split(",")));
         }
-        if (ids.size() == 0) {
+        int l = ids.size();
+        if (l == 0) {
             return localArray;
         }
-
-        String _ids = StringHelper.join(ids);
-        JSONArray foreignArray = func.apply(_ids);
-        localArray.joinOn(localKey, foreignKey, foreignArray, save_null_item);
+        String[] idsArray = ids.toArray(new String[l]);
+        // 这里需要注意ids过多的情况
+        int c = (l / 50) + ( l % 50 > 0 ? 1 : 0 ) ;   // 总循环次数
+        int p = 0;
+        for(int i =0; i < c; i++){
+            String _ids = StringHelper.join(idsArray, ",", p, 50);
+            JSONArray foreignArray = func.apply(_ids);
+            localArray.joinOn(localKey, foreignKey, foreignArray, save_null_item);
+            p+=50;
+        }
         // 设置返回数据
         return localArray;
     }
