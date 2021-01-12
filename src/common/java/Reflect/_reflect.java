@@ -8,6 +8,7 @@ import common.java.interfaceType._ApiType;
 import common.java.nlogger.nlogger;
 import common.java.oauth.oauthApi;
 import common.java.rpc.ExecRequest;
+import common.java.rpc.RpcError;
 import common.java.rpc.rMsg;
 import common.java.session.Session;
 import common.java.string.StringHelper;
@@ -273,24 +274,28 @@ public class _reflect {
         return rs;
     }
 
-    private String chkApiType(ApiType _at) {
-        String rs = null;
+    private RpcError chkApiType(ApiType _at) {
+        RpcError rs = null;
         switch (_at.value()) {
             case SessionApi:
                 if (Session.getSID() == null) {//会话不存在
-                    rs = rMsg.netMSG(SystemDefined.interfaceSystemErrorCode.SessionApi, "当前请求不在有效会话上下文内");
+                    // rs = rMsg.netMSG(SystemDefined.interfaceSystemErrorCode.SessionApi, "当前请求不在有效会话上下文内");
+                    rs = RpcError.Instant(SystemDefined.interfaceSystemErrorCode.SessionApi, "当前请求不在有效会话上下文内");
                 }
                 break;
             case OauthApi:
                 if (!oauthApi.getInstance().checkApiToken()) {
-                    rs = rMsg.netMSG(SystemDefined.interfaceSystemErrorCode.OauthApi, "当前token无效或已过期");
+                    // rs = rMsg.netMSG(SystemDefined.interfaceSystemErrorCode.OauthApi, "当前token无效或已过期");
+                    rs = RpcError.Instant(SystemDefined.interfaceSystemErrorCode.OauthApi, "当前token无效或已过期");
                 }
                 break;
             case CloseApi:
-                rs = rMsg.netMSG(SystemDefined.interfaceSystemErrorCode.CloseApi, "非法接口");
+                // rs = rMsg.netMSG(SystemDefined.interfaceSystemErrorCode.CloseApi, "非法接口");
+                rs = RpcError.Instant(SystemDefined.interfaceSystemErrorCode.CloseApi, "非法接口");
                 break;
             case PrivateApi:
-                rs = _superMode ? null : rMsg.netMSG(SystemDefined.interfaceSystemErrorCode.PrivateApi, "内部接口");
+                // rs = _superMode ? null : rMsg.netMSG(SystemDefined.interfaceSystemErrorCode.PrivateApi, "内部接口");
+                rs = _superMode ? null : RpcError.Instant(SystemDefined.interfaceSystemErrorCode.PrivateApi, "内部接口");
                 break;
             default:
                 break;
@@ -315,7 +320,7 @@ public class _reflect {
                             if (rs == null) {
                                 break;
                             } else {
-                                rs = "Interface Error:[" + rs + "]";
+                                rs = "Interface Error:[" + rs.toString() + "]";
                             }
                         }
                     }
@@ -353,7 +358,6 @@ public class _reflect {
                     rs = null;
                 }
             }
-
         } else {
             StringBuilder clsString = new StringBuilder();
             if (parameters != null) {
