@@ -68,7 +68,7 @@
         <dependency>
             <groupId>gfw</groupId>
             <artifactId>common</artifactId>
-            <version>1.071</version>
+            <version>1.072</version>
         </dependency>
     </dependencies>
 
