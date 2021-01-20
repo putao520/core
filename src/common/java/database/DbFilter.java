@@ -83,14 +83,16 @@ public class DbFilter {
     }
 
     public DbFilter like(String field, Object value) {
-
         addCondition(field, value, "like");
         return this;
     }
 
-    @SuppressWarnings("unchecked")
     private void addCondition(String field, Object value, String logic) {
-        condArray.add((new JSONObject("field", field)).puts("logic", logic).puts("value", value));
+        JSONObject j = JSONObject.putx("field", field).puts("logic", logic).puts("value", value);
+        if (!conditiobLogicAnd) { // 是or
+            j.put("link_logic", "or");
+        }
+        condArray.add(j);
     }
 
     public JSONArray build() {
