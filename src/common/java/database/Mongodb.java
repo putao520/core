@@ -6,6 +6,7 @@ import com.mongodb.client.*;
 import com.mongodb.client.model.*;
 import com.mongodb.client.result.DeleteResult;
 import com.mongodb.client.result.UpdateResult;
+import common.java.Config.nConfig;
 import common.java.nlogger.nlogger;
 import org.bson.Document;
 import org.bson.conversions.Bson;
@@ -736,7 +737,7 @@ public class Mongodb {
         //System.out.println(condString());
         try {
             Bson filterData = translate2bsonAndRun();
-            rl = filterData == null ? collection.countDocuments() : collection.countDocuments(filterData);
+            rl = filterData == null ? collection.estimatedDocumentCount() : collection.countDocuments(filterData);
             if (!islist) {
                 reinit();
             }
@@ -933,32 +934,94 @@ public class Mongodb {
         return Updates.combine(updateBSON);
     }
 
+    private BasicDBObject killAnd(BasicDBObject rBSON) {
+        BasicDBObject r = new BasicDBObject();
+        if (rBSON.size() > 0) {
+            for (Object key : rBSON.keySet()) {
+                if (key.equals("$and")) {
+                    BasicDBList cArray = (BasicDBList) rBSON.get("$and");
+                    for (Object _o : cArray) {
+                        BasicDBObject o = (BasicDBObject) _o;
+                        for (Object _l : o.keySet()) {
+                            Object _v = r.get(_l);
+                            if (_v == null) {
+                                _v = o.get(_l);
+                                r.put(_l.toString(), _v);
+                            } else {
+                                BasicDBList _vl;
+                                if (_v instanceof BasicDBObject) {
+                                    _vl = new BasicDBList();
+                                } else {
+                                    _vl = (BasicDBList) _v;
+                                }
+                                _vl.add(_v);
+                            }
+
+                        }
+                    }
+                }
+            }
+        }
+        return r;
+    }
+
     private BasicDBObject translate2bsonAndRun() {//翻译到BSON并执行
         BasicDBObject rBSON = new BasicDBObject();
         int size = conditionJSON.size();
         if (size > 0) {
             List<Object> tempConds = new ArrayList<>(conditionJSON);
             rBSON = translate2bsonAndRun(tempConds);
+            // rBSON = killAnd(rBSON);  // 最外层 $and 转成 obj
         }
-        // System.out.println(rBSON.toJson());
+        if (nConfig.debug) {
+            System.out.println(rBSON.toJson());
+        }
         return rBSON;
+    }
+
+    // 通KEY合并 r->l
+    private BasicDBObject BasicDBObjectAppend(BasicDBObject l, BasicDBObject r) {
+        for (Object rk : r.keySet()) {
+            BasicDBList lvl;
+            if (l.containsKey(rk)) {
+                Object lv = l.get(rk);
+                if (lv instanceof BasicDBObject) {
+                    lvl = new BasicDBList();
+                    lvl.add(lv);
+                } else {
+                    lvl = (BasicDBList) lv;
+                }
+                Object rv = r.get(rk);
+                if (rv instanceof BasicDBObject) {
+                    lvl.add(rv);
+                } else {
+                    BasicDBList rvl = (BasicDBList) rv;
+                    lvl.addAll(rvl);
+                }
+                l.put(rk.toString(), lvl);
+            } else {
+                l.put(rk.toString(), r.get(rk));
+            }
+        }
+        return l;
     }
 
     //返回BasicDBList或者BasicDBObject
     private BasicDBObject translate2bsonAndRun(List<Object> conds) {
         BasicDBObject r = new BasicDBObject();
-        BasicDBList infoList = new BasicDBList();
         for (Object item : conds) {
-            r = new BasicDBObject();
+            // r = new BasicDBObject();
             Object idx0 = conds.get(0);
             if (item instanceof ArrayList) {//列表对象是list
                 List<Object> info = (List<Object>) item;
                 BasicDBObject cond = translate2bsonAndRun(info);
-                infoList.add(cond);
-                if (infoList.size() > 0) {
-                    r.put("$" + info.get(0), infoList);
-                    infoList = new BasicDBList();
-                    infoList.add(r);
+                if (cond.size() > 0) {
+                    BasicDBList tempInfoList = (BasicDBList) r.get("$" + info.get(0));
+                    if (tempInfoList == null) {
+                        tempInfoList = new BasicDBList();
+                    }
+                    tempInfoList.add(cond);
+                    r.put("$" + info.get(0), tempInfoList);
                 }
             } else {
                 if (conds.size() == 2) {//是条件组
@@ -980,8 +1043,17 @@ public class Mongodb {
                     } else {
                         value = _getID(field, value);
                     }
-                    cond.put(logicStr, value);
                     BasicDBObject rInfo = new BasicDBObject();
+                    /*  // 简化 eq
+                    if( logicStr.equals("$eq") ){
+                        rInfo.put(field, value);
+                    }
+                    else{
+                        cond.put(logicStr, value);
+                        rInfo.put(field, cond);
+                    }
+                     */
+                    cond.put(logicStr, value);
                     rInfo.put(field, cond);
                     return rInfo;
                 }

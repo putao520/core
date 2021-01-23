@@ -1,8 +1,5 @@
 package common.java.rpc;
 
-import common.java.Config.nConfig;
-import common.java.JGrapeSystem.GrapeJar;
-import common.java.JGrapeSystem.SystemDefined;
 import common.java.Reflect._reflect;
 import common.java.httpServer.HttpContext;
 import common.java.httpServer.RequestSession;
@@ -11,22 +8,15 @@ import common.java.string.StringHelper;
 import org.json.simple.JSONObject;
 
 import java.lang.reflect.Method;
-import java.net.URL;
-import java.net.URLClassLoader;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public class ExecRequest {//框架内请求类
 
-    private static final AtomicInteger randON;
     private static final HashMap<Class<?>, String> class2string;
     private static final String clsDesp = "@getClass";
-    private static String appsURL;
+    private static final String appsURL;
 
     static {
-        randON = new AtomicInteger(0);
 
         class2string = new HashMap<>();
         class2string.put(String.class, "s");
@@ -48,24 +38,6 @@ public class ExecRequest {//框架内请求类
         appsURL = null;
     }
 
-    private static String getAppsURL() {
-        if (appsURL == null) {
-            AppRepository();
-        }
-        return appsURL;
-    }
-
-    private static void AppRepository() {
-        JSONObject obj;
-        try {
-            obj = JSONObject.toJSON(nConfig.netConfig(SystemDefined.commonConfigUnit.FileNode));
-            appsURL = StringHelper.build(obj.getString("nodeAddresses")).trimFrom('/').toString();
-        } catch (Exception e) {
-            System.err.println("AppRepository Config Error!:" + e.getMessage());
-            appsURL = "";
-        }
-    }
-
     /**
      * 执行当前上下文环境下的调用
      */
@@ -76,8 +48,8 @@ public class ExecRequest {//框架内请求类
         Object rs = null;
         try {
             // 执行前置类
-            Object[] _objs = beforeExecute(className, actionName, hCtx.invokeParamter());
-            if (_objs != null) {
+            Object[] _objs = hCtx.invokeParamter();
+            if (beforeExecute(className, actionName, _objs)) {
                 // 载入主类
                 Class<?> _cls = Class.forName("main.java._api" + "." + className);
                 // 执行call
@@ -90,11 +62,12 @@ public class ExecRequest {//框架内请求类
                     obj.newInstance();
                     // 调用主要类,后置类,固定返回结构
                     rs = obj._call(actionName, _objs);
-                    rs = afterExecute(className, actionName, rs);
-                    rs = RpcResult(rs);
+                    rs = RpcResult(afterExecute(className, actionName, rs));
                 } catch (Exception e) {
                     nlogger.logInfo(e, "实例化 " + _cls.toString() + " ...失败");
                 }
+            } else {
+                rs = RpcError.Instant(false, "前置接口过滤错误!");
             }
         } catch (Exception e) {
             nlogger.logInfo(e, "类:" + className + " : 不存在");
@@ -103,18 +76,18 @@ public class ExecRequest {//框架内请求类
     }
 
     // 过滤函数改变输入参数
-    private static Object[] beforeExecute(String className, String actionName, Object[] objs) {
+    private static Boolean beforeExecute(String className, String actionName, Object[] objs) {
         try {
             // 载入主类的前置类
             Class<?> _before_cls = Class.forName("main.java.before_api" + "." + className);
             Method fn = _before_cls.getMethod("filter", String.class, Object[].class);
-            return (Object[]) fn.invoke(null, actionName, objs);
+            return (Boolean) fn.invoke(null, actionName, objs);
         } catch (ClassNotFoundException e1) {
-            return objs;
+            return true;
         } catch (Exception e) {
             e.printStackTrace();
             // System.out.println("类:" + className + "_前置类,异常！");
-            return null;
+            return false;
         }
     }
 
@@ -206,24 +179,6 @@ public class ExecRequest {//框架内请求类
             GetParams.append(info.getString(key)).append(":;");
         }
         return "gsc-post:" + StringHelper.build(GetParams.toString()).removeTrailingFrom(2).toString();
-    }
-
-    private static ClassLoader clsLoader(String url) {
-        try {
-            return new URLClassLoader(new URL[]{new URL(url)});
-        } catch (Exception e) {
-        }
-        return null;
-    }
-
-    private static String getPackageClassInfo(String packagePath) {
-        List<Class<?>> clsList = GrapeJar.getClass(packagePath, true);
-        List<String> rList = new ArrayList<>();
-        for (Class<?> c : clsList) {
-            String[] clss = c.getName().split("\\.");
-            rList.add(clss[clss.length - 1]);
-        }
-        return StringHelper.join(rList, ",");
     }
 
 }

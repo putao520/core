@@ -8,6 +8,7 @@ import common.java.httpServer.HttpContext;
 import common.java.nlogger.nlogger;
 import common.java.number.NumberHelper;
 import common.java.string.StringHelper;
+import common.java.time.TimeHelper;
 import org.json.simple.JSONObject;
 
 import java.util.Objects;
@@ -26,7 +27,7 @@ public class Session {
     public Session() {
         cacher = getCacher();
         String sid = getSID();
-        this.expireTime = -1;
+        this.expireTime = 1800;
         updateUserInfo(sid);
     }
 
@@ -60,6 +61,8 @@ public class Session {
         }
         jsonString = exJson
                 .puts("_GrapeFW_SID", sid)
+                .puts("_GrapeFW_Expire", expire)
+                .puts("_GrapeFW_NeedRefresh", (expire + TimeHelper.build().nowSecond()) / 2)
                 .puts(uid + "_GrapeFW_AppInfo_", HttpContext.current().appid()).toJSONString();//补充appid参数
         // 先获得上次的会话实体ID并删除
         JSONObject lastInfo = JSONObject.toJSON(Objects.requireNonNull(cacher).get(uid));
@@ -349,6 +352,17 @@ public class Session {
         return NumberHelper.number2int(rd);
     }
 
+    // 延续会话维持时间(20分钟)
+    public Session RefreshSession() {
+        int need_expire_time = sessionInfo.getInt("_GrapeFW_NeedRefresh");
+        if ((TimeHelper.build().nowSecond() + expireTime) < need_expire_time) {
+            return this;
+        }
+        cacher.set(sid, uid, expireTime);
+        cacher.set(uid, sessionInfo.toJSONString(), expireTime);
+        return this;
+    }
+
     //更新当前会话有关信息
     private boolean updateUserInfo(String sid) {
         boolean rb = false;
@@ -358,10 +372,14 @@ public class Session {
             if (uid != null && !uid.isEmpty()) {//返回了用户名
                 this.uid = uid;
                 sessionInfo = JSONObject.toJSON(cacher.get(uid));
+                // 补充会话数据
                 if (sessionInfo != null) {
                     this.appid = sessionInfo.getInt(uid + "_GrapeFW_AppInfo_");//获得所属appid
+                    this.expireTime = sessionInfo.getInt("_GrapeFW_Expire");
                     this.gid = sessionInfo.getString(PermissionsPowerDef.fatherIDField);//获得所在组ID
                 }
+                // 更新会话维持时间
+                RefreshSession();
                 rb = true;
             }
         }
