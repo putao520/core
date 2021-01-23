@@ -4,11 +4,11 @@ import common.java.Config.nConfig;
 import common.java.JGrapeSystem.SystemDefined;
 import common.java.file.UploadFile;
 import common.java.interfaceType.ApiType;
-import common.java.interfaceType._ApiType;
+import common.java.interfaceType.ApiTypes;
 import common.java.nlogger.nlogger;
 import common.java.oauth.oauthApi;
 import common.java.rpc.*;
-import common.java.session.Session;
+import common.java.session.UserSession;
 import common.java.string.StringHelper;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -98,8 +98,8 @@ public class _reflect {
         StringBuilder apiString = new StringBuilder();
         Annotation[] atApiTypes = method.getDeclaredAnnotations();
         for (Annotation an : atApiTypes) {
-            if (an.annotationType() == _ApiType.class) {
-                _ApiType at = method.getAnnotation(_ApiType.class);
+            if (an.annotationType() == ApiTypes.class) {
+                ApiTypes at = method.getAnnotation(ApiTypes.class);
                 for (ApiType _at : at.value()) {
                     apiString.append(declApiType(_at));
                 }
@@ -276,7 +276,7 @@ public class _reflect {
         RpcError rs = null;
         switch (_at.value()) {
             case SessionApi:
-                if (Session.getSID() == null) {//会话不存在
+                if (!UserSession.current().checkSession()) {//会话不存在
                     // rs = rMsg.netMSG(SystemDefined.interfaceSystemErrorCode.SessionApi, "当前请求不在有效会话上下文内");
                     rs = RpcError.Instant(SystemDefined.interfaceSystemErrorCode.SessionApi, "当前请求不在有效会话上下文内");
                 }
@@ -308,11 +308,12 @@ public class _reflect {
             //------------------方法注解检查，多个注解权限时，OR逻辑连接多个注解条件
             if (!nConfig.debug && !privateMode) {
                 Annotation[] ans = comMethod.getDeclaredAnnotations();
+                // Annotation[] ans = comMethod.getAnnotations();
                 for (Annotation an : ans) {//遍历全部注解
                     if (an.annotationType() == ApiType.class) {
                         rs = chkApiType(comMethod.getAnnotation(ApiType.class));
-                    } else if (an.annotationType() == _ApiType.class) {
-                        _ApiType atApiType = comMethod.getAnnotation(_ApiType.class);
+                    } else if (an.annotationType() == ApiTypes.class) {
+                        ApiTypes atApiType = comMethod.getAnnotation(ApiTypes.class);
                         for (ApiType _at : atApiType.value()) {
                             rs = chkApiType(_at);
                             if (rs == null) {

@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
+// public class MicroServiceTemplate implements MicroServiceTemplateInterface {
 public class MicroServiceTemplate implements MicroServiceTemplateInterface {
     private final String[] aggr_key = {"", ""};
     public GrapeTreeDbLayerModel db;

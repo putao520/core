@@ -106,7 +106,7 @@ public class ExecRequest {//框架内请求类
 
     private static Object RpcResult(Object o) {
         if (o == null) {
-            return "";
+            return rMsg.netState(false);
         }
         if (o instanceof byte[]) {
             return o;
@@ -117,7 +117,7 @@ public class ExecRequest {//框架内请求类
         } else if (o instanceof RpcError) {
             return o.toString();
         } else {
-            return rMsg.netMSG(true, o);
+            return rMsg.netMSG(o);
         }
     }
 

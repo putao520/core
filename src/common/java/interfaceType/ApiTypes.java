@@ -5,6 +5,6 @@ import java.lang.annotation.RetentionPolicy;
 
 //@Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
-public @interface _ApiType {
+public @interface ApiTypes {
     ApiType[] value();
 }

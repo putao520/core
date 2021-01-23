@@ -1,9 +1,12 @@
 package common.java.interfaceType;
 
 import java.lang.annotation.Repeatable;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 
 
-@Repeatable(_ApiType.class)
+@Retention(RetentionPolicy.RUNTIME)
+@Repeatable(ApiTypes.class)
 public @interface ApiType {
     type value() default type.PublicApi;
 
