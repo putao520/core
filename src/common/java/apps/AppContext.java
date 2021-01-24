@@ -11,6 +11,8 @@ import io.netty.channel.ChannelId;
 import org.json.simple.JSONObject;
 
 import java.util.HashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class AppContext {
     public static final String SessionKey = "AppContext";
@@ -19,6 +21,8 @@ public class AppContext {
     private JSONObject appInfo;
     private ModelServiceConfig msc;
     private HashMap<String, MicroServiceContext> microServiceInfo;
+
+    private static final ExecutorService globalService = Executors.newCachedThreadPool();
 
     private AppContext() {
         // 默认使用当前上下文 或者 0
@@ -40,6 +44,21 @@ public class AppContext {
             RequestSession.setValue(AppContext.SessionKey, r);
         }
         return r;
+    }
+
+
+    /**
+     * 获得当前应用上下文
+     */
+    public static AppThreadContext virualAppContext() {
+        return AppThreadContext.build(HttpContext.current());
+    }
+
+    /**
+     * 设置当前线程上下文
+     */
+    public static AppContext virualAppContext(AppThreadContext atc) {
+        return virualAppContext(atc.AppID, atc.MicroServiceName);
     }
 
     /**
@@ -150,5 +169,22 @@ public class AppContext {
                                 GscJson.encode(JSONObject.putx("configName", this.msc.toJson()))
                         )
         ).status();
+    }
+
+    /**
+     * 当前上下文启动新线程
+     */
+    public AppContext thread(Runnable task) {
+        return this.thread(task, null);
+    }
+
+    public AppContext thread(Runnable task, ExecutorService service) {
+        ExecutorService serv = service == null ? globalService : service;
+        AppThreadContext atc = AppContext.virualAppContext();
+        serv.submit(() -> {
+            AppContext.virualAppContext(atc);
+            task.run();
+        });
+        return this;
     }
 }

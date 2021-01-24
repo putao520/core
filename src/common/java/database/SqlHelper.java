@@ -1,7 +1,7 @@
 package common.java.database;
 
 public class SqlHelper {
-    private static String func(String str) {
+    public static String func(String str) {
         return "func:" + str + " ";
     }
 

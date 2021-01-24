@@ -62,6 +62,11 @@ public class CacheHelper {
         return cache.set(key, value, expire);
     }
 
+    public String set(String key, Object value) {
+        key = perfixHook(key);
+        return cache.set(key, value);
+    }
+
     /**
      * 存入缓存数据
      *

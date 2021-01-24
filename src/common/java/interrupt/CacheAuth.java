@@ -1,12 +1,31 @@
 package common.java.interrupt;
 
 import common.java.cache.CacheHelper;
+import common.java.string.StringHelper;
 
 public class CacheAuth {
     private final CacheHelper cache = new CacheHelper();//使用当前服务的缓存
 
+    public static CacheAuth build() {
+        return new CacheAuth();
+    }
+
+    public String getUniqueKey(String perfix_ssid, String v) {
+        String k;
+        do {
+            k = perfix_ssid + "_" + StringHelper.numUUID();
+        } while (cache.get(k) != null);
+        cache.set(k, v);
+        return k;
+    }
+
     public boolean breakRun(String ssid, String code) {
         cache.getSet(ssid, code, 30);
+        return true;
+    }
+
+    public boolean breakRun(String ssid, String code, int expire) {
+        cache.getSet(ssid, code, expire);
         return true;
     }
 

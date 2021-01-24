@@ -1436,14 +1436,14 @@ public class Oracle {
             if (_values[0].equalsIgnoreCase("func")) {
                 rValue = StringHelper.join(_values, ":", 1, -1);
             } else {
-                rValue = StringHelper.typeString(_value);
+                rValue = StringHelper.typeString(_value, "'");
             }
             JSONObject jsontest = JSONObject.toJSON(rValue);
             if (jsontest != null) {
                 rValue = "'" + rValue + "'";
             }
         } catch (Exception e) {
-            rValue = StringHelper.typeString(_value);
+            rValue = StringHelper.typeString(_value, "'");
         }
         return rValue;
     }
