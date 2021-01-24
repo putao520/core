@@ -390,6 +390,8 @@ public class _reflect {
         if (comMethod != null) {
             // 调用主要方法
             rs = callMainAction(comMethod, cls, functionName, parameters);
+        } else {
+            rs = RpcError.Instant(false, "无效接口!");
         }
         _superMode = false;
         return rs;
