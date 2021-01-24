@@ -30,25 +30,27 @@ public class RpcBefore {
         }
     }
 
-    public static boolean global_filter(String actionName, Object[] input) {
+    public static FilterReturn global_filter(String actionName, Object[] input) {
         if (global_fn != null) {
             return global_fn.run(actionName, input);
         }
-        return true;
+        return FilterReturn.buildTrue();
     }
 
-    public static boolean filter(String actionName, Object[] input) {
-        if (!global_filter(actionName, input)) {
-            return false;
+    public static FilterReturn filter(String actionName, Object[] input) {
+        FilterReturn r = global_filter(actionName, input);
+        if (!r.state()) {
+            return r;
         }
         List<FilterCallback> fnArray = filterArray.get(actionName);
         if (fnArray != null) {
             for (FilterCallback fn : fnArray) {
-                if (!fn.run(actionName, input)) {
-                    return false;
+                r = fn.run(actionName, input);
+                if (!r.state()) {
+                    return r;
                 }
             }
         }
-        return true;
+        return FilterReturn.buildTrue();
     }
 }

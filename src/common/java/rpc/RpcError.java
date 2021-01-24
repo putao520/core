@@ -17,6 +17,10 @@ public class RpcError {
         return new RpcError(state ? 0 : 1, msg);
     }
 
+    public static RpcError Instant(FilterReturn fReturn) {
+        return new RpcError(fReturn.state() ? 0 : 1, fReturn.message());
+    }
+
     public String toString() {
         return rMsg.netMSG(errorCode, msg, "");
     }

@@ -49,7 +49,8 @@ public class ExecRequest {//框架内请求类
         try {
             // 执行前置类
             Object[] _objs = hCtx.invokeParamter();
-            if (beforeExecute(className, actionName, _objs)) {
+            FilterReturn filterReturn = beforeExecute(className, actionName, _objs);
+            if (filterReturn.state()) {
                 // 载入主类
                 Class<?> _cls = Class.forName("main.java._api" + "." + className);
                 // 执行call
@@ -67,7 +68,7 @@ public class ExecRequest {//框架内请求类
                     nlogger.logInfo(e, "实例化 " + _cls.toString() + " ...失败");
                 }
             } else {
-                rs = RpcError.Instant(false, "前置接口过滤错误!");
+                rs = RpcError.Instant(filterReturn);
             }
         } catch (Exception e) {
             nlogger.logInfo(e, "类:" + className + " : 不存在");
@@ -76,18 +77,18 @@ public class ExecRequest {//框架内请求类
     }
 
     // 过滤函数改变输入参数
-    private static Boolean beforeExecute(String className, String actionName, Object[] objs) {
+    private static FilterReturn beforeExecute(String className, String actionName, Object[] objs) {
         try {
             // 载入主类的前置类
             Class<?> _before_cls = Class.forName("main.java.before_api" + "." + className);
             Method fn = _before_cls.getMethod("filter", String.class, Object[].class);
-            return (Boolean) fn.invoke(null, actionName, objs);
+            return (FilterReturn) fn.invoke(null, actionName, objs);
         } catch (ClassNotFoundException e1) {
-            return true;
+            return FilterReturn.buildTrue();
         } catch (Exception e) {
             e.printStackTrace();
             // System.out.println("类:" + className + "_前置类,异常！");
-            return false;
+            return FilterReturn.build(false, "过滤函数异常!");
         }
     }
 
