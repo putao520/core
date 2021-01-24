@@ -1,17 +1,24 @@
 package common.java.rpc;
 
-import org.json.simple.JSONObject;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 
 public class RpcAfter {
     // 过滤链
-    public static final JSONObject filterArray = new JSONObject();
+    public static final HashMap<String, List<ReturnCallback>> filterArray = new HashMap<>();
     public static ReturnCallback global_fn = null;
 
     public static void $(String actionName, ReturnCallback fn) {
         if (actionName.equals("*")) {
             global_fn = fn;
         } else {
-            filterArray.puts(actionName, fn);
+            List<ReturnCallback> fnArray = filterArray.get(actionName);
+            if (fnArray == null) {
+                fnArray = new ArrayList<>();
+                filterArray.put(actionName, fnArray);
+            }
+            fnArray.add(fn);
         }
     }
 
@@ -30,9 +37,11 @@ public class RpcAfter {
 
     public static Object filter(String actionName, Object returnValue) {
         Object g_o = global_filter(actionName, returnValue);
-        ReturnCallback fn = (ReturnCallback) filterArray.get(actionName);
-        if (fn != null) {
-            return fn.run(actionName, g_o);
+        List<ReturnCallback> fnArray = filterArray.get(actionName);
+        if (fnArray != null) {
+            for (ReturnCallback fn : fnArray) {
+                g_o = fn.run(actionName, g_o);
+            }
         }
         return g_o;
     }
