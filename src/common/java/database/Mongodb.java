@@ -747,6 +747,10 @@ public class Mongodb {
         return rl;
     }
 
+    public String getConditionString() {
+        return conditionJSON.toString();
+    }
+
     @SuppressWarnings("unchecked")
     public JSONArray distinct(String fieldName) {
         JSONArray rTs = new JSONArray();

@@ -1151,6 +1151,10 @@ public class Sql {
         return group(null);
     }
 
+    public String getConditionString() {
+        return conditionJSON.toString();
+    }
+
     /**
      * @param groupName //groupby fieldName
      * @return

@@ -204,7 +204,7 @@ public class DbLayer implements InterfaceDatabase<DbLayer> {
      */
     public JSONArray selectbyCache(int second) {
         JSONArray rs = null;
-        String key = getFormName() + condString();
+        String key = getFormName() + getConditionString();
         Cache c = getCache();
         if (c != null) {
             rs = JSONArray.toJSONArray(c.get(key));
@@ -221,7 +221,7 @@ public class DbLayer implements InterfaceDatabase<DbLayer> {
     }
 
     public void InvaildCache() {
-        String key = getFormName() + condString();
+        String key = getFormName() + getConditionString();
         Cache c = getCache();
         if (c != null) {
             c.delete(key);
@@ -230,7 +230,7 @@ public class DbLayer implements InterfaceDatabase<DbLayer> {
 
     public JSONObject findbyCache(int second) {
         JSONObject rs = null;
-        String key = getFormName() + condString();
+        String key = getFormName() + getConditionString();
         Cache c = getCache();
         if (c != null) {
             rs = JSONObject.toJSON(c.get(key));
@@ -449,7 +449,7 @@ public class DbLayer implements InterfaceDatabase<DbLayer> {
         return (JSONArray) fieldOutPiper(_db._call(Thread.currentThread().getStackTrace()[1].getMethodName()));
     }
 
-    public String condString() {
+    public String getConditionString() {
         updatefix();
         return (String) _db._call(Thread.currentThread().getStackTrace()[1].getMethodName());
     }

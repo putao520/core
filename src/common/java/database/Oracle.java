@@ -194,6 +194,10 @@ public class Oracle {
         }
     }
 
+    public String getConditionString() {
+        return conditionJSON.toString();
+    }
+
     /**
      * 多线程同步扫描
      *

@@ -782,8 +782,8 @@ public class GrapeDbLayerModel implements InterfaceDatabase<GrapeDbLayerModel> {
         return this.db.sub(fieldName, num);
     }
 
-    public String condString() {
-        return this.db.condString();
+    public String getConditionString() {
+        return this.db.getConditionString();
     }
 
     public JSONArray distinct(String fieldName) {

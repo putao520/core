@@ -149,5 +149,5 @@ public interface InterfaceDatabase<T> {
 
     List<String> getAllTables();
 
-
+    String getConditionString();
 }
