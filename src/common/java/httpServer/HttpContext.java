@@ -1,5 +1,6 @@
 package common.java.httpServer;
 
+import common.java.nlogger.nlogger;
 import common.java.number.NumberHelper;
 import common.java.rpc.rMsg;
 import common.java.string.StringHelper;
@@ -317,42 +318,47 @@ public class HttpContext {
         Object[] arglist = new Object[urls.length - offset];
         String[] stype;
         String svalue;
-        for (int i = offset; i < urls.length; i++) {
-            svalue = urls[i];
-            stype = svalue.split(":");
-            int idx = i - offset;
-            if (stype.length > 0) {//包含类型信息
-                switch (stype[0]) {
+        try {
+            for (int i = offset; i < urls.length; i++) {
+                svalue = urls[i];
+                stype = svalue.split(":");
+                int idx = i - offset;
+                if (stype.length > 0) {//包含类型信息
+                    switch (stype[0]) {
 //string
-                    case "s" -> arglist[idx] = svalue.substring(2);
+                        case "s" -> arglist[idx] = svalue.substring(2);
 //int
-                    case "int" -> arglist[idx] = Integer.parseInt(svalue.substring(4));
+                        case "int" -> arglist[idx] = Integer.parseInt(svalue.substring(4));
 //long
-                    case "long" -> arglist[idx] = Long.parseLong(svalue.substring(5));
+                        case "long" -> arglist[idx] = Long.parseLong(svalue.substring(5));
 //char
-                    case "char" -> arglist[idx] = svalue.charAt(5);
+                        case "char" -> arglist[idx] = svalue.charAt(5);
 //float
-                    case "float" -> arglist[idx] = Float.parseFloat(svalue.substring(6));
+                        case "float" -> arglist[idx] = Float.parseFloat(svalue.substring(6));
 //double
-                    case "double" -> arglist[idx] = Double.parseDouble(svalue.substring(7));
+                        case "double" -> arglist[idx] = Double.parseDouble(svalue.substring(7));
 //short
-                    case "short" -> arglist[idx] = Short.parseShort(svalue.substring(6));
+                        case "short" -> arglist[idx] = Short.parseShort(svalue.substring(6));
 //Integer
-                    case "i" -> arglist[idx] = Integer.parseInt(svalue.substring(2));
+                        case "i" -> arglist[idx] = Integer.parseInt(svalue.substring(2));
 //boolean
-                    case "b", "bool" -> arglist[idx] = Boolean.parseBoolean(svalue.substring(2));
+                        case "b", "bool" -> arglist[idx] = Boolean.parseBoolean(svalue.substring(2));
 //float
-                    case "f" -> arglist[idx] = Float.parseFloat(svalue.substring(2));
+                        case "f" -> arglist[idx] = Float.parseFloat(svalue.substring(2));
 //long
-                    case "l" -> arglist[idx] = Long.parseLong(svalue.substring(2));
+                        case "l" -> arglist[idx] = Long.parseLong(svalue.substring(2));
 //double
-                    case "d" -> arglist[idx] = Double.parseDouble(svalue.substring(2));
+                        case "d" -> arglist[idx] = Double.parseDouble(svalue.substring(2));
 //boolean
-                    default -> arglist[idx] = svalue;
+                        default -> arglist[idx] = svalue;
+                    }
+                } else {
+                    arglist[i] = svalue;
                 }
-            } else {
-                arglist[i] = svalue;
             }
+        } catch (Exception e) {
+            nlogger.errorInfo(e, "非法输入参数!(疑似接口分析)");
+            arglist = null;
         }
         return arglist;
     }
