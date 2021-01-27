@@ -1,56 +1,57 @@
 package common.java.rpc;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 
 public class RpcBefore {
-    // 过滤链
-    public static final HashMap<String, List<FilterCallback>> filterArray = new HashMap<>();
-    // 通用过滤链
-    public static FilterCallback global_fn = null;
+    // 过滤链(全局)
+    public static final HashMap<String, FilterLink> filterArray = new HashMap<>();
 
-    public static void $(String actionName, FilterCallback fn) {
-        if (actionName.equals("*")) {
-            global_fn = fn;
-        } else {
-            List<FilterCallback> fnArray = filterArray.get(actionName);
-            if (fnArray == null) {
-                fnArray = new ArrayList<>();
-                filterArray.put(actionName, fnArray);
-            }
-            fnArray.add(fn);
-        }
-
-    }
-
-    public static void $(String[] actionNameArray, FilterCallback fn) {
-        for (String actionName : actionNameArray) {
-            $(actionName, fn);
-        }
-    }
-
-    public static FilterReturn global_filter(String actionName, Object[] input) {
-        if (global_fn != null) {
-            return global_fn.run(actionName, input);
-        }
-        return FilterReturn.buildTrue();
-    }
-
-    public static FilterReturn filter(String actionName, Object[] input) {
-        FilterReturn r = global_filter(actionName, input);
+    public static FilterReturn filter(String className, String actionName, Object[] input) {
+        FilterLink fl = filterArray.get(className);
+        FilterReturn r = fl.global_run(actionName, input);
         if (!r.state()) {
             return r;
         }
-        List<FilterCallback> fnArray = filterArray.get(actionName);
-        if (fnArray != null) {
-            for (FilterCallback fn : fnArray) {
-                r = fn.run(actionName, input);
-                if (!r.state()) {
-                    return r;
-                }
-            }
+        return fl.runFor(actionName, input);
+    }
+
+    public RpcBefore $(String actionName, FilterCallback fn) {
+        String clsName = this.getClass().getSimpleName();
+        FilterLink fl = filterArray.get(clsName);
+        if (fl == null) {
+            fl = FilterLink.build();
         }
-        return FilterReturn.buildTrue();
+        // 锁定过滤器，不允许新增了
+        if (fl.isLocked()) {
+            return this;
+        }
+        fl.put(actionName, fn);
+        filterArray.put(clsName, fl);
+        return this;
+    }
+
+    public RpcBefore $(String[] actionNameArray, FilterCallback fn) {
+        for (String actionName : actionNameArray) {
+            $(actionName, fn);
+        }
+        return this;
+    }
+
+    public RpcBefore lock() {
+        String clsName = this.getClass().getSimpleName();
+        FilterLink fl = filterArray.get(clsName);
+        if (fl != null) {
+            fl.lock();
+        }
+        return this;
+    }
+
+    public RpcBefore unlock() {
+        String clsName = this.getClass().getSimpleName();
+        FilterLink fl = filterArray.get(clsName);
+        if (fl != null) {
+            fl.unlock();
+        }
+        return this;
     }
 }

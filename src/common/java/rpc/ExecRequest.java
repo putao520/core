@@ -7,8 +7,12 @@ import common.java.nlogger.nlogger;
 import common.java.string.StringHelper;
 import org.json.simple.JSONObject;
 
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class ExecRequest {//框架内请求类
 
@@ -76,33 +80,59 @@ public class ExecRequest {//框架内请求类
         return rs;
     }
 
+    private static final ConcurrentHashMap<String, List<Object>> FilterObjectCache = new ConcurrentHashMap<>();
+
+    private static List<Object> getFilterCache(String classFullName) {
+        List<Object> o_array;
+        // String classFullName = "main.java.before_api" + "." + className;
+        try {
+            o_array = FilterObjectCache.get(classFullName);
+            if (o_array == null) {
+                Class<?> _before_cls = Class.forName(classFullName);
+                Constructor<?> cObject = _before_cls.getDeclaredConstructor(null);
+                Object o = cObject.newInstance(null);
+                Method f = _before_cls.getMethod("filter", String.class, String.class, Object[].class);
+                o_array = new ArrayList<>();
+                o_array.add(o);
+                o_array.add(f);
+                FilterObjectCache.put(classFullName, o_array);
+            }
+        } catch (Exception e) {
+            o_array = null;
+        }
+        return o_array;
+    }
+
     // 过滤函数改变输入参数
     private static FilterReturn beforeExecute(String className, String actionName, Object[] objs) {
+        String classFullName = "main.java.before_api" + "." + className;
+        List<Object> o_array = getFilterCache(classFullName);
+        if (o_array == null) {  // 没有过滤函数
+            FilterReturn.buildTrue();
+        }
+        Object o = o_array.get(0);
+        Method f = (Method) o_array.get(1);
         try {
-            // 载入主类的前置类
-            Class<?> _before_cls = Class.forName("main.java.before_api" + "." + className);
-            Method fn = _before_cls.getMethod("filter", String.class, Object[].class);
-            return (FilterReturn) fn.invoke(null, actionName, objs);
-        } catch (ClassNotFoundException e1) {
-            return FilterReturn.buildTrue();
+            return (FilterReturn) f.invoke(o, className, actionName, objs);
         } catch (Exception e) {
-            e.printStackTrace();
-            // System.out.println("类:" + className + "_前置类,异常！");
-            return FilterReturn.build(false, "过滤函数异常!");
+            return FilterReturn.build(false, "过滤函数异常");
         }
     }
 
     // 结果函数改变输入参数
     private static Object afterExecute(String className, String actionName, Object obj) {
-        try {
-            // 载入主类的前置类
-            Class<?> _after_cls = Class.forName("main.java.after_api" + "." + className);
-            Method fn = _after_cls.getMethod("filter", String.class, Object.class);
-            return fn.invoke(null, actionName, obj);
-        } catch (Exception e) {
-            // System.out.println("类:" + className + "_后置类,异常！");
+        String classFullName = "main.java.after_api" + "." + className;
+        List<Object> o_array = getFilterCache(classFullName);
+        if (o_array == null) {  // 没有过滤函数
+            return obj;
         }
-        return obj;
+        Object o = o_array.get(0);
+        Method f = (Method) o_array.get(1);
+        try {
+            return f.invoke(o, className, actionName, obj);
+        } catch (Exception e) {
+            return obj;
+        }
     }
 
     private static Object RpcResult(Object o) {
