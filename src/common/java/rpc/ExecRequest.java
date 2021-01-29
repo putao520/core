@@ -108,7 +108,7 @@ public class ExecRequest {//框架内请求类
         String classFullName = "main.java.before_api" + "." + className;
         List<Object> o_array = getFilterCache(classFullName);
         if (o_array == null) {  // 没有过滤函数
-            FilterReturn.buildTrue();
+            return FilterReturn.buildTrue();
         }
         Object o = o_array.get(0);
         Method f = (Method) o_array.get(1);
