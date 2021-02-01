@@ -98,6 +98,11 @@ public class GrapeDbLayerModel implements InterfaceDatabase<GrapeDbLayerModel> {
         return this;
     }
 
+    public GrapeDbLayerModel outPiperEnable(boolean flag) {
+        this.db.setPiperEnable(flag);
+        return this;
+    }
+
     public String getPk() {
         return pkField;
     }

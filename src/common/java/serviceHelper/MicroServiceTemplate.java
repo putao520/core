@@ -4,6 +4,8 @@ import common.java.apps.MModelRuleNode;
 import common.java.apps.MicroServiceContext;
 import common.java.database.DbFilter;
 import common.java.database.DbLayer;
+import common.java.httpServer.HttpContext;
+import common.java.httpServer.HttpContextDb;
 import common.java.interfaceModel.GrapeTreeDbLayerModel;
 import common.java.interfaceModel.aggregation;
 import common.java.rpc.RpcPageInfo;
@@ -25,6 +27,7 @@ public class MicroServiceTemplate implements MicroServiceTemplateInterface {
     public GrapeTreeDbLayerModel db;
     private String modelName;
     private Consumer<MicroServiceTemplate> InitDB_fn;
+    // private boolean join_flag = true;
 
     public MicroServiceTemplate(String ModelName) {
         init(ModelName, null);
@@ -40,13 +43,48 @@ public class MicroServiceTemplate implements MicroServiceTemplateInterface {
         if (fn != null) {
             InitDB_fn = fn;
             InitDB_fn.accept(this);
+            InitDBFilter();
         }
     }
 
-    public DbLayer _getDB() {
+    /**
+     * 响应新的字段限制，排序限制，功能开关
+     */
+    private void InitDBFilter() {
+        HttpContextDb ctx = HttpContext.current().dbHeaderContext();
+        if (ctx.hasFields()) {
+            db.field(ctx.fields());
+        }
+        JSONObject sorts = ctx.sort();
+        if (!JSONObject.isInvaild(sorts)) {
+            for (String field : sorts.keySet()) {
+                if (sorts.getString(field).equalsIgnoreCase("desc")) {
+                    db.desc(field);
+                } else {
+                    db.asc(field);
+                }
+            }
+        }
+        JSONObject options = ctx.option();
+        if (!JSONObject.isInvaild(options)) {
+            // join开关
+            if (options.containsKey("join")) {
+                db.outPiperEnable(options.getBoolean("join"));
+            }
+        }
+    }
+
+
+    /**
+     * 返回纯db对象
+     */
+    public DbLayer getPureDB() {
         return this.db._getDB();
     }
 
+    /**
+     * 返回经过过滤的db对象
+     */
     protected GrapeTreeDbLayerModel getDB() {
         if (InitDB_fn != null) {
             InitDB_fn.accept(this);

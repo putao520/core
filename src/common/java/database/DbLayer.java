@@ -25,6 +25,7 @@ public class DbLayer implements InterfaceDatabase<DbLayer> {
     private _reflect _db;            //数据库抽象对象
     private Cache cache;        //缓存抽象对象
     private String ownid;
+    private boolean out_piper_flag = true;
 
     public DbLayer() {
         init(null);
@@ -32,6 +33,11 @@ public class DbLayer implements InterfaceDatabase<DbLayer> {
 
     public DbLayer(String configName) {
         init(configName);
+    }
+
+    public DbLayer setPiperEnable(boolean flag) {
+        out_piper_flag = flag;
+        return this;
     }
 
     /**
@@ -99,12 +105,14 @@ public class DbLayer implements InterfaceDatabase<DbLayer> {
         if (data == null) {
             return null;
         }
-        if (data instanceof JSONArray) {
-            for (Object item : (JSONArray) data) {
-                fieldPiper((JSONObject) item, outHookFunc);
+        if (out_piper_flag) {
+            if (data instanceof JSONArray) {
+                for (Object item : (JSONArray) data) {
+                    fieldPiper((JSONObject) item, outHookFunc);
+                }
+            } else if (data instanceof JSONObject) {
+                fieldPiper((JSONObject) data, outHookFunc);
             }
-        } else if (data instanceof JSONObject) {
-            fieldPiper((JSONObject) data, outHookFunc);
         }
         return data;
     }

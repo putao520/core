@@ -35,6 +35,8 @@ public class HttpContext {
     private AsciiString mime;
     private ChannelHandlerContext ctx;
     private JSONObject values = new JSONObject();
+    private HttpContextDb db_ctx;
+    private JSONObject db_values = new JSONObject();
 
     private HttpContext() {
     }
@@ -57,11 +59,16 @@ public class HttpContext {
         parameter(_header.getJson(GrapeHttpHeader.WebSocket.param));
         absPath = _header.getString(GrapeHttpHeader.WebSocket.url);
         method = Method.websocket;
+        init_grape_dbCtx();
     }
 
     public static HttpContext current() {
-        HttpContext r = RequestSession.getValue(HttpContext.SessionKey);
-        return r;
+        return RequestSession.getValue(HttpContext.SessionKey);
+    }
+
+    private void init_grape_dbCtx() {
+        db_ctx = new HttpContextDb(values);
+        db_values = db_ctx.header(values);
     }
 
     public static HttpContext newHttpContext() {
@@ -89,6 +96,7 @@ public class HttpContext {
         }
         absPath = _header.uri().trim();
         method = (Method) methodStore.get(_header.method().name().toLowerCase());
+        init_grape_dbCtx();
     }
 
     public final HttpContext cloneTo() {
@@ -400,6 +408,10 @@ public class HttpContext {
         setValueSafe(GrapeHttpHeader.token, nHeader);
         setValueSafe(GrapeHttpHeader.appid, nHeader);
         return this;
+    }
+
+    public HttpContextDb dbHeaderContext() {
+        return db_ctx;
     }
 
     /**

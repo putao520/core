@@ -14,9 +14,11 @@ import java.util.concurrent.ConcurrentHashMap;
 public class Cache {
     // 子缓存会用到该缓存对象
     public static final ConcurrentHashMap<String, Object> CacheClient;
+    // private static final MemCache<String, Object> mem_cache;
 
     static {
         CacheClient = new ConcurrentHashMap<>();
+        // mem_cache = MemCache.<String, Object>buildMemCache()
     }
 
     private _reflect _cache;            //缓存抽象对象
