@@ -57,7 +57,7 @@ class NetEvents extends ChannelInboundHandlerAdapter {
         String[] gr = UrlCode.decode(StringHelper.build(url).trimFrom('/').toString().split("/"));
         Object rs = null;
         try {
-            if ("@redirect".equals(gr[0])) {
+            if ("@redirect".equalsIgnoreCase(gr[0])) {
                 if (gr.length == 2) {
                     GrapeHttpServer.location(ctx, gr[1]);
                 }
@@ -115,10 +115,10 @@ class NetEvents extends ChannelInboundHandlerAdapter {
      */
     private String updateHeaderFromURL(String path) {
         String[] paths = StringHelper.build(path).trimFrom('/').toString().split("/");
-        if (paths[0].equals("gscHeader_start")) {
+        if (paths[0].equalsIgnoreCase("gscheader_start")) {
             int end_idx = 0;
             for (int i = 0; i < paths.length; i++) {
-                if (paths[i].equals("gscHeader_end")) {
+                if (paths[i].equalsIgnoreCase("gscheader_end")) {
                     end_idx = i;
                     break;
                 }

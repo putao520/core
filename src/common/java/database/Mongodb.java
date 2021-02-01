@@ -202,7 +202,7 @@ public class Mongodb {
 
     private Object _getID(String field, Object value) {
         Object rvalue = value;
-        if (field != null && field.equals("_id")) {
+        if (field != null && field.equalsIgnoreCase("_id")) {
             if (value instanceof String) {
                 rvalue = new ObjectId(value.toString());
             }
@@ -266,7 +266,7 @@ public class Mongodb {
                     if (link_login == null) {
                         addCondition(field, value, logic);
                     } else {
-                        addCondition(field, value, logic, link_login.equals("and"));
+                        addCondition(field, value, logic, link_login.equalsIgnoreCase("and"));
                     }
                 } else {
                     nlogger.errorInfo(condArray.toJSONString() + " ->输入的 条件对象无效");
@@ -304,7 +304,7 @@ public class Mongodb {
         if (value != null) {
             value = _getID(field, value);
             logicStr = logic2mongodb(logic);
-            if (logicStr.equals("$regex")) {
+            if (logicStr.equalsIgnoreCase("$regex")) {
                 value = "^.*" + value.toString() + ".*$";
             }
             List<Object> bit = new ArrayList<>();
@@ -408,7 +408,7 @@ public class Mongodb {
         boolean needClear = false;
         for (Object obj : fieldBSON.keySet()) {
             temp = fieldBSON.get(obj);
-            if (temp != null && !obj.toString().equals("_id")) {
+            if (temp != null && !obj.toString().equalsIgnoreCase("_id")) {
                 if ((int) temp != visable) {//发现 字段冲突
                     needClear = true;
                     break;
@@ -1042,7 +1042,7 @@ public class Mongodb {
                     String logicStr = logic2mongodb((String) conds.get(2));
                     String field = (String) conds.get(1);
                     Object value = conds.get(3);
-                    if (logicStr.equals("$regex")) {
+                    if (logicStr.equalsIgnoreCase("$regex")) {
                         value = "^.*" + value.toString() + ".*$";
                     } else {
                         value = _getID(field, value);

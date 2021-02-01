@@ -119,7 +119,7 @@ public class DbFilter {
                 bit = new ArrayList<>();
                 JSONObject json = (JSONObject) obj;
                 if (json.containsKey("link_logic")) {
-                    bit.add(json.getString("link_logic").equals("and") ? "and" : "or");
+                    bit.add(json.getString("link_logic").equalsIgnoreCase("and") ? "and" : "or");
                 } else {
                     bit.add(conditiobLogicAnd ? "and" : "or");
                 }

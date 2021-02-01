@@ -485,7 +485,7 @@ public class Oracle {
                     if (link_login == null) {
                         addCondition(field, value, logic);
                     } else {
-                        addCondition(field, value, logic, link_login.equals("and"));
+                        addCondition(field, value, logic, link_login.equalsIgnoreCase("and"));
                     }
                 } else {
                     nlogger.errorInfo(condArray.toJSONString() + " ->输入的 条件对象无效");

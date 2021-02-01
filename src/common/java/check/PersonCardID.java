@@ -189,7 +189,7 @@ public class PersonCardID {
         }
         String[] cardval = validateIdCard10(card);
         if (cardval != null) {
-            if (cardval[2].equals("true")) {
+            if (cardval[2].equalsIgnoreCase("true")) {
                 return true;
             }
         }

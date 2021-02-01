@@ -9,9 +9,13 @@ public class oauthApi {
         return new oauthApi();
     }
 
+    private static String build_api_name(String serviceName, String className, String actionName) {
+        return serviceName + "@" + className + "@" + actionName;
+    }
+
     /**
      * @param api_name 接口方法名称
-     * @apiNote 获得接口一次性授权码
+     * @apiNote 获得接口一次性授权码(集群内部使用)，1分钟有效
      */
     public String getApiToken(String api_name) {
         Cache c = Cache.getInstance();
@@ -24,6 +28,21 @@ public class oauthApi {
     }
 
     /**
+     * @param serviceName 服务名称
+     * @param className   类名称
+     * @param actionName  方法名称
+     * @apiNote 获得接口一次性授权码(公开使用)，10分钟有效
+     */
+    public void getApiTokenService(String serviceName, String className, String actionName) {
+        Cache c = Cache.getInstance();
+        String token_key;
+        do {
+            token_key = "api_token_" + StringHelper.createRandomCode(8);
+        } while (c.get(token_key) != null);
+        c.set(token_key, build_api_name(serviceName, className, actionName), 600);
+    }
+
+    /**
      * 验证接口和权限
      */
     public boolean checkApiToken() {
@@ -33,7 +52,7 @@ public class oauthApi {
         if (StringHelper.invaildString(token_key)) {
             return false;
         }
-        String api_name = header.actionName();
+        String api_name = build_api_name(header.serviceName(), header.className(), header.actionName());
         // 验证授权
         Cache c = Cache.getInstance();
         String ca = c.get(token_key);

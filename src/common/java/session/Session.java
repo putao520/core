@@ -137,7 +137,7 @@ public class Session {
      * @return
      */
     public static String createGuessSession(String code, String data, int expire) {
-        String sid = uuidkey(code, "gu");
+        String sid = uuidkey(code, "guesser");
         Objects.requireNonNull(getCacher()).getSet(sid, data, expire);
         return sid;
     }
@@ -176,7 +176,7 @@ public class Session {
         String tempUUID;
         CacheHelper cacher = getCacher();
         do {
-            tempUUID = uuidkey(uid, "pt");
+            tempUUID = uuidkey(uid, "gsc_");
         }
         while (Objects.requireNonNull(cacher).get(tempUUID) != null);
         return tempUUID;

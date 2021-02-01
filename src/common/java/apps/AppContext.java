@@ -81,7 +81,7 @@ public class AppContext {
 
             @Override
             public int compareTo(ChannelId o) {
-                return o.asLongText().equals(this.asLongText()) ? 0 : 1;
+                return o.asLongText().equalsIgnoreCase(this.asLongText()) ? 0 : 1;
             }
         };
         RequestSession.setChannelID(cid);

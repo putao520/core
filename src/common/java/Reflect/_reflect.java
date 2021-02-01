@@ -263,7 +263,7 @@ public class _reflect {
     private Object _Hook(String functionName, Object... parameters) {
         Object rs = null;
         try {
-            if ("@description".equals(functionName)) {
+            if ("@description".equalsIgnoreCase(functionName)) {
                 rs = ServDecl(_Class);
             }
         } catch (Exception e) {

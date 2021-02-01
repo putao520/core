@@ -95,4 +95,9 @@ public interface MicroServiceTemplateInterface {
      */
     @ApiType(ApiType.type.SessionApi)
     Object tree(String cond);
+
+    /**
+     * @apiNote 为特定的方法申请一次性授权
+     * */
+    // Object getOAuthOnce(String className, String action);
 }

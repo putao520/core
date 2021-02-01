@@ -69,7 +69,7 @@ public class rpc {
         }
         // 设置授权
         if (api_auth) {
-            r.header(HttpContext.GrapeHttpHeader.token, oauthApi.getInstance().getApiToken(rArr[3]));
+            r.header(HttpContext.GrapeHttpHeader.token, oauthApi.getInstance().getApiToken(rArr[1] + "@" + rArr[2] + "@" + rArr[3]));
         }
         // 设置请求参数[post]
         RequestBodyEntity rBody = r.body(args != null ? ExecRequest.objects2poststring(args) : "");

@@ -8,6 +8,7 @@ import common.java.httpServer.HttpContext;
 import common.java.httpServer.HttpContextDb;
 import common.java.interfaceModel.GrapeTreeDbLayerModel;
 import common.java.interfaceModel.aggregation;
+import common.java.oauth.oauthApi;
 import common.java.rpc.RpcPageInfo;
 import common.java.rpc.rMsg;
 import common.java.string.StringHelper;
@@ -21,7 +22,6 @@ import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-// public class MicroServiceTemplate implements MicroServiceTemplateInterface {
 public class MicroServiceTemplate implements MicroServiceTemplateInterface {
     private final String[] aggr_key = {"", ""};
     public GrapeTreeDbLayerModel db;
@@ -312,7 +312,6 @@ public class MicroServiceTemplate implements MicroServiceTemplateInterface {
         return rMsg.netMSG(true, desc);
     }
 
-
     public int _ids(String fieldName, String ids) {
         DbFilter dbf = DbFilter.buildDbFilter();
         String[] _ids = StringHelper.invaildString(ids) ? null : ids.split(",");
@@ -344,6 +343,12 @@ public class MicroServiceTemplate implements MicroServiceTemplateInterface {
         if (!JSONArray.isInvaild(cond)) {
             db.and().where(cond);
         }
+    }
+
+    public boolean getOAuthOnce(String className, String action) {
+        HttpContext ctx = HttpContext.current();
+        oauthApi.getInstance().getApiTokenService(ctx.serviceName(), className, action);
+        return true;
     }
 
     public MicroServiceTemplate outPipe(Function<JSONArray, JSONArray> func) {

@@ -103,7 +103,7 @@ public class GrapeHttpServer {
         String[] GrapeRequest = StringHelper.build(path).trimFrom('/').toString().split("/");
         if (GrapeRequest.length >= 2) {
             // 当无有效appid时,根据域名重置Appid
-            if (appid == 0 && !GrapeRequest[0].equals("GrapeFW")) {
+            if (appid == 0 && !GrapeRequest[0].equalsIgnoreCase("grapefw")) {
                 appContext = new AppContext(host);
                 if (appContext.hasData()) {    // 域名有效,重置appid
                     appid = appContext.appid();
@@ -196,7 +196,7 @@ public class GrapeHttpServer {
         addHeader(response, false);
         if (exHeader != null) {
             for (String key : exHeader.keySet()) {
-                if (key.equals("Location")) {
+                if (key.equalsIgnoreCase("location")) {
                     response.setStatus(HttpResponseStatus.FOUND);
                 }
                 response.headers().set(key, exHeader.getString(key));
