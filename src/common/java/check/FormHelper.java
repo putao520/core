@@ -30,15 +30,7 @@ public class FormHelper {
 
     //返回false不检查，直接算过
     private boolean checkAuth() {
-        boolean oldState;
-        if (!checkState) {
-            checkState = true;
-            oldState = true;
-        } else {
-            checkState = false;
-            oldState = false;
-        }
-        return oldState;
+        return checkState;
     }
 
     public FormHelper stopCheck() {
@@ -83,7 +75,7 @@ public class FormHelper {
         if (checkAuth()) {
             MModelRuleNode tf;
             List<String> newfield = new ArrayList<>();
-            int l = fields.length;
+            // int l = fields.length;
             for (String field : fields) {
                 if (checkObject.containsKey(field)) {
                     tf = checkObject.get(field);
@@ -134,13 +126,15 @@ public class FormHelper {
         waitCheck.putAll(checkObject);
         // 填充符合当前会话的权限到db-model的定义
         waitCheck.putAll(permInfos);
+        // 过滤未定义字段
+        JSONObject resultJson = new JSONObject();
         for (String key : waitCheck.keySet()) {
-            if (!inputData.containsKey(key)) {
-                tf = waitCheck.get(key);
-                inputData.put(key, autoValueFilter(tf.initValue()));
-            }
+            resultJson.put(key, inputData.containsKey(key) ?
+                    inputData.get(key) :
+                    autoValueFilter(waitCheck.get(key).initValue())
+            );
         }
-        return inputData;
+        return resultJson;
     }
 
     /**
@@ -177,8 +171,8 @@ public class FormHelper {
      */
     private boolean _checkTable(JSONObject inputData, boolean filter, boolean strict) {
         MModelRuleNode tField;
-        boolean rs;
-        lastErrorKey = null;
+        boolean rs = true;
+        // JSONObject resultData = new JSONObject();
         if (checkAuth()) {
             for (String key : checkObject.keySet()) {
                 tField = checkObject.get(key);
@@ -191,6 +185,7 @@ public class FormHelper {
                                 return false;
                             }
                         }
+                        // inputData.put(key, val);
                         return true;
                     });
                     if (!rs) {
@@ -198,7 +193,7 @@ public class FormHelper {
                             inputData.put(key, tField.failedValue());
                         }
                     }
-
+                    // 有模型定义了，但是输入字段不包含的字段，自动按默认值填充，但是状态为错误
                 } else {
                     if (filter) {
                         inputData.put(key, tField.initValue());
@@ -211,12 +206,12 @@ public class FormHelper {
                 if (strict) {
                     if (!rs) {
                         lastErrorKey = key;
-                        return false;
+                        break;
                     }
                 }
             }
         }
-        return true;
+        return rs;
     }
 
     public String getlastErrorName() {
@@ -225,7 +220,7 @@ public class FormHelper {
 
     //检查数据，不符合的使用默认值填充
     public boolean filterAndCheckTable(JSONObject inputData, boolean strict) {
-        return _checkTable(inputData, strict, true);
+        return _checkTable(inputData, true, strict);
     }
 
     //返回字段信息

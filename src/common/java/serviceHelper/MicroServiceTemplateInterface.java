@@ -99,5 +99,5 @@ public interface MicroServiceTemplateInterface {
     /**
      * @apiNote 为特定的方法申请一次性授权
      * */
-    // Object getOAuthOnce(String className, String action);
+    // Object getApiAccessOnce(String className, String action);
 }

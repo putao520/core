@@ -17,15 +17,15 @@ public class HttpContextDb {
         // 初始化字段组
         field_array = nHeader.getJsonArray(fields);
         if (JSONArray.isInvaild(field_array)) {
+            field_array = new JSONArray();
             JSONObject not_field_json = nHeader.getJson(fields);
-            if (JSONObject.isInvaild(not_field_json)) {
-                field_array = new JSONArray();
-            }
-            for (String key : not_field_json.keySet()) {
-                if (key.equalsIgnoreCase("not")) {
-                    field_logic_not = true;
+            if (!JSONObject.isInvaild(not_field_json)) {
+                for (String key : not_field_json.keySet()) {
+                    if (key.equalsIgnoreCase("not")) {
+                        field_logic_not = true;
+                    }
+                    field_array = not_field_json.getJsonArray(key);
                 }
-                field_array = not_field_json.getJsonArray(key);
             }
         }
         // 初始化排序组

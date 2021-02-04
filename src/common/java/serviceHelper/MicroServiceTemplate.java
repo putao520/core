@@ -345,7 +345,7 @@ public class MicroServiceTemplate implements MicroServiceTemplateInterface {
         }
     }
 
-    public boolean getOAuthOnce(String className, String action) {
+    public boolean getApiAccessOnce(String className, String action) {
         HttpContext ctx = HttpContext.current();
         oauthApi.getInstance().getApiTokenService(ctx.serviceName(), className, action);
         return true;

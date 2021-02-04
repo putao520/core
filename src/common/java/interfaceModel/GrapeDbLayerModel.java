@@ -48,6 +48,7 @@ public class GrapeDbLayerModel implements InterfaceDatabase<GrapeDbLayerModel> {
     private MicroModel mModel = null;
     private FormHelper checker = null;
     private JSONObject dataCache = null;
+    private JSONObject fullDataCache = null;
     private boolean useField = false;
     private boolean tempAdmin = false;
     private int runtimeMode = 0;
@@ -77,7 +78,7 @@ public class GrapeDbLayerModel implements InterfaceDatabase<GrapeDbLayerModel> {
     //自动补齐字段初始值
     private GrapeDbLayerModel autoComplete() {
         if (checker != null && dataCache != null) {
-            this.db.data(checker.autoComplete(dataCache, this.mModel.perms().buildPermRuleNode()));
+            fullDataCache = checker.autoComplete(dataCache, this.mModel.perms().buildPermRuleNode());
         }
         return this;
     }
@@ -124,6 +125,7 @@ public class GrapeDbLayerModel implements InterfaceDatabase<GrapeDbLayerModel> {
     }
 
     public GrapeDbLayerModel dataEx(JSONObject json) {
+        fullDataCache = new JSONObject();
         dataCache = json;
         this.db.data(json);
         return this;
@@ -180,18 +182,24 @@ public class GrapeDbLayerModel implements InterfaceDatabase<GrapeDbLayerModel> {
         return this;
     }
 
-    //添加数据
-    public Object insertEx() {
+    // 将补齐后结果集合与校验后结果合并
+    private boolean checkAndPushData() {
         boolean auth = true;
-        Object rID = null;
-        this.autoComplete();    // 新增数据时,动态生成要检查的gsc-model
         if (checker != null && !tempAdmin) {
             switch (runtimeMode) {
                 case GrapeDBMode.safeMode -> auth = checker.filterAndCheckTable(dataCache, true);
                 case GrapeDBMode.checkMode -> auth = checker.checkTable(dataCache, true);
             }
-
+            fullDataCache.putAll(dataCache);
+            this.db.data(fullDataCache);
         }
+        return auth;
+    }
+
+    //添加数据
+    public Object insertEx() {
+        Object rID = null;
+        boolean auth = this.autoComplete().checkAndPushData();    // 新增数据时,动态生成要检查的gsc-model
         if (auth && authStub(Operater.create)) {//授权通过时
             rID = this.db.insertOnce();
         } else {
