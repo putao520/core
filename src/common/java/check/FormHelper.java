@@ -4,6 +4,7 @@
 package common.java.check;
 
 import common.java.apps.MModelRuleNode;
+import common.java.authority.PermissionsPowerDef;
 import common.java.number.NumberHelper;
 import common.java.session.Session;
 import common.java.session.UserSession;
@@ -11,13 +12,12 @@ import common.java.string.StringHelper;
 import common.java.time.TimeHelper;
 import org.json.simple.JSONObject;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 
 public class FormHelper {
     private final HashMap<String, MModelRuleNode> checkObject;
-    private final List<String> maskCache;
+    private final Set<String> maskCache;
+
     private boolean checkState;
     private String lastErrorKey;
 
@@ -25,7 +25,7 @@ public class FormHelper {
         lastErrorKey = null;
         checkState = true;
         checkObject = new HashMap<>();
-        maskCache = new ArrayList<>();
+        maskCache = new HashSet<>();
     }
 
     //返回false不检查，直接算过
@@ -120,7 +120,6 @@ public class FormHelper {
      * 根据gsc-model( 包含 db-model和 perm-model)自动补充入库前的数据
      */
     public JSONObject autoComplete(JSONObject inputData, HashMap<String, MModelRuleNode> permInfos) {
-        MModelRuleNode tf;
         HashMap<String, MModelRuleNode> waitCheck = new HashMap<>();
         // 填充db-model定义
         waitCheck.putAll(checkObject);
@@ -236,6 +235,8 @@ public class FormHelper {
                 }
             }
         }
+        // 附加权限字段作为默认mask
+        maskCache.addAll(PermissionsPowerDef.maskPermFields);
         String[] nStringArray = null;
         if (maskCache.size() > 0) {
             nStringArray = new String[maskCache.size()];

@@ -18,7 +18,7 @@ public class ObjectAdmin extends DbLayer {
     public ObjectAdmin() {
         super(AppContext.current().config().db());
         adminInfo = null;
-        Session se = new Session();
+        Session se = Session.build();
         form(ObjectAdminDef.tableName).bind();
         String tempUID = se.getUID();
         if (tempUID != null) {

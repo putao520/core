@@ -24,20 +24,32 @@ public class Session {
     private int appid;                //当前会话所属APPID
     private int expireTime;
 
-    public Session() {
+    private Session() {
         cacher = getCacher();
-        String sid = getSID();
+        String sid = getRequestSID();
         this.expireTime = 1800;
         updateUserInfo(sid);
     }
 
     //绑定会话
-    public Session(String sid) {
+    private Session(String sid) {
         init(sid, -1);
     }
 
-    public Session(String sid, int expireTime) {
+    private Session(String sid, int expireTime) {
         init(sid, expireTime);
+    }
+
+    public static Session build() {
+        return new Session();
+    }
+
+    public static Session build(String sid) {
+        return new Session(sid);
+    }
+
+    public static Session build(String sid, int expireTime) {
+        return new Session(sid, expireTime);
     }
 
     private static CacheHelper getCacher() {
@@ -50,6 +62,21 @@ public class Session {
             nlogger.logInfo("应用[" + AppContext.current().appid() + "] 未设置缓存配置,无法使用会话系统!");
         }
         return new CacheHelper(appCache);
+    }
+
+    /**
+     * 获得当前会话id，如果不存在返回空
+     *
+     * @return
+     */
+    public static String getRequestSID() {
+        Object temp;
+        try {
+            temp = HttpContext.current().sid();
+        } catch (Exception e) {
+            temp = null;
+        }
+        return temp == null || temp.equals("") ? null : temp.toString();
     }
 
     public static Session createSession(String uid, String jsonString, int expire) {
@@ -78,19 +105,8 @@ public class Session {
         return new Session(sid, expire);
     }
 
-    /**
-     * 获得当前会话id，如果不存在返回空
-     *
-     * @return
-     */
-    public static String getSID() {
-        Object temp;
-        try {
-            temp = HttpContext.current().sid();
-        } catch (Exception e) {
-            temp = null;
-        }
-        return temp == null || temp.equals("") ? null : temp.toString();
+    public static boolean hasSession() {
+        return Session.getRequestSID() != null;
     }
 
     /**
@@ -168,8 +184,10 @@ public class Session {
         return createSession(uid, json.toJSONString(), expireTime);
     }
 
-    public static boolean hasSession() {
-        return getSID() != null;
+    public Session memSession(String uid, JSONObject infos) {
+        this.sessionInfo = infos;
+        this.uid = uid;
+        return this;
     }
 
     private static String uniqueUUID(String uid) {
@@ -353,7 +371,7 @@ public class Session {
     }
 
     // 延续会话维持时间(20分钟)
-    public Session RefreshSession() {
+    public Session refreshSession() {
         int need_expire_time = sessionInfo.getInt("_GrapeFW_NeedRefresh");
         if ((TimeHelper.build().nowSecond() + expireTime) < need_expire_time) {
             return this;
@@ -379,26 +397,26 @@ public class Session {
                     this.gid = sessionInfo.getString(PermissionsPowerDef.fatherIDField);//获得所在组ID
                 }
                 // 更新会话维持时间
-                RefreshSession();
+                refreshSession();
                 rb = true;
             }
         }
         return rb;
     }
 
-    public String _getSID() {
+    public String getSID() {
         return this.sid;
     }
 
     public String getUID() {
-        return uid;
+        return this.uid;
     }
 
     public String getGID() {
-        return gid;
+        return this.gid;
     }
 
     public int getAppID() {
-        return appid;
+        return this.appid;
     }
 }

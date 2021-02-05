@@ -53,7 +53,11 @@ public class MicroServiceTemplate implements MicroServiceTemplateInterface {
     private void InitDBFilter() {
         HttpContextDb ctx = HttpContext.current().dbHeaderContext();
         if (ctx.hasFields()) {
-            db.field(ctx.fields());
+            if (ctx.notIn()) {
+                db.mask(ctx.fields());
+            } else {
+                db.field(ctx.fields());
+            }
         }
         JSONObject sorts = ctx.sort();
         if (!JSONObject.isInvaild(sorts)) {

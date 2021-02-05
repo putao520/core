@@ -24,12 +24,12 @@ public class UserSession {
             checkUserKey(userInfo, key);
         }
         Session se = Session.createSession(uid, userInfo, 86400 * 30);
-        HttpContext.current().sid(se._getSID());
+        HttpContext.current().sid(se.getSID());
         return se;
     }
 
     public static Session current() {
-        return new Session();
+        return Session.build();
     }
 
     private static void checkUserKey(JSONObject userInfo, String key) {

@@ -1,7 +1,10 @@
 package common.java.authority;
 
+import java.util.HashSet;
+import java.util.Set;
+
 public class PermissionsPowerDef {
-    public final static String tableName = "Permissions";//表名称
+    // public final static String tableName = "Permissions";//表名称
 
     public final static String createMode = "cMode";//创建权限描述字段
     public final static String statisticsMode = "sMode";//统计分析权限描述字段
@@ -34,7 +37,23 @@ public class PermissionsPowerDef {
      * 用户数据表不可少字段
      */
     public final static String adminField = "_type";                //用户类型字段名
-    public final static String userField = "_name";                //用户名字段名
+    public final static String userField = "_name";                 //用户名字段名
+    public final static String saltField = "_salt";                 //用户密码加盐
 
+    public static final Set<String> maskPermFields;
+
+    static {
+        maskPermFields = new HashSet<>();
+        maskPermFields.add(PermissionsPowerDef.createMode);
+        maskPermFields.add(PermissionsPowerDef.createValue);
+        maskPermFields.add(PermissionsPowerDef.updateMode);
+        maskPermFields.add(PermissionsPowerDef.updateValue);
+        maskPermFields.add(PermissionsPowerDef.readMode);
+        maskPermFields.add(PermissionsPowerDef.readValue);
+        maskPermFields.add(PermissionsPowerDef.deleteMode);
+        maskPermFields.add(PermissionsPowerDef.deleteValue);
+        maskPermFields.add(PermissionsPowerDef.statisticsMode);
+        maskPermFields.add(PermissionsPowerDef.statisticsValue);
+    }
 }
 

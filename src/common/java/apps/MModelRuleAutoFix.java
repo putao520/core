@@ -17,9 +17,11 @@ public class MModelRuleAutoFix {
         waitting.put(PermissionsPowerDef.levelField, 0);
         waitting.put(PermissionsPowerDef.powerValField, 0);
         waitting.put(PermissionsPowerDef.sortField, 0);
+        waitting.put(PermissionsPowerDef.saltField, "");
 
         user_waitting.put(PermissionsPowerDef.adminField, "");
         user_waitting.put(PermissionsPowerDef.userField, "");
+        user_waitting.put(PermissionsPowerDef.saltField, "");
     }
 
     /**

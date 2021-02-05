@@ -19,7 +19,6 @@ import org.json.simple.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.function.Function;
 //app依赖
 
@@ -71,7 +70,7 @@ public class GrapeDbLayerModel implements InterfaceDatabase<GrapeDbLayerModel> {
         return op;
     }
 
-    public DbLayer _getDB() {
+    public DbLayer getPureDB() {
         return this.db;
     }
 
@@ -203,7 +202,7 @@ public class GrapeDbLayerModel implements InterfaceDatabase<GrapeDbLayerModel> {
         if (auth && authStub(Operater.create)) {//授权通过时
             rID = this.db.insertOnce();
         } else {
-            nlogger.debugInfo("新增失败 原因:[" + UserSession.current()._getSID() + " 无权操作！]");
+            nlogger.debugInfo("新增失败 原因:[" + UserSession.current().getUID() + " 无权操作！]");
         }
         reInit();
         return rID;
@@ -224,7 +223,6 @@ public class GrapeDbLayerModel implements InterfaceDatabase<GrapeDbLayerModel> {
     }
 
     //覆盖父类分组方法
-
     public JSONArray group(String groupName) {
         JSONArray rArray;
         if (!tempAdmin) {
@@ -238,7 +236,6 @@ public class GrapeDbLayerModel implements InterfaceDatabase<GrapeDbLayerModel> {
     }
 
     //覆盖父类分组方法
-
     public JSONArray group() {
         JSONArray rArray;
         if (!tempAdmin) {
@@ -323,6 +320,7 @@ public class GrapeDbLayerModel implements InterfaceDatabase<GrapeDbLayerModel> {
 
     //获得行数据权限效验字段值
     private MModelPerm getPermissionsFromDB() {
+        /*
         String[] fields = {rField, uField, dField, rVField, uVField, dVField};
         fieldState _fs = saveField();
         boolean dirtyMode = false;
@@ -338,6 +336,8 @@ public class GrapeDbLayerModel implements InterfaceDatabase<GrapeDbLayerModel> {
         // isDirty = false;
         restoreField(_fs);
         return permissionsObjects == null ? this.mModel.perms() : new MModelPerm(DBPermissionsField2Permissions(permissionsObjects));
+         */
+        return this.mModel.perms();
     }
 
     /**
@@ -393,7 +393,6 @@ public class GrapeDbLayerModel implements InterfaceDatabase<GrapeDbLayerModel> {
     }
 
     //覆盖父类查找一个
-
     public JSONObject find() {
         JSONObject robj = null;
         if (!useField && checker != null && !tempAdmin) {//没有使用字段,开启了模型检查,非临时管理模式
@@ -403,7 +402,7 @@ public class GrapeDbLayerModel implements InterfaceDatabase<GrapeDbLayerModel> {
         if (authStub(Operater.read)) {//授权通过时
             robj = _find();
         } else {
-            nlogger.debugInfo("查找失败 原因:[" + UserSession.current()._getSID() + " 无权操作！]");
+            nlogger.debugInfo("查找失败 原因:[" + UserSession.current().getUID() + " 无权操作！]");
         }
 
         reInit();
@@ -450,7 +449,7 @@ public class GrapeDbLayerModel implements InterfaceDatabase<GrapeDbLayerModel> {
         if (updateChecker() && authStub(Operater.update)) {//授权通过时
             rjson = this.db.update();
         } else {
-            nlogger.debugInfo("更新失败 原因:[" + UserSession.current()._getSID() + " 无权操作！]");
+            nlogger.debugInfo("更新失败 原因:[" + UserSession.current().getUID() + " 无权操作！]");
         }
         reInit();
         return rjson != null;
@@ -481,7 +480,7 @@ public class GrapeDbLayerModel implements InterfaceDatabase<GrapeDbLayerModel> {
         if (authStub(Operater.delete)) {//授权通过时
             robj = this.db.delete();
         } else {
-            nlogger.debugInfo("删除失败 原因:[" + UserSession.current()._getSID() + " 无权操作！]");
+            nlogger.debugInfo("删除失败 原因:[" + UserSession.current().getUID() + " 无权操作！]");
         }
         reInit();
         return robj != null;
@@ -541,8 +540,8 @@ public class GrapeDbLayerModel implements InterfaceDatabase<GrapeDbLayerModel> {
     /*
      * lastObj	上一次查询结果的最大主键值
      * */
-    public JSONArray page(int pageidx, int pagemax, Object lastObj) {
-        JSONArray robj;
+    public JSONArray page(int pageIdx, int pageMax, Object lastObj) {
+        JSONArray rObj;
         if (!useField && checker != null && !tempAdmin) {//没有使用字段,开启了模型检查,非临时管理模式
             mask(checker.getMaskFields());
         }
@@ -556,9 +555,9 @@ public class GrapeDbLayerModel implements InterfaceDatabase<GrapeDbLayerModel> {
             this.db.and().groupCondition(newCond);
         }
 
-        robj = this.db.page(pageidx, pagemax);
+        rObj = this.db.page(pageIdx, pageMax);
         reInit();
-        return robj;
+        return rObj;
     }
 
     protected FormHelper getChecker() {
@@ -612,26 +611,6 @@ public class GrapeDbLayerModel implements InterfaceDatabase<GrapeDbLayerModel> {
 
     public int pageMax(int max) {
         return this.db.pageMax(max);
-    }
-
-
-    public JSONArray scan(Function<JSONArray, JSONArray> func, int max) {
-        if (func == null) {
-            nlogger.logInfo("scan 过滤函数不存在");
-        }
-        if (max <= 0) {
-            nlogger.logInfo("scan 每页最大值不能小于等于0");
-        }
-
-        int maxCount = (int) dirty().count();
-        int pageNO = maxCount % max > 0 ? (maxCount / max) + 1 : maxCount / max;
-        JSONArray jsonArray, tempResult;
-        tempResult = new JSONArray();
-        for (int index = 1; index <= pageNO; index++) {
-            jsonArray = dirty().page(index, max);
-            tempResult.addAll(Objects.requireNonNull(func).apply(jsonArray));
-        }
-        return tempResult;
     }
 
     public List<String> getTables() {
@@ -864,6 +843,11 @@ public class GrapeDbLayerModel implements InterfaceDatabase<GrapeDbLayerModel> {
 
     public void clear() {
         this.db.clear();
+    }
+
+
+    public JSONArray scan(Function<JSONArray, JSONArray> func, int max) {
+        return this.db.scan(func, max);
     }
 
     public JSONArray scan(Function<JSONArray, JSONArray> func, int max, int synNo) {

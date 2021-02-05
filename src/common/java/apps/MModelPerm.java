@@ -114,12 +114,12 @@ public class MModelPerm {
                 break;
             case PlvDef.plvType.userOwn:
                 if (currentValue.toString().equals("")) { // 权值是空字符串
-                    currentValue = (new Session()).getUID();
+                    currentValue = Session.build().getUID();
                 }
                 break;
             case PlvDef.plvType.groupOwn:
                 if (currentValue.toString().equals("")) { // 权值是空字符串
-                    currentValue = (new Session()).getGID();
+                    currentValue = Session.build().getGID();
                 }
                 break;
             default:

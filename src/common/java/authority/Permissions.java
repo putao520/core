@@ -24,13 +24,19 @@ import java.util.List;
  * sMode:JSON			对象统计权限验证类型和条件
  * */
 public class Permissions {
+    private static final Session guesserSession;
     private static final String powvalFieldName = PermissionsPowerDef.powerValField;
     private static final String fatherIDFieldName = PermissionsPowerDef.fatherIDField;
     private static final String adminFieldName = PermissionsPowerDef.adminField;
-    private static final String userFieldName = PermissionsPowerDef.userField;
+    // private static final String userFieldName = PermissionsPowerDef.userField;
+    // private static final String saltFieldName = PermissionsPowerDef.saltField;
     private static String commonSid = null;
     private final String objName;
     private MModelPerm tempMode = null;
+
+    static {
+        guesserSession = Session.build().memSession("defaultSession", JSONObject.putx(powvalFieldName, 0).puts(fatherIDFieldName, ""));
+    }
 
     public Permissions(String objectName) {
         objName = objectName;
@@ -78,6 +84,7 @@ public class Permissions {
     public List<List<Object>> getAuthCond(String valueCaption, MModelPermInfo pInfo) {
         DbFilter newCond = DbFilter.buildDbFilter();
         Session se = getSE();
+        // 如果没有权限会话，直接返回不通过
         int chkType = pInfo.type();
         switch (chkType) {
             case plvType.userOwn -> {
@@ -85,8 +92,8 @@ public class Permissions {
                 newCond.eq(valueCaption, nowUID);
             }
             case plvType.groupOwn -> {
-                String nowgid = se.get(fatherIDFieldName).toString();
-                newCond.eq(fatherIDFieldName, nowgid);
+                String nowGid = se.get(fatherIDFieldName).toString();
+                newCond.eq(fatherIDFieldName, nowGid);
             }
             case plvType.powerVal -> {
                 int nowPowerVal = se.getInt(powvalFieldName);
@@ -96,26 +103,17 @@ public class Permissions {
         return newCond.buildEx();
     }
 
+    // 获得对象权限设置
     private Session getSE() {
-        Session se;
-        if (Session.getSID() != null) {
-            se = new Session();
-        } else {
-            if (Session.checkSession(commonSid)) {
-                se = new Session(commonSid);
-            } else {
-                // 不存在有效会话时,创建最低权限会话用来填平运行逻辑
-
-                JSONObject newPermJson = JSONObject.putx(powvalFieldName, 0)
-                        .puts(fatherIDFieldName, "");
-                se = Session.createSession("defaultSession", newPermJson);
-                commonSid = se._getSID();
-            }
-
-
-            // nlogger.debugInfo("会话不存在->无法实现权限验证");
+        if (commonSid.equalsIgnoreCase("guesser")) {
+            return guesserSession;
         }
-        return se;
+        if (Session.checkSession(commonSid)) {
+            return Session.build(commonSid);
+        }
+        // 不存在有效会话时,返回默认会话
+        commonSid = "guesser";
+        return guesserSession;
     }
 
     public List<List<Object>> filterCond(int plvOperate) {
@@ -132,15 +130,13 @@ public class Permissions {
     //判断当前操作是否有权
     //判断过程中生成条件对象
     public boolean checkOperate(int plvOperate) {
-        boolean rs = false;
         Session se = getSE();
         //管理员判定
         if (se.getInt(adminFieldName) >= UserMode.admin) {//是管理员模式
-            rs = _checkObject(se.getUID());
-            return rs;
+            return _checkObject(se.getUID());
         }
         //普通用户判断
-        rs = switch (plvOperate) {
+        return switch (plvOperate) {
             case PlvDef.Operater.create -> _operateChk(tempMode.createPerm());
             case PlvDef.Operater.statist -> _operateChk(tempMode.statisticsPerm());
             case PlvDef.Operater.read -> _operateChk(tempMode.readPerm());
@@ -148,6 +144,5 @@ public class Permissions {
             case PlvDef.Operater.delete -> _operateChk(tempMode.deletePerm());
             default -> false;
         };
-        return rs;
     }
 }
