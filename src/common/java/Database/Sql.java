@@ -2,7 +2,6 @@ package common.java.Database;
 
 import com.alibaba.druid.pool.DruidDataSource;
 import com.alibaba.druid.pool.DruidPooledConnection;
-import com.mongodb.BasicDBObject;
 import common.java.EventWorker.Worker;
 import common.java.String.StringHelper;
 import common.java.Time.TimeHelper;
@@ -58,7 +57,7 @@ public class Sql {
     private boolean conditiobLogicAnd;
     private int skipNo;
     private int limitNo;
-    private BasicDBObject sortBSON;
+    private JSONObject sortBSON;
     private boolean _count;
     private boolean _max;
     private boolean _min;
@@ -336,9 +335,9 @@ public class Sql {
         conditionJSON = new ArrayList<>();
         conditiobLogicAnd = true;
         fieldList = new ArrayList<>();
-        sortBSON = new BasicDBObject();//默认_id排序
+        sortBSON = new JSONObject();//默认_id排序
         dataJSON = new ArrayList<>();
-        BasicDBObject updateJSON = new BasicDBObject();
+        // JSONObject updateJSON = new JSONObject();
         limitNo = 0;
         skipNo = 0;
         fastfieldString = "*";

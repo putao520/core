@@ -78,14 +78,13 @@ public class _reflect {
 
     // api接口类型文本化
     private static String declApiType(ApiType _at) {
-        String apiLevel = switch (_at.value()) {
-            case CloseApi -> "closeApi，";
-            case OauthApi -> "oauth2Api，";
-            case PublicApi -> "PublicApi，";
-            case PrivateApi -> "LocalApi，";
-            case SessionApi -> "SessionApi，";
-        };
-        return apiLevel;
+        return switch (_at.value()) {
+            case CloseApi -> "closeApi";
+            case OauthApi -> "oauth2Api";
+            case PrivateApi -> "LocalApi";
+            case SessionApi -> "SessionApi";
+            default -> "PublicApi";
+        } + ",";
     }
 
     /**
@@ -110,7 +109,7 @@ public class _reflect {
                 apiString.append(declApiType(method.getAnnotation(ApiType.class)));
             }
         }
-        return apiString.toString();
+        return StringHelper.build(apiString.toString()).trimTrailingFrom(',').toString();
     }
 
     private static String ParameterMethod(Method method) {

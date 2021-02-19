@@ -22,6 +22,7 @@
             <groupId>org.mongodb</groupId>
             <artifactId>mongo-java-driver</artifactId>
             <version>3.12.7</version>
+            <!--<scope>provided</scope>-->
         </dependency>
         <!-- https://mvnrepository.com/artifact/com.alibaba/druid -->
         <dependency>
@@ -35,12 +36,14 @@
             <groupId>mysql</groupId>
             <artifactId>mysql-connector-java</artifactId>
             <version>5.1.49</version>
+            <!--<scope>provided</scope>-->
         </dependency>
         <!-- https://mvnrepository.com/artifact/com.oracle.database.jdbc/ojdbc10 -->
         <dependency>
             <groupId>com.oracle.database.jdbc</groupId>
             <artifactId>ojdbc10</artifactId>
             <version>19.8.0.0</version>
+            <scope>provided</scope>
         </dependency>
         <!-- https://mvnrepository.com/artifact/io.lettuce/lettuce-core -->
         <dependency>
@@ -59,7 +62,6 @@
             <groupId>com.konghq</groupId>
             <artifactId>unirest-java</artifactId>
             <version>4.0.0-RC1</version>
-            <!--<scope>provided</scope>-->
         </dependency>
         <!-- 为了兼容老版本 zookeeper 不可以升级 -->
         <!-- https://mvnrepository.com/artifact/org.apache.curator/curator-recipes -->

@@ -2,7 +2,6 @@ package common.java.Database;
 
 import com.alibaba.druid.pool.DruidDataSource;
 import com.alibaba.druid.pool.DruidPooledConnection;
-import com.mongodb.BasicDBObject;
 import common.java.EventWorker.Worker;
 import common.java.Number.NumberHelper;
 import common.java.String.StringHelper;
@@ -39,7 +38,7 @@ public class Oracle {
     private boolean conditiobLogicAnd;
     private int skipNo;
     private int limitNo;
-    private BasicDBObject sortBSON;
+    private JSONObject sortBSON;
     private boolean _count;
     private boolean _max;
     private boolean _min;
@@ -328,9 +327,9 @@ public class Oracle {
         conditionJSON = new ArrayList<>();
         conditiobLogicAnd = true;
         fieldList = new ArrayList<>();
-        sortBSON = new BasicDBObject();//默认_id排序
+        sortBSON = new JSONObject();//默认_id排序
         dataJSON = new ArrayList<>();
-        BasicDBObject updateJSON = new BasicDBObject();
+        // BasicDBObject updateJSON = new BasicDBObject();
         limitNo = 0;
         skipNo = 0;
         fastfieldString = "*";
