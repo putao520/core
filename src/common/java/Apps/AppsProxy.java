@@ -18,7 +18,7 @@ public class AppsProxy {
     public static JSONObject getAppInfo(int appid) {
         JSONObject info = JSONObject.toJSON(appMapped.getData(String.valueOf(appid)));
         if (info == null) {
-            info = RpcResponse.build(MasterProxy.serviceName(MasterServiceName.Appliction).find("id", String.valueOf(appid))).asJson();
+            info = RpcResponse.build(MasterProxy.serviceName(MasterServiceName.Application).find("id", String.valueOf(appid))).asJson();
         }
         return info;
     }
@@ -26,7 +26,7 @@ public class AppsProxy {
     public static JSONObject getAppInfo(String domain) {
         JSONObject info = JSONObject.toJSON(appMapped.getData(domainMapped.getData(domain)));
         if (info == null) {
-            info = RpcResponse.build(MasterProxy.serviceName(MasterServiceName.Appliction).find("domain", domain)).asJson();
+            info = RpcResponse.build(MasterProxy.serviceName(MasterServiceName.Application).find("domain", domain)).asJson();
         }
         return info;
     }

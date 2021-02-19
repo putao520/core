@@ -1,5 +1,7 @@
 package common.java.Rpc;
 
+import common.java.Apps.AppContext;
+import common.java.Apps.MicroModel;
 import common.java.HttpServer.HttpContext;
 import common.java.HttpServer.RequestSession;
 import common.java.Reflect._reflect;
@@ -17,7 +19,6 @@ import java.util.concurrent.ConcurrentHashMap;
 public class ExecRequest {//框架内请求类
 
     private static final HashMap<Class<?>, String> class2string;
-    private static final String clsDesp = "@getClass";
     private static final String appsURL;
 
     static {
@@ -42,40 +43,75 @@ public class ExecRequest {//框架内请求类
         appsURL = null;
     }
 
+    private static Object ModelDesc(HttpContext ctx) {
+        AppContext aCtx = AppContext.current();
+        if (aCtx == null) {
+            return RpcError.Instant(false, "无效应用");
+        }
+        var mServInfo = aCtx.microServiceInfo().get(ctx.serviceName());
+        if (mServInfo == null) {
+            return RpcError.Instant(false, "无效服务");
+        }
+        JSONObject r = new JSONObject();
+        HashMap<String, MicroModel> h = mServInfo.model();
+        for (String key : h.keySet()) {
+            // 仅获得模型定义
+            r.put(key, h.get(key).ruleArray().toJsonArray());
+        }
+        return r;
+    }
+
+    /**
+     * 全局服务
+     */
+    private static Object global_class_service(HttpContext ctx) {
+        Object rs = null;
+        try {
+            if ("@getModel".equalsIgnoreCase(ctx.className())) {
+                rs = ModelDesc(ctx);
+            }
+        } catch (Exception e) {
+            rs = "系统服务[" + ctx.className() + "]异常";
+        }
+        return rs;
+    }
+
     /**
      * 执行当前上下文环境下的调用
      */
-    public static Object _run(HttpContext ctx) {
-        HttpContext hCtx = HttpContext.current();
-        String className = hCtx.className();
-        String actionName = hCtx.actionName();
-        Object rs = null;
-        try {
-            // 执行前置类
-            Object[] _objs = hCtx.invokeParamter();
-            FilterReturn filterReturn = beforeExecute(className, actionName, _objs);
-            if (filterReturn.state()) {
-                // 载入主类
-                Class<?> _cls = Class.forName("main.java._api" + "." + className);
-                // 执行call
-                try {
-                    // 创建类反射
-                    _reflect obj = new _reflect(_cls);
-                    // 保存反射类
-                    RequestSession.setCurrent(obj);
-                    // 构造反射类实例
-                    obj.newInstance();
-                    // 调用主要类,后置类,固定返回结构
-                    rs = obj._call(actionName, _objs);
-                    rs = RpcResult(afterExecute(className, actionName, rs));
-                } catch (Exception e) {
-                    nLogger.logInfo(e, "实例化 " + _cls.toString() + " ...失败");
+    public static Object _run(HttpContext hCtx) {
+        // HttpContext hCtx = HttpContext.current();
+        Object rs = global_class_service(hCtx);
+        if (rs == null) {
+            String className = hCtx.className();
+            String actionName = hCtx.actionName();
+            try {
+                // 执行前置类
+                Object[] _objs = hCtx.invokeParamter();
+                FilterReturn filterReturn = beforeExecute(className, actionName, _objs);
+                if (filterReturn.state()) {
+                    // 载入主类
+                    Class<?> _cls = Class.forName("main.java._api" + "." + className);
+                    // 执行call
+                    try {
+                        // 创建类反射
+                        _reflect obj = new _reflect(_cls);
+                        // 保存反射类
+                        RequestSession.setCurrent(obj);
+                        // 构造反射类实例
+                        obj.newInstance();
+                        // 调用主要类,后置类,固定返回结构
+                        rs = obj._call(actionName, _objs);
+                        rs = RpcResult(afterExecute(className, actionName, rs));
+                    } catch (Exception e) {
+                        nLogger.logInfo(e, "实例化 " + _cls.toString() + " ...失败");
+                    }
+                } else {
+                    rs = RpcError.Instant(filterReturn);
                 }
-            } else {
-                rs = RpcError.Instant(filterReturn);
+            } catch (Exception e) {
+                nLogger.logInfo(e, "类:" + className + " : 不存在");
             }
-        } catch (Exception e) {
-            nLogger.logInfo(e, "类:" + className + " : 不存在");
         }
         return rs;
     }

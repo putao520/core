@@ -8,6 +8,8 @@ import common.java.Rpc.RpcResponse;
 import common.java.ServiceTemplate.MasterServiceName;
 import org.json.simple.JSONObject;
 
+import java.util.HashMap;
+
 public class MicroServiceContext {
     private static int currentno = 0;
     private String servName;
@@ -74,6 +76,13 @@ public class MicroServiceContext {
      */
     public MicroModel model(String modelName) {
         return this.servModelInfo.microModel(modelName);
+    }
+
+    /**
+     * 获得全部微服务的业务模型
+     */
+    public HashMap<String, MicroModel> model() {
+        return this.servModelInfo.microModel();
     }
 
     /**

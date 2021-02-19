@@ -41,11 +41,11 @@ public class PathMapped {
                 case INITIALIZED -> {
                     List<ChildData> initDatas = e.getInitialData();
                     for (ChildData _child : initDatas) {
-                        store.put(ZookeeperUnit.nodeName(_child.getPath()), ZookeeperUnit.byteArray2Strinf(_child.getData()));
+                        store.put(ZookeeperUnit.nodeName(_child.getPath()), ZookeeperUnit.byteArray2String(_child.getData()));
                     }
                     loaded = true;
                 }
-                case CHILD_ADDED, CHILD_UPDATED -> store.put(ZookeeperUnit.nodeName(child.getPath()), ZookeeperUnit.byteArray2Strinf(child.getData()));
+                case CHILD_ADDED, CHILD_UPDATED -> store.put(ZookeeperUnit.nodeName(child.getPath()), ZookeeperUnit.byteArray2String(child.getData()));
                 case CHILD_REMOVED -> store.remove(ZookeeperUnit.nodeName(child.getPath()));
             }
         });

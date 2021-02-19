@@ -163,7 +163,7 @@ public class AppContext {
      */
     public boolean updateAppConfig() {
         return RpcResponse.build(
-                MasterProxy.serviceName(MasterServiceName.Appliction)
+                MasterProxy.serviceName(MasterServiceName.Application)
                         .update(
                                 String.valueOf(this.appid),
                                 GscJson.encode(JSONObject.putx("configName", this.msc.toJson()))

@@ -12,8 +12,8 @@ import io.lettuce.core.cluster.ClusterTopologyRefreshOptions;
 import io.lettuce.core.cluster.RedisClusterClient;
 import io.lettuce.core.cluster.api.StatefulRedisClusterConnection;
 import io.lettuce.core.codec.Utf8StringCodec;
-import io.lettuce.core.masterslave.MasterSlave;
-import io.lettuce.core.masterslave.StatefulRedisMasterSlaveConnection;
+import io.lettuce.core.masterreplica.MasterReplica;
+import io.lettuce.core.masterreplica.StatefulRedisMasterReplicaConnection;
 import org.json.simple.JSONObject;
 
 import java.time.Duration;
@@ -123,7 +123,7 @@ public class RedisConn {
         return client.connect();
     }
 
-    private StatefulRedisMasterSlaveConnection<String, String> connMasterSlave(JSONObject configs) {
+    private StatefulRedisMasterReplicaConnection<String, String> connMasterSlave(JSONObject configs) {
         RedisClient redisClient = RedisClient.create();
         String uris = configs.getString("masterslave");
         List<String> uriArray = Arrays.asList(uris.split(","));
@@ -146,7 +146,7 @@ public class RedisConn {
             redisBuilder.withSsl(configs.getBoolean("ssl"));
         }
         RedisURI rURI = redisBuilder.build();
-        StatefulRedisMasterSlaveConnection<String, String> conn = MasterSlave.connect(redisClient, new Utf8StringCodec(), rURI);
+        StatefulRedisMasterReplicaConnection<String, String> conn = MasterReplica.connect(redisClient, new Utf8StringCodec(), rURI);
         conn.setReadFrom(ReadFrom.MASTER_PREFERRED);
         return conn;
     }

@@ -39,7 +39,7 @@ public class TreeMapped {
             // 删除缓存
             // 更新缓存
             switch (e.getType()) {
-                case NODE_ADDED, NODE_UPDATED -> store.put(child.getPath(), ZookeeperUnit.byteArray2Strinf(child.getData()));
+                case NODE_ADDED, NODE_UPDATED -> store.put(child.getPath(), ZookeeperUnit.byteArray2String(child.getData()));
                 case NODE_REMOVED -> store.remove(child.getPath());
             }
         });

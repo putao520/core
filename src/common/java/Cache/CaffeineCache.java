@@ -1,48 +1,34 @@
 package common.java.Cache;
 
+import com.github.benmanes.caffeine.cache.Caffeine;
 import common.java.Number.NumberHelper;
-import org.ehcache.CacheManager;
-import org.ehcache.config.builders.CacheConfigurationBuilder;
-import org.ehcache.config.builders.CacheManagerBuilder;
-import org.ehcache.config.builders.ExpiryPolicyBuilder;
-import org.ehcache.config.builders.ResourcePoolsBuilder;
 
-import java.time.Duration;
 import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 
-public class EhCache implements InterfaceCache {
-    private static final org.ehcache.Cache<String, String> static_jdc;
+public class CaffeineCache implements InterfaceCache {
+    private static final com.github.benmanes.caffeine.cache.Cache<String, String> static_jdc;
 
     static {
-        CacheManager cacheManager = CacheManagerBuilder.newCacheManagerBuilder()
-                .withCache("commonCache",
-                        CacheConfigurationBuilder.newCacheConfigurationBuilder(String.class, String.class, ResourcePoolsBuilder.heap(8000))
-                                .withExpiry(
-                                        ExpiryPolicyBuilder.timeToLiveExpiration(Duration.ofSeconds(60))
-                                )
-                )
+        static_jdc = Caffeine.newBuilder()
+                .maximumSize(1000000)
+                .expireAfterWrite(1, TimeUnit.SECONDS)
                 .build();
-        cacheManager.init();
-        static_jdc = cacheManager.getCache("commonCache", String.class, String.class);
     }
 
-    private org.ehcache.Cache<String, String> jdc = null;
+    private com.github.benmanes.caffeine.cache.Cache<String, String> jdc;
 
-    public EhCache() {
-        initEhCache();
+    public CaffeineCache() {
+        jdc = getCache();
     }
 
-    private org.ehcache.Cache getEhCache() {
+    private com.github.benmanes.caffeine.cache.Cache getCache() {
         jdc = static_jdc;
         return jdc;
     }
 
-    private void initEhCache() {
-        jdc = getEhCache();
-    }
-
     public String get(String objectName) {
-        return jdc.get(objectName);
+        return jdc.getIfPresent(objectName);
     }
 
     /**
@@ -70,7 +56,7 @@ public class EhCache implements InterfaceCache {
     @Override
     public boolean setNX(String objectName, Object objectValue) {
         boolean rs = true;
-        String v = jdc.get(objectName);
+        String v = jdc.getIfPresent(objectName);
         if (v == null) {
             rs = false;
             set(objectName, objectValue);
@@ -80,7 +66,7 @@ public class EhCache implements InterfaceCache {
 
     @Override
     public String getSet(String objectName, Object objectValue) {
-        Object rs = jdc.get(objectName);
+        Object rs = jdc.getIfPresent(objectName);
         if (rs == null) {
             set(objectName, objectValue);
         }
@@ -89,7 +75,7 @@ public class EhCache implements InterfaceCache {
 
     @Override
     public String getSet(String objectName, int expire, Object objectValue) {
-        Object rs = jdc.get(objectName);
+        Object rs = jdc.getIfPresent(objectName);
         if (rs == null) {
             set(objectName, expire, objectValue);
         }
@@ -98,7 +84,7 @@ public class EhCache implements InterfaceCache {
 
     @Override
     public long inc(String objectName) {
-        long r = NumberHelper.number2long(jdc.get(objectName));
+        long r = NumberHelper.number2long(jdc.getIfPresent(objectName));
         long i = r + 1;
         set(objectName, String.valueOf(i));
         return i;
@@ -106,7 +92,7 @@ public class EhCache implements InterfaceCache {
 
     @Override
     public long incBy(String objectName, long num) {
-        long r = NumberHelper.number2long(jdc.get(objectName));
+        long r = NumberHelper.number2long(jdc.getIfPresent(objectName));
         long i = r + num;
         set(objectName, String.valueOf(i));
         return i;
@@ -114,7 +100,7 @@ public class EhCache implements InterfaceCache {
 
     @Override
     public long dec(String objectName) {
-        long r = NumberHelper.number2long(jdc.get(objectName));
+        long r = NumberHelper.number2long(jdc.getIfPresent(objectName));
         long i = r - 1;
         set(objectName, String.valueOf(i));
         return i;
@@ -122,7 +108,7 @@ public class EhCache implements InterfaceCache {
 
     @Override
     public long decBy(String objectName, long num) {
-        long r = NumberHelper.number2long(jdc.get(objectName));
+        long r = NumberHelper.number2long(jdc.getIfPresent(objectName));
         long i = r - num;
         set(objectName, String.valueOf(i));
         return i;
@@ -130,7 +116,7 @@ public class EhCache implements InterfaceCache {
 
     @Override
     public long delete(String objectName) {
-        jdc.remove(objectName);
+        jdc.invalidate(objectName);
         return 1;
     }
 }

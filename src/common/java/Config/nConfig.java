@@ -35,7 +35,7 @@ public class nConfig {
         try {
             prop.load(new FileInputStream("pt520config.properties"));
             masterHost = prop.getProperty("masterhost", "http://127.0.0.1");//read putao520system host url
-            masterPort = Integer.parseInt(prop.getProperty("masterport", "80"));
+            masterPort = Integer.parseInt(prop.getProperty("masterport", "0"));
             bindip = prop.getProperty("bindip", "0.0.0.0");//本地服务节点通信Ip
             // 下面是增强选项
             port = Integer.parseInt(prop.getProperty("port", "80"));

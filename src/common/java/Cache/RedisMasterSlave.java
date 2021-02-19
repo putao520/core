@@ -4,7 +4,7 @@ import common.java.Apps.MicroServiceContext;
 import common.java.Config.nConfig;
 import common.java.String.StringHelper;
 import io.lettuce.core.api.async.RedisAsyncCommands;
-import io.lettuce.core.masterslave.StatefulRedisMasterSlaveConnection;
+import io.lettuce.core.masterreplica.StatefulRedisMasterReplicaConnection;
 
 /**
  * * {
@@ -30,7 +30,7 @@ public class RedisMasterSlave implements InterfaceCache {
     }
 
     private void init(String config) {
-        this.command = ((StatefulRedisMasterSlaveConnection<String, String>) RedisConn.build(config).getConnect()).async();
+        this.command = ((StatefulRedisMasterReplicaConnection<String, String>) RedisConn.build(config).getConnect()).async();
     }
 
     @Override

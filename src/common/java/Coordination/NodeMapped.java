@@ -27,11 +27,11 @@ public class NodeMapped {
 
         // 初始化当前节点数据
         if (nodeCache.getCurrentData() != null) {//只有start中的设置为true才能够直接得到
-            store = ZookeeperUnit.byteArray2Strinf(nodeCache.getCurrentData().getData());
+            store = ZookeeperUnit.byteArray2String(nodeCache.getCurrentData().getData());
         }
 
         //添加节点数据监听
-        nodeCache.getListenable().addListener(() -> store = ZookeeperUnit.byteArray2Strinf(nodeCache.getCurrentData().getData()));
+        nodeCache.getListenable().addListener(() -> store = ZookeeperUnit.byteArray2String(nodeCache.getCurrentData().getData()));
         return this;
     }
 

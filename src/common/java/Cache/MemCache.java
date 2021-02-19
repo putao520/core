@@ -1,28 +1,18 @@
 package common.java.Cache;
 
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
-import com.google.common.util.concurrent.ListenableFuture;
-import com.google.common.util.concurrent.ListeningExecutorService;
-import com.google.common.util.concurrent.MoreExecutors;
+import com.github.benmanes.caffeine.cache.CacheLoader;
+import com.github.benmanes.caffeine.cache.Caffeine;
+import com.github.benmanes.caffeine.cache.LoadingCache;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
 public class MemCache<K, V> {
-    // 数据刷新线程池
-    protected static final ListeningExecutorService refreshPool = MoreExecutors.listeningDecorator(Executors.newFixedThreadPool(20));
     /**
-     * @description: 利用guava实现的内存缓存。缓存加载之后永不过期，后台线程定时刷新缓存值。刷新失败时将继续返回旧缓存。
+     * @description: 内存缓存。缓存加载之后永不过期，刷新失败时将继续返回旧缓存。
      * 在调用getValue之前，需要设置 refreshDuration， refreshTimeunit， maxSize 三个参数
-     * 后台刷新线程池为该系统中所有子类共享，大小为20.
-     * @author: luozhuo
-     * @date: 2017年6月21日 上午10:03:45
-     * @version: V1.0.0
      * @param <K>
      * @param <V>
      */
@@ -115,37 +105,30 @@ public class MemCache<K, V> {
 
     /**
      * @description: 获取cache实例
-     * @author: luozhuo
-     * @date: 2017年6月13日 下午2:50:11
      */
     private LoadingCache<K, V> getCache() {
         if (cache == null) {
-            synchronized (this) {
-                if (cache == null) {
-                    CacheBuilder<Object, Object> cacheBuilder = CacheBuilder.newBuilder()
-                            .maximumSize(maxSize);
+            Caffeine<Object, Object> cacheBuilder = Caffeine.newBuilder()
+                    .maximumSize(maxSize);
 
-                    if (refreshDuration > 0) {
-                        cacheBuilder.refreshAfterWrite(refreshDuration, refreshTimeunit);
-                    }
-                    if (expireDuration > 0) {
-                        cacheBuilder.expireAfterWrite(expireDuration, expireTimeunit);
-                    }
-
-                    cache = cacheBuilder.build(new CacheLoader<>() {
-                        @Override
-                        public V load(K key) {
-                            return _getValueWhenExpired.apply(key);
-                        }
-
-                        @Override
-                        public ListenableFuture<V> reload(final K key,
-                                                          V oldValue) {
-                            return refreshPool.submit(() -> _getValueWhenExpired.apply(key));
-                        }
-                    });
-                }
+            if (refreshDuration > 0) {
+                cacheBuilder.refreshAfterWrite(refreshDuration, refreshTimeunit);
             }
+            if (expireDuration > 0) {
+                cacheBuilder.expireAfterWrite(expireDuration, expireTimeunit);
+            }
+
+            cache = cacheBuilder.build(new CacheLoader<>() {
+                @Override
+                public V load(K key) {
+                    return _getValueWhenExpired.apply(key);
+                }
+
+                @Override
+                public V reload(final K key, V oldValue) {
+                    return _getValueWhenExpired.apply(key);
+                }
+            });
         }
         return cache;
     }

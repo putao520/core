@@ -13,7 +13,6 @@ import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
 import io.netty.handler.stream.ChunkedStream;
 import org.json.simple.JSONObject;
 
-import javax.activation.MimetypesFileTypeMap;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
@@ -225,7 +224,7 @@ public class GrapeHttpServer {
         //----------流输出
         if (responseData instanceof File) {
             try {
-                exHeader = new JSONObject(CONTENT_TYPE.toString(), getFileTypeHeader((File) responseData));
+                exHeader = new JSONObject(CONTENT_TYPE.toString(), Mime.getMime((File) responseData));
                 responseData = new FileInputStream((File) responseData);
             } catch (Exception e) {
                 responseData = null;
@@ -275,10 +274,4 @@ public class GrapeHttpServer {
             writeHttpResponse(ctx, (byte[]) responseData, exHeader);
         }
     }
-
-    private static String getFileTypeHeader(File file) {
-        MimetypesFileTypeMap mimeTypesMap = new MimetypesFileTypeMap();
-        return mimeTypesMap.getContentType(file.getPath());
-    }
-
 }

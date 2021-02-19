@@ -1,7 +1,7 @@
 package common.java.Coordination;
 
 public class ZookeeperUnit {
-    public static String byteArray2Strinf(byte[] in) {
+    public static String byteArray2String(byte[] in) {
         return new String(in);
     }
 

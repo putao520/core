@@ -30,10 +30,17 @@ public class MicroModel {
     }
 
     /**
-     * 获得规则组
+     * 获得规则组hashmap
      */
     public HashMap<String, MModelRuleNode> rules() {
         return this.mmrArrray.self();
+    }
+
+    /**
+     * 获得规则组
+     */
+    public MModelRuleArray ruleArray() {
+        return this.mmrArrray;
     }
 
     /**

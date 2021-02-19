@@ -8,7 +8,7 @@ public class MasterServiceName {
     /**
      * 应用管理服务名
      */
-    public static final String Appliction = "Appliction";
+    public static final String Application = "Application";
 
     /**
      * 配置管理服务名

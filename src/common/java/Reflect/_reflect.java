@@ -6,7 +6,10 @@ import common.java.InterfaceModel.Type.ApiType;
 import common.java.InterfaceModel.Type.ApiTypes;
 import common.java.JGrapeSystem.SystemDefined;
 import common.java.OAuth.oauthApi;
-import common.java.Rpc.*;
+import common.java.Rpc.ExecRequest;
+import common.java.Rpc.FilterCallback;
+import common.java.Rpc.ReturnCallback;
+import common.java.Rpc.RpcError;
 import common.java.Session.UserSession;
 import common.java.String.StringHelper;
 import common.java.nLogger.nLogger;
@@ -90,7 +93,7 @@ public class _reflect {
      *
      * @return
      */
-    public static String getServDecl(Class<?> cls) {
+    public static Object getServDecl(Class<?> cls) {
         return _reflect.ServDecl(cls);
     }
 
@@ -120,7 +123,7 @@ public class _reflect {
         return ParamString.toString();
     }
 
-    private static String ServDecl(Class<?> cls) {
+    private static Object ServDecl(Class<?> cls) {
         JSONArray funcs = new JSONArray();
         Method[] methods;
         do {
@@ -138,7 +141,7 @@ public class _reflect {
             }
             cls = cls.getSuperclass();
         } while (cls != Object.class);
-        return rMsg.netMSG(0, funcs.size() > 0 ? "ok" : "err", funcs);
+        return funcs;
     }
 
     public _reflect superMode() {
@@ -258,16 +261,16 @@ public class _reflect {
     }
 
     /**
-     * @apiNote 输入请求过滤
+     * @apiNote 全局的系统服务
      */
-    private Object _Hook(String functionName, Object... parameters) {
+    private Object global_service(String functionName, Object... parameters) {
         Object rs = null;
         try {
             if ("@description".equalsIgnoreCase(functionName)) {
                 rs = ServDecl(_Class);
             }
         } catch (Exception e) {
-            rs = "调用参数类型异常";
+            rs = "系统服务[" + functionName + "]异常";
         }
         return rs;
     }
@@ -382,16 +385,17 @@ public class _reflect {
      * @return
      */
     public Object _call(String functionName, Object... parameters) {
-        Object rs = null;
-        Method comMethod;
-        Class<?>[] cls = object2class(Arrays.asList(parameters));
-        comMethod = _getMethod(functionName, cls);
-        // 主方法存在
-        if (comMethod != null) {
-            // 调用主要方法
-            rs = callMainAction(comMethod, cls, functionName, parameters);
-        } else {
-            rs = RpcError.Instant(false, "无效接口!");
+        Object rs = global_service(functionName, parameters);
+        if (rs == null) {
+            Class<?>[] cls = object2class(Arrays.asList(parameters));
+            Method comMethod = _getMethod(functionName, cls);
+            // 主方法存在
+            if (comMethod != null) {
+                // 调用主要方法
+                rs = callMainAction(comMethod, cls, functionName, parameters);
+            } else {
+                rs = RpcError.Instant(false, "无效接口!");
+            }
         }
         _superMode = false;
         return rs;

@@ -19,7 +19,7 @@ public class Cache implements InterfaceCache {
     }
 
     private _reflect _cache;            // 共享缓存抽象对象
-    private EhCache _mem_cache;         // 内存缓存对象
+    private CaffeineCache _mem_cache;         // 内存缓存对象
 
     private Cache(boolean global_flag, String inputConfigName) {
         try {
@@ -66,8 +66,8 @@ public class Cache implements InterfaceCache {
         return new Cache(global_share, configName);
     }
 
-    private EhCache getMemCacheObject() {
-        return new EhCache();
+    private CaffeineCache getMemCacheObject() {
+        return new CaffeineCache();
     }
 
     private _reflect getCacheObject(String cN) {
@@ -94,7 +94,7 @@ public class Cache implements InterfaceCache {
                             _cache = (new _reflect(RedisMasterSlave.class)).newInstance(_configString);
                         }
                         default -> {
-                            _cache = new _reflect(EhCache.class);
+                            _cache = new _reflect(CaffeineCache.class);
                         }
                     }
                 } else {

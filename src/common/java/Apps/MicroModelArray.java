@@ -25,6 +25,13 @@ public class MicroModelArray {
     }
 
     /**
+     * 获得全部模型对象
+     */
+    public HashMap<String, MicroModel> microModel() {
+        return this.mModels;
+    }
+
+    /**
      * 获得JSON结构数据模型对象
      */
     public JSONObject toJson() {
