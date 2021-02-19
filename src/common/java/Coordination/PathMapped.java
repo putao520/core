@@ -1,7 +1,7 @@
 package common.java.Coordination;
 
-import common.java.master.MasterConnect;
-import common.java.nlogger.nlogger;
+import common.java.MasterService.MasterConnect;
+import common.java.nLogger.nLogger;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.recipes.cache.ChildData;
 import org.apache.curator.framework.recipes.cache.PathChildrenCache;
@@ -27,7 +27,7 @@ public class PathMapped {
         try {
             pathCache.start(PathChildrenCache.StartMode.POST_INITIALIZED_EVENT);//启动模式
         } catch (Exception e) {
-            nlogger.debugInfo(e, "建立目录映射失败");
+            nLogger.debugInfo(e, "建立目录映射失败");
         }
 
         //添加目录数据监听

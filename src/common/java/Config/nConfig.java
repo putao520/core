@@ -2,10 +2,10 @@ package common.java.Config;
 
 import common.java.Coordination.PathMapped;
 import common.java.JGrapeSystem.SystemDefined;
-import common.java.master.MasterProxy;
-import common.java.rpc.RpcResponse;
-import common.java.serviceHelper.MasterServiceName;
-import common.java.string.StringHelper;
+import common.java.MasterService.MasterProxy;
+import common.java.Rpc.RpcResponse;
+import common.java.ServiceTemplate.MasterServiceName;
+import common.java.String.StringHelper;
 import org.json.simple.JSONObject;
 
 import java.io.FileInputStream;
@@ -46,7 +46,7 @@ public class nConfig {
             appID = prop.getProperty("appID", "0");
             // 添加path映射
         } catch (IOException e) {
-            // nlogger.logInfo(e);
+            // nLogger.logInfo(e);
         }
     }
 
@@ -60,7 +60,7 @@ public class nConfig {
         if (rs == null) {
             rs = shareConfig(session);
         }
-        if (StringHelper.invaildString(rs)) {
+        if (StringHelper.invaild(rs)) {
             JSONObject cfgInfo = RpcResponse.build(MasterProxy.serviceName(MasterServiceName.Setting).find("configname", session)).asJson();
             rs = cfgInfo.getString("configjson");
         }

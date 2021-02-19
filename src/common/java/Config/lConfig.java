@@ -10,7 +10,7 @@ public class lConfig {
         try {
             localProp.load(new FileInputStream("localconfig.properties"));
         } catch (Exception e) {
-            // nlogger.logInfo(e, "本地配置文件[localconfig.properties] ...读取异常!");
+            // nLogger.logInfo(e, "本地配置文件[localconfig.properties] ...读取异常!");
         }
     }
 

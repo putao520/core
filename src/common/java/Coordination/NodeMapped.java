@@ -1,7 +1,7 @@
 package common.java.Coordination;
 
-import common.java.master.MasterConnect;
-import common.java.nlogger.nlogger;
+import common.java.MasterService.MasterConnect;
+import common.java.nLogger.nLogger;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.recipes.cache.NodeCache;
 
@@ -22,7 +22,7 @@ public class NodeMapped {
         try {
             nodeCache.start(true);//true代表缓存当前节点
         } catch (Exception e) {
-            nlogger.debugInfo(e, "建立节点映射失败");
+            nLogger.debugInfo(e, "建立节点映射失败");
         }
 
         // 初始化当前节点数据

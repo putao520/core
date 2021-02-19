@@ -1,11 +1,11 @@
 package common.java.JGrapeSystem;
 
 import common.java.Config.nConfig;
-import common.java.httpServer.GscServer;
-import common.java.httpServer.HttpContext;
-import common.java.nlogger.nlogger;
-import common.java.node.NodeManage;
-import common.java.time.TimeHelper;
+import common.java.HttpServer.GscServer;
+import common.java.HttpServer.HttpContext;
+import common.java.Node.NodeManage;
+import common.java.Time.TimeHelper;
+import common.java.nLogger.nLogger;
 import io.netty.channel.ChannelHandlerContext;
 
 public class GscBooter {
@@ -23,8 +23,8 @@ public class GscBooter {
 
     private static void _before(String serverName, boolean master) {
         // 设置日志回调
-        nlogger.setDebug(nConfig.debug);
-        nlogger.clientFunc = (info, type) -> {
+        nLogger.setDebug(nConfig.debug);
+        nLogger.clientFunc = (info, type) -> {
             HttpContext context = HttpContext.current();
             if (context == null) {
                 return;
@@ -65,7 +65,7 @@ public class GscBooter {
             // 启动http服务
             GscServer.start(nConfig.bindip, nConfig.port);
         } catch (Exception e) {
-            nlogger.logInfo(e);
+            nLogger.logInfo(e);
         } finally {
 
         }

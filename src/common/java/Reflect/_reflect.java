@@ -1,15 +1,15 @@
 package common.java.Reflect;
 
 import common.java.Config.nConfig;
+import common.java.File.UploadFile;
+import common.java.InterfaceModel.Type.ApiType;
+import common.java.InterfaceModel.Type.ApiTypes;
 import common.java.JGrapeSystem.SystemDefined;
-import common.java.file.UploadFile;
-import common.java.interfaceType.ApiType;
-import common.java.interfaceType.ApiTypes;
-import common.java.nlogger.nlogger;
-import common.java.oauth.oauthApi;
-import common.java.rpc.*;
-import common.java.session.UserSession;
-import common.java.string.StringHelper;
+import common.java.OAuth.oauthApi;
+import common.java.Rpc.*;
+import common.java.Session.UserSession;
+import common.java.String.StringHelper;
+import common.java.nLogger.nLogger;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
@@ -154,22 +154,22 @@ public class _reflect {
             Constructor<?> cObject = _Class.getDeclaredConstructor(parametercls.length == 0 ? null : parametercls);
             _oObject = _parameters.length > 0 ? cObject.newInstance(_parameters) : cObject.newInstance();
         } catch (InstantiationException e) {
-            nlogger.logInfo(e, "初始化类:" + _Class.getName() + " 实例化失败");
+            nLogger.logInfo(e, "初始化类:" + _Class.getName() + " 实例化失败");
             _oObject = null;
         } catch (IllegalAccessException e) {
-            nlogger.logInfo(e, "初始化类:" + _Class.getName() + " 访问异常");
+            nLogger.logInfo(e, "初始化类:" + _Class.getName() + " 访问异常");
             _oObject = null;
         } catch (IllegalArgumentException e) {
-            nlogger.logInfo(e, "初始化类:" + _Class.getName() + " 无效参数");
+            nLogger.logInfo(e, "初始化类:" + _Class.getName() + " 无效参数");
             _oObject = null;
         } catch (InvocationTargetException e) {
-            nlogger.logInfo(e, "初始化类:" + _Class.getName() + " 无效调用");
+            nLogger.logInfo(e, "初始化类:" + _Class.getName() + " 无效调用");
             _oObject = null;
         } catch (NoSuchMethodException e) {
-            nlogger.logInfo(e, "初始化类:" + _Class.getName() + " 方法不存在");
+            nLogger.logInfo(e, "初始化类:" + _Class.getName() + " 方法不存在");
             _oObject = null;
         } catch (SecurityException e) {
-            nlogger.logInfo(e, "初始化类:" + _Class.getName() + " acl异常");
+            nLogger.logInfo(e, "初始化类:" + _Class.getName() + " acl异常");
             _oObject = null;
         }
         return this;
@@ -340,19 +340,19 @@ public class _reflect {
                     // 如果包含结果hook
                 } catch (IllegalAccessException e) {
                     // TODO Auto-generated catch block
-                    nlogger.logInfo(_Class.getName() + "." + functionName + "无效访问");
+                    nLogger.logInfo(_Class.getName() + "." + functionName + "无效访问");
                     //e.printStackTrace();
                     rs = null;
                 } catch (IllegalArgumentException e) {
                     // TODO Auto-generated catch block
-                    nlogger.logInfo(e, _Class.getName() + "." + functionName + "无效参数");
+                    nLogger.logInfo(e, _Class.getName() + "." + functionName + "无效参数");
                     rs = null;
                 } catch (InvocationTargetException e) {
                     // TODO Auto-generated catch block
-                    nlogger.logInfo(e, "函数:" + _Class.getName() + "." + functionName + "内部错误");
+                    nLogger.logInfo(e, "函数:" + _Class.getName() + "." + functionName + "内部错误");
                     rs = null;
                 } catch (Exception e) {
-                    nlogger.logInfo(e, "函数:" + _Class.getName() + "." + functionName + "未知异常");
+                    nLogger.logInfo(e, "函数:" + _Class.getName() + "." + functionName + "未知异常");
                     //e.printStackTrace();
                     rs = null;
                 }
@@ -368,7 +368,7 @@ public class _reflect {
                     clsString = new StringBuilder();
                 }
             }
-            nlogger.logInfo("函数:" + _Class.getName() + "." + functionName + "(" + StringHelper.build(clsString.toString()).removeTrailingFrom().toString() + ") -不存在,或者形参与实参不匹配");
+            nLogger.logInfo("函数:" + _Class.getName() + "." + functionName + "(" + StringHelper.build(clsString.toString()).removeTrailingFrom().toString() + ") -不存在,或者形参与实参不匹配");
         }
         return rs;
     }

@@ -1,9 +1,9 @@
 package common.java.Concurrency;
 
+import common.java.Cache.CacheHelper;
+import common.java.File.FileText;
 import common.java.JGrapeSystem.SystemDefined;
-import common.java.cache.CacheHelper;
-import common.java.file.FileText;
-import common.java.nlogger.nlogger;
+import common.java.nLogger.nLogger;
 
 public class DistributedLocker {
     private static final String logFileName = "GlobelLocker.log";
@@ -11,16 +11,16 @@ public class DistributedLocker {
 
     static {
         // 本地JVM第一次载入类时，清除所有未释放全局锁，防止出现死锁
-        CacheHelper ch = new CacheHelper(SystemDefined.commonConfigUnit.LocalCache);
+        CacheHelper ch = CacheHelper.buildCache(SystemDefined.commonConfigUnit.LocalCache);
         FileText textFile = FileText.build(logFileName);
         textFile.read().forEach(lockerInfo -> {
             String[] locker = lockerInfo.split("\\|");
             if (Integer.parseInt(locker[1]) == distributedLockerMode.GlobalMode) {
-                ch.Global();
+                ch.Global(true);
             }
             ch.delete(locker[0]);
         });
-        nlogger.debugInfo("清除全局锁完成...");
+        nLogger.debugInfo("清除全局锁完成...");
         textFile.delete();
     }
 
@@ -55,12 +55,9 @@ public class DistributedLocker {
 
     private CacheHelper getRedis() {
         if (ch == null) {
-            ch = new CacheHelper(SystemDefined.commonConfigUnit.LocalCache);
+            ch = CacheHelper.buildCache(SystemDefined.commonConfigUnit.LocalCache);
         }
-        if (this.globalMode) {
-            ch.Global();
-        }
-        return ch;
+        return ch.Global(this.globalMode);
     }
 
     /**

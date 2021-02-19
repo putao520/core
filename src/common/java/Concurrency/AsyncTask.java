@@ -1,7 +1,7 @@
 package common.java.Concurrency;
 
-import common.java.apps.AppContext;
-import common.java.interrupt.CacheAuth;
+import common.java.Apps.AppContext;
+import common.java.Interrupt.CacheAuth;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;

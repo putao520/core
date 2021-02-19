@@ -1,7 +1,7 @@
 package common.java.Coordination;
 
-import common.java.master.MasterConnect;
-import common.java.nlogger.nlogger;
+import common.java.MasterService.MasterConnect;
+import common.java.nLogger.nLogger;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.recipes.cache.ChildData;
 import org.apache.curator.framework.recipes.cache.TreeCache;
@@ -27,10 +27,10 @@ public class TreeMapped {
         try {
             treeCache.start();
         } catch (Exception e) {
-            nlogger.debugInfo(e, "建立树映射失败");
+            nLogger.debugInfo(e, "建立树映射失败");
         }
         //添加错误监听器
-        treeCache.getUnhandledErrorListenable().addListener((msg, e) -> nlogger.debugInfo(msg));
+        treeCache.getUnhandledErrorListenable().addListener((msg, e) -> nLogger.debugInfo(msg));
 
         //添加树数据监听
         treeCache.getListenable().addListener((c, e) -> {

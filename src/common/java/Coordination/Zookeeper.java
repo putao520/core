@@ -101,7 +101,7 @@ public class Zookeeper {
             return creater().creatingParentsIfNeeded()
                     .forPath(nodePath, nodeValue.getBytes());
         } catch (Exception e) {
-            // nlogger.debugInfo(e, MessageFormat.format("创建永久Zookeeper节点失败,nodePath:{0},nodeValue:{1}",nodePath,nodeValue));
+            // nLogger.debugInfo(e, MessageFormat.format("创建永久Zookeeper节点失败,nodePath:{0},nodeValue:{1}",nodePath,nodeValue));
         }
         return null;
     }
@@ -122,7 +122,7 @@ public class Zookeeper {
                     .withMode(CreateMode.PERSISTENT_SEQUENTIAL)
                     .forPath(nodePath, nodeValue.getBytes());
         } catch (Exception e) {
-            // nlogger.debugInfo(e, MessageFormat.format("创建永久有序Zookeeper节点失败,nodePath:{0},nodeValue:{1}",nodePath,nodeValue));
+            // nLogger.debugInfo(e, MessageFormat.format("创建永久有序Zookeeper节点失败,nodePath:{0},nodeValue:{1}",nodePath,nodeValue));
         }
         return null;
     }
@@ -143,7 +143,7 @@ public class Zookeeper {
                     .withMode(CreateMode.EPHEMERAL)
                     .forPath(nodePath, nodeValue.getBytes());
         } catch (Exception e) {
-            // nlogger.debugInfo(e, MessageFormat.format("创建临时Zookeeper节点失败,nodePath:{0},nodeValue:{1}",nodePath,nodeValue));
+            // nLogger.debugInfo(e, MessageFormat.format("创建临时Zookeeper节点失败,nodePath:{0},nodeValue:{1}",nodePath,nodeValue));
         }
         return null;
     }
@@ -164,7 +164,7 @@ public class Zookeeper {
                     .withMode(CreateMode.EPHEMERAL_SEQUENTIAL)
                     .forPath(nodePath, nodeValue.getBytes());
         } catch (Exception e) {
-            // nlogger.debugInfo(e, MessageFormat.format("创建临时有序Zookeeper节点失败,nodePath:{0},nodeValue:{1}",nodePath,nodeValue));
+            // nLogger.debugInfo(e, MessageFormat.format("创建临时有序Zookeeper节点失败,nodePath:{0},nodeValue:{1}",nodePath,nodeValue));
         }
         return null;
     }
@@ -183,7 +183,7 @@ public class Zookeeper {
             Stat stat = client.checkExists().forPath(nodePath);
             return stat != null;
         } catch (Exception e) {
-            // nlogger.debugInfo(e, MessageFormat.format("检查Zookeeper节点是否存在出现异常,nodePath:{0}",nodePath));
+            // nLogger.debugInfo(e, MessageFormat.format("检查Zookeeper节点是否存在出现异常,nodePath:{0}",nodePath));
         }
         return false;
     }
@@ -201,7 +201,7 @@ public class Zookeeper {
         try {
             return client.getChildren().forPath(nodePath);
         } catch (Exception e) {
-            // nlogger.debugInfo(e, MessageFormat.format("获取某个Zookeeper节点的所有子节点出现异常,nodePath:{0}",nodePath));
+            // nLogger.debugInfo(e, MessageFormat.format("获取某个Zookeeper节点的所有子节点出现异常,nodePath:{0}",nodePath));
         }
         return null;
     }
@@ -219,7 +219,7 @@ public class Zookeeper {
         try {
             return new String(client.getData().forPath(nodePath));
         } catch (Exception e) {
-            // nlogger.debugInfo(e, MessageFormat.format("获取某个Zookeeper节点的数据出现异常,nodePath:{0}",nodePath));
+            // nLogger.debugInfo(e, MessageFormat.format("获取某个Zookeeper节点的数据出现异常,nodePath:{0}",nodePath));
         }
         return null;
     }
@@ -236,7 +236,7 @@ public class Zookeeper {
         try {
             client.setData().forPath(nodePath, newNodeValue.getBytes());
         } catch (Exception e) {
-            // nlogger.debugInfo(e, MessageFormat.format("设置某个Zookeeper节点的数据出现异常,nodePath:{0}",nodePath));
+            // nLogger.debugInfo(e, MessageFormat.format("设置某个Zookeeper节点的数据出现异常,nodePath:{0}",nodePath));
         }
     }
 
@@ -252,7 +252,7 @@ public class Zookeeper {
         try {
             client.delete().guaranteed().forPath(nodePath);
         } catch (Exception e) {
-            // nlogger.debugInfo(e, MessageFormat.format("删除某个Zookeeper节点出现异常,nodePath:{0}",nodePath));
+            // nLogger.debugInfo(e, MessageFormat.format("删除某个Zookeeper节点出现异常,nodePath:{0}",nodePath));
         }
     }
 
@@ -268,7 +268,7 @@ public class Zookeeper {
         try {
             client.delete().guaranteed().deletingChildrenIfNeeded().forPath(nodePath);
         } catch (Exception e) {
-            // nlogger.debugInfo(e, MessageFormat.format("级联删除某个Zookeeper节点及其子节点出现异常,nodePath:{0}",nodePath));
+            // nLogger.debugInfo(e, MessageFormat.format("级联删除某个Zookeeper节点及其子节点出现异常,nodePath:{0}",nodePath));
         }
     }
 
@@ -303,7 +303,7 @@ public class Zookeeper {
             //4. 返回NodeCache
             return nodeCache;
         } catch (Exception e) {
-            // nlogger.debugInfo(e, MessageFormat.format("注册节点监听器出现异常,nodePath:{0}",nodePath));
+            // nLogger.debugInfo(e, MessageFormat.format("注册节点监听器出现异常,nodePath:{0}",nodePath));
         }
         return null;
     }
@@ -333,7 +333,7 @@ public class Zookeeper {
             //4. 返回PathChildrenCache
             return pathChildrenCache;
         } catch (Exception e) {
-            // nlogger.debugInfo(e, MessageFormat.format("注册子目录监听器出现异常,nodePath:{0}",nodePath));
+            // nLogger.debugInfo(e, MessageFormat.format("注册子目录监听器出现异常,nodePath:{0}",nodePath));
         }
         return null;
     }
@@ -367,7 +367,7 @@ public class Zookeeper {
             //4. 返回TreeCache
             return treeCache;
         } catch (Exception e) {
-            // nlogger.debugInfo(e, MessageFormat.format("注册目录监听器出现异常,nodePath:{0},maxDepth:{1}",nodePath));
+            // nLogger.debugInfo(e, MessageFormat.format("注册目录监听器出现异常,nodePath:{0},maxDepth:{1}",nodePath));
         }
         return null;
     }

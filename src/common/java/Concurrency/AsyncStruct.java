@@ -1,11 +1,11 @@
 package common.java.Concurrency;
 
-import common.java.cache.CacheHelper;
-import common.java.common.checkModel;
+import common.java.Cache.CacheHelper;
+import common.java.GscCommon.checkModel;
 import org.json.simple.JSONObject;
 
 public class AsyncStruct {
-    private final CacheHelper cache = new CacheHelper();//使用当前服务的缓存
+    private final CacheHelper cache = CacheHelper.buildCache();//使用当前服务的缓存
     private long currentNumber;
     private long totalNumber;
     private String currentText;

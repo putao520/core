@@ -15,7 +15,7 @@
         <dependency>
             <groupId>io.netty</groupId>
             <artifactId>netty-all</artifactId>
-            <version>4.1.58.Final</version>
+            <version>4.1.59.Final</version>
         </dependency>
         <!-- https://mvnrepository.com/artifact/org.mongodb/mongo-java-driver -->
         <dependency>
@@ -27,7 +27,7 @@
         <dependency>
             <groupId>com.alibaba</groupId>
             <artifactId>druid</artifactId>
-            <version>1.2.4</version>
+            <version>1.2.5</version>
         </dependency>
         <!-- https://mvnrepository.com/artifact/mysql/mysql-connector-java -->
         <dependency>
@@ -45,7 +45,7 @@
         <dependency>
             <groupId>io.lettuce</groupId>
             <artifactId>lettuce-core</artifactId>
-            <version>6.0.2.RELEASE</version>
+            <version>6.1.0.M1</version>
         </dependency>
         <!-- https://mvnrepository.com/artifact/org.ehcache/ehcache -->
         <dependency>
@@ -57,18 +57,19 @@
         <dependency>
             <groupId>com.konghq</groupId>
             <artifactId>unirest-java</artifactId>
-            <version>3.11.10</version>
+            <version>4.0.0-RC1</version>
+            <scope>provided</scope>
         </dependency>
         <!-- https://mvnrepository.com/artifact/org.apache.curator/curator-recipes -->
         <dependency>
             <groupId>org.apache.curator</groupId>
             <artifactId>curator-recipes</artifactId>
-            <version>4.3.0</version>
+            <version>5.1.0</version>
         </dependency>
         <dependency>
             <groupId>gfw</groupId>
             <artifactId>common</artifactId>
-            <version>1.072</version>
+            <version>1.080</version>
         </dependency>
     </dependencies>
 

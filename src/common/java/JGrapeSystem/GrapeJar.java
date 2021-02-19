@@ -1,6 +1,6 @@
 package common.java.JGrapeSystem;
 
-import common.java.nlogger.nlogger;
+import common.java.nLogger.nLogger;
 
 import java.io.File;
 import java.io.IOException;
@@ -57,7 +57,7 @@ public class GrapeJar {
                 classList.addAll(childClassList);
             }
         } catch (IOException e) {
-            nlogger.logInfo(e);
+            nLogger.logInfo(e);
         }
         return classList;
     }
@@ -88,7 +88,7 @@ public class GrapeJar {
             Path path = Paths.get(url.toURI());
             return getClassInFile(path, packageName, recursive);
         } catch (URISyntaxException e) {
-            nlogger.logInfo(e);
+            nLogger.logInfo(e);
         }
         return Collections.emptyList();
     }
@@ -118,7 +118,7 @@ public class GrapeJar {
                     classList.addAll(getClassInFile(iterator.next(), packageName, true));
                 }
             } catch (IOException e) {
-                nlogger.logInfo(e);
+                nLogger.logInfo(e);
             }
         } else {
             try {
@@ -138,7 +138,7 @@ public class GrapeJar {
                 className = lastDotIndex == -1 ? className.substring(beginIndex) : className.substring(beginIndex, lastDotIndex);
                 classList.add(Class.forName(className));
             } catch (IOException | ClassNotFoundException e) {
-                nlogger.logInfo(e);
+                nLogger.logInfo(e);
             }
         }
         return classList;
@@ -157,7 +157,7 @@ public class GrapeJar {
             JarFile jar = new JarFile(filePath);
             return getClassInJar(jar, packageName, recursive);
         } catch (IOException e) {
-            nlogger.logInfo(e);
+            nLogger.logInfo(e);
         }
         return Collections.emptyList();
     }
@@ -175,7 +175,7 @@ public class GrapeJar {
             JarFile jar = ((JarURLConnection) url.openConnection()).getJarFile();
             return getClassInJar(jar, packageName, recursive);
         } catch (IOException e) {
-            nlogger.logInfo(e);
+            nLogger.logInfo(e);
         }
         return Collections.emptyList();
     }
@@ -209,7 +209,7 @@ public class GrapeJar {
                             try {
                                 classList.add(Class.forName(className));
                             } catch (ClassNotFoundException e) {
-                                nlogger.logInfo(e);
+                                nLogger.logInfo(e);
                             }
                         }
                     }
