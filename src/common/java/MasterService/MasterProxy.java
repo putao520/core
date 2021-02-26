@@ -116,6 +116,11 @@ public class MasterProxy implements MasterServiceTemplateInterface {
     }
 
     @Override
+    public String select(String appId) {
+        return callMasterService("select", param2postpatam(appId));
+    }
+
+    @Override
     public String selectEx(String cond) {
         return callMasterService("select", param2postpatam(cond));
     }

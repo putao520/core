@@ -60,14 +60,17 @@ public class MasterServiceTemplate implements MicroServiceTemplateInterface {
 
     }
 
-    /**
-     * 获得计划任务信息
-     */
     @ApiType(ApiType.type.SessionApi)
     @ApiType(ApiType.type.OauthApi)
     @Override
     public JSONArray select() {
         return fdb.select();
+    }
+
+    @ApiType(ApiType.type.SessionApi)
+    @ApiType(ApiType.type.OauthApi)
+    public JSONArray select(String appID) {
+        return fdb.eq("appid", appID).select();
     }
 
     @ApiType(ApiType.type.SessionApi)

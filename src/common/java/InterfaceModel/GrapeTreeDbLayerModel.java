@@ -77,7 +77,7 @@ public class GrapeTreeDbLayerModel extends GrapeDbLayerModel {
                 JSONArray finalR = r;
                 HttpContext hCtx = HttpContext.current();
                 pipeJSONArray_Out.parallelStream().forEach(func -> {
-                    AppContext.virualAppContext(hCtx.appid(), hCtx.serviceName());
+                    AppContext.virtualAppContext(hCtx.appid(), hCtx.serviceName());
                     resultArray.add(func.apply(finalR));
                 });
                 // 线性聚合data

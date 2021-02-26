@@ -13,28 +13,34 @@ import java.util.HashMap;
 public class MicroServiceContext {
     private static int currentno = 0;
     private String servName;
+    private int appId;
     private JSONObject servInfo;
     private ModelServiceConfig servConfig;
     private MicroModelArray servModelInfo;
 
     private MicroServiceContext() {
         // 获得当前微服务名
-        String servName = HttpContext.current().serviceName();
-        init(servName);
+        HttpContext ctx = HttpContext.current();
+        init(ctx.appid(), ctx.serviceName());
+    }
+
+    public MicroServiceContext(int appId, String servName) {
+        init(appId, servName);
     }
 
     public MicroServiceContext(String servName) {
-        init(servName);
+        init(HttpContext.current().appid(), servName);
     }
 
     public static MicroServiceContext current() {
         return new MicroServiceContext();
     }
 
-    private void init(String servName) {
+    private void init(int appId, String servName) {
+        this.appId = appId;
         this.servName = servName;
         // 获得对应微服务信息
-        this.servInfo = AppsProxy.getServiceInfo(this.servName);
+        this.servInfo = AppsProxy.getServiceInfo(this.appId, this.servName);
         if (this.servInfo != null) {
             this.servModelInfo = new MicroModelArray(this.servInfo.getJson("tableConfig"));
             this.servConfig = new ModelServiceConfig(this.servInfo.getJson("configName"));
@@ -102,7 +108,7 @@ public class MicroServiceContext {
         if (RpcResponse.build(MasterProxy.serviceName(MasterServiceName.MicroService)
                 .updateEx(
                         GscJson.encode(newMicroModel),
-                        DbFilter.buildDbFilter().eq("serviceName", this.servName).build().toJSONString()
+                        DbFilter.buildDbFilter().eq("serviceName", this.servName).eq("appid", this.appId).build().toJSONString()
                 )
         ).status()) {
             // 更新全部因为权限模型修改,而需要修改的数据

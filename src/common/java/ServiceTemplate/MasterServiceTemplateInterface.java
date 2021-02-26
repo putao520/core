@@ -65,6 +65,13 @@ public interface MasterServiceTemplateInterface {
     String select();
 
     /**
+     * @apiNote 获得全部数据
+     */
+    @ApiType(ApiType.type.SessionApi)
+    @ApiType(ApiType.type.OauthApi)
+    String select(String appId);
+
+    /**
      * @param cond gsc-GraphQL
      * @apiNote 获得全部数据, 通过指定条件
      */

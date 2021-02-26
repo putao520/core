@@ -117,7 +117,8 @@ public class _reflect {
         StringBuilder ParamString = new StringBuilder();
         for (final Parameter parameter : parameters) {
             //生成参数字符串
-            ParamString.append(ExecRequest.class2string(parameter.getType())).append(":").append(parameter.getName()).append(",");
+            // ParamString.append(ExecRequest.class2string(parameter.getType())).append(":").append(parameter.getName()).append(",");
+            ParamString.append(ExecRequest.class2string(parameter.getType())).append(",");
         }
         return ParamString.toString();
     }

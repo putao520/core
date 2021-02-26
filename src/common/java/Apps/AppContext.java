@@ -50,21 +50,21 @@ public class AppContext {
     /**
      * 获得当前应用上下文
      */
-    public static AppThreadContext virualAppContext() {
+    public static AppThreadContext virtualAppContext() {
         return AppThreadContext.build(HttpContext.current());
     }
 
     /**
      * 设置当前线程上下文
      */
-    public static AppContext virualAppContext(AppThreadContext atc) {
-        return virualAppContext(atc.AppID, atc.MicroServiceName);
+    public static AppContext virtualAppContext(AppThreadContext atc) {
+        return virtualAppContext(atc.AppID, atc.MicroServiceName);
     }
 
     /**
      * 根据指定的appid创建虚拟上下文
      */
-    public static AppContext virualAppContext(int appid, String serviceName) {
+    public static AppContext virtualAppContext(int appid, String serviceName) {
         ChannelId cid = new ChannelId() {
             private final String shortText = StringHelper.createRandomCode(6);
             private final String longText = shortText + "_" + StringHelper.createRandomCode(6);
@@ -110,7 +110,7 @@ public class AppContext {
             this.microServiceInfo = new HashMap<>();
             String[] meta = this.appInfo.getString("meta").split(",");
             for (String s : meta) {
-                MicroServiceContext msc = new MicroServiceContext(s);
+                MicroServiceContext msc = new MicroServiceContext(this.appid, s);
                 if (msc.hasData()) {
                     this.microServiceInfo.put(s, msc);
                 }
@@ -180,9 +180,9 @@ public class AppContext {
 
     public AppContext thread(Runnable task, ExecutorService service) {
         ExecutorService serv = service == null ? globalService : service;
-        AppThreadContext atc = AppContext.virualAppContext();
+        AppThreadContext atc = AppContext.virtualAppContext();
         serv.submit(() -> {
-            AppContext.virualAppContext(atc);
+            AppContext.virtualAppContext(atc);
             task.run();
         });
         return this;

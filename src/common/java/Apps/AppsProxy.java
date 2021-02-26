@@ -1,6 +1,7 @@
 package common.java.Apps;
 
 import common.java.Coordination.PathMapped;
+import common.java.Database.DbFilter;
 import common.java.MasterService.MasterProxy;
 import common.java.Rpc.RpcResponse;
 import common.java.ServiceTemplate.MasterServiceName;
@@ -32,10 +33,10 @@ public class AppsProxy {
     }
 
     // 获得微服务信息
-    public static JSONObject getServiceInfo(String serviceName) {
+    public static JSONObject getServiceInfo(int appid, String serviceName) {
         JSONObject info = JSONObject.toJSON(serviceMapped.getData(serviceName));
         if (info == null) {
-            info = RpcResponse.build(MasterProxy.serviceName(MasterServiceName.MicroService).find("serviceName", serviceName)).asJson();
+            info = RpcResponse.build(MasterProxy.serviceName(MasterServiceName.MicroService).findEx(DbFilter.buildDbFilter().eq("serviceName", serviceName).eq("appid", appid).build().toString())).asJson();
         }
         return info;
     }
