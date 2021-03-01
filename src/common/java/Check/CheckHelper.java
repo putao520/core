@@ -2,7 +2,6 @@ package common.java.Check;
 
 import common.java.String.StringHelper;
 import common.java.Time.TimeHelper;
-import common.java.nLogger.nLogger;
 
 import java.net.URL;
 import java.time.LocalDateTime;
@@ -19,7 +18,7 @@ public class CheckHelper {
      * @param
      * @return
      */
-    public static boolean isNull(String str) {
+    public static boolean IsNull(String str) {
         return str == null || str.isEmpty();
     }
 
@@ -30,7 +29,7 @@ public class CheckHelper {
      * @param str
      * @return
      */
-    public static boolean eqZero(String str) {
+    public static boolean IsZero(String str) {
         if (IntTest(str)) {
             return Integer.parseInt(str) == 0;
         }
@@ -46,7 +45,7 @@ public class CheckHelper {
         return false;
     }
 
-    public static boolean bigZero(String str) {
+    public static boolean NotZero(String str) {
         if (IntTest(str)) {
             return Integer.parseInt(str) > 0;
         }
@@ -68,7 +67,7 @@ public class CheckHelper {
      * @param str
      * @return
      */
-    public static boolean isInt(String str) {
+    public static boolean IsInt(String str) {
         return IntTest(str) || LongTest(str);
     }
 
@@ -114,7 +113,7 @@ public class CheckHelper {
      * @param str
      * @return
      */
-    public static boolean isNum(String str) {
+    public static boolean IsNum(String str) {
         return FloatTest(str) || DoubleTest(str);
     }
 
@@ -124,7 +123,7 @@ public class CheckHelper {
      * @param email
      * @return
      */
-    public static boolean checkEmail(String email) {
+    public static boolean IsEmail(String email) {
         String check = "^([a-z0-9A-Z]+[-|_|\\.]?)+[a-z0-9A-Z]@([a-z0-9A-Z]+(-[a-z0-9A-Z]+)?\\.)+[a-zA-Z]{2,}$";
         return match(check, email);
     }
@@ -135,7 +134,7 @@ public class CheckHelper {
      * @param
      * @return
      */
-    public static boolean checkMobileNumber(String mobileNumber) {
+    public static boolean IsMobileNumber(String mobileNumber) {
         String check = "^(((13[0-9])|(15([0-3]|[5-9]))|(17([0-9]))|(18[0-9]))\\d{8})|(0\\d{2}-\\d{8})|(0\\d{3}-\\d{7})$";
         return match(check, mobileNumber) && mobileNumber.length() == 11;
     }
@@ -146,7 +145,7 @@ public class CheckHelper {
      * @param
      * @return
      */
-    public static boolean checkTelPhoneNumber(String telphoneNumber) {
+    public static boolean IsTelPhoneNumber(String telphoneNumber) {
         String check1 = "^(([0\\+]\\d{2,3}-)?(0\\d{2,3})-)(\\d{7,8})(-(\\d{3,}))?$";
         String check2 = "^(\\d{7,8})(-(\\d{3,}))?$";
         return (match(check1, telphoneNumber) && telphoneNumber.length() == 12) || (match(check2, telphoneNumber) && telphoneNumber.length() == 7);
@@ -158,7 +157,7 @@ public class CheckHelper {
      * @param str
      * @return
      */
-    public static boolean checkBusinessRegisterNo(String str) {
+    public static boolean IsBusinessRegisterNo(String str) {
         String check = "^[0-9][a-fA-F0-9]{14,18}$";
         return match(check, str) && (str.length() == 15 || str.length() == 18);
     }
@@ -169,7 +168,7 @@ public class CheckHelper {
      * @param str
      * @return
      */
-    public static boolean checkChinese(String str) {
+    public static boolean IsChinese(String str) {
         String check = "^[\\x{4e00}-\\x{9fa5}]+$";
         return match(check, str);
     }
@@ -181,12 +180,12 @@ public class CheckHelper {
      * @param len
      * @return
      */
-    public static boolean checkID(String str, int len) {
+    public static boolean IsID(String str, int len) {
         String check = "^[a-zA-Z][a-z0-9A-Z_-]{2," + len + "}+$";
         return match(check, str);
     }
 
-    public static boolean noSpace(String str) {
+    public static boolean notContainSpace(String str) {
         return !(str.contains(" "));
     }
 
@@ -196,9 +195,9 @@ public class CheckHelper {
      * @param str
      * @return
      */
-    public static boolean checkRealName(String str) {
+    public static boolean IsRealName(String str) {
         int l = str.length();
-        return checkChinese(str) ? (l > 1 && l < 5 && !noSpace(str)) : (l > 2 && l < 255);
+        return IsChinese(str) ? (l > 1 && l < 5 && !notContainSpace(str)) : (l > 2 && l < 255);
     }
 
     /**
@@ -207,7 +206,7 @@ public class CheckHelper {
      * @param str
      * @return
      */
-    public static boolean checkPersonCardID(String str) {
+    public static boolean IsPersonCardID(String str) {
         return PersonCardID.isValidatedAllIdcard(str);
     }
 
@@ -217,7 +216,7 @@ public class CheckHelper {
      * @param unixtime
      * @return
      */
-    public static boolean checkUnixDate(long unixtime) {
+    public static boolean IsUnixDate(long unixtime) {
         return unixtime == 0 || TimeHelper.build().timestampToDate(unixtime) != null;
     }
 
@@ -227,7 +226,7 @@ public class CheckHelper {
      * @param str
      * @return
      */
-    public static boolean checkDate(String str) {
+    public static boolean IsDate(String str) {
         boolean flag = false;
         List<String> timeFormatYMD = new ArrayList<>();
         List<String> timeFormatHMS = new ArrayList<>();
@@ -252,7 +251,7 @@ public class CheckHelper {
                     if (_formatYMD == null && _formatHMS == null) {
                         break;
                     }
-                    nLogger.logInfo(_format);
+                    // nLogger.logInfo(_format);
                     DateTimeFormatter format = DateTimeFormatter.ofPattern(_format);
                     LocalDateTime.parse(str, format);
                     return true;
@@ -269,7 +268,7 @@ public class CheckHelper {
      * @param str
      * @return
      */
-    public static boolean checkWeek(String str) {
+    public static boolean IsWeek(String str) {
         String tmp;
         String _char;
         boolean state = true;
@@ -296,7 +295,7 @@ public class CheckHelper {
             case "日", "天", "七" -> "7";
             default -> str;
         };
-        return isInt(tmp) && (Integer.parseInt(tmp) > 0 && Integer.parseInt(tmp) < 8);
+        return IsInt(tmp) && (Integer.parseInt(tmp) > 0 && Integer.parseInt(tmp) < 8);
     }
 
     /**
@@ -305,7 +304,7 @@ public class CheckHelper {
      * @param str
      * @return
      */
-    public static boolean checkMonth(String str) {
+    public static boolean IsMonth(String str) {
         String tmp;
         String _char;
         boolean state = true;
@@ -338,7 +337,7 @@ public class CheckHelper {
             case "十二" -> "12";
             default -> str;
         };
-        return isInt(tmp) && (Integer.parseInt(tmp) > 0 && Integer.parseInt(tmp) < 13);
+        return IsInt(tmp) && (Integer.parseInt(tmp) > 0 && Integer.parseInt(tmp) < 13);
     }
 
     /**
@@ -347,7 +346,7 @@ public class CheckHelper {
      * @param str
      * @return
      */
-    public static boolean isIP(String str) {
+    public static boolean IsIP(String str) {
         String num = "(25[0-5]|2[0-4]\\d|[0-1]\\d{2}|[1-9]?\\d)";
         String regex = "^" + num + "\\." + num + "\\." + num + "\\." + num + "$";
         return match(regex, str);
@@ -388,13 +387,13 @@ public class CheckHelper {
      * @param str
      * @return
      */
-    public static boolean IsPostalcode(String str) {
+    public static boolean IsPostalCode(String str) {
         String regex = "^\\d{6}$";
         return match(regex, str);
     }
 
     /**
-     * 小数点后2位数字
+     * 小数点后2位数字(金额)
      *
      * @param str
      * @return

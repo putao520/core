@@ -271,53 +271,53 @@ public class FormHelper {
         int ruleID = checkLength(rule, str);
         switch (ruleID) {
             case formdef.notNull:
-                return !CheckHelper.isNull(str);
+                return !CheckHelper.IsNull(str);
             case formdef.eqNull:
-                return CheckHelper.isNull(str);
+                return CheckHelper.IsNull(str);
             case formdef.bigZero:
-                return CheckHelper.bigZero(str);
+                return CheckHelper.NotZero(str);
             case formdef.smallZero:
-                return !CheckHelper.bigZero(str) && !CheckHelper.eqZero(str);
+                return !CheckHelper.NotZero(str) && !CheckHelper.NotZero(str);
             case formdef.eqZero:
-                return CheckHelper.eqZero(str);
+                return CheckHelper.IsZero(str);
             case formdef.number:
-                return CheckHelper.isInt(str);
+                return CheckHelper.IsInt(str);
             case formdef.Int:
-                return CheckHelper.isNum(str);
+                return CheckHelper.IsNum(str);
             case formdef.money:
                 return CheckHelper.IsDecimal(str);
             case formdef.decimal:
-                return CheckHelper.isNum(str) && !CheckHelper.isInt(str);
+                return CheckHelper.IsNum(str) && !CheckHelper.IsInt(str);
             case formdef.email:
-                return CheckHelper.checkEmail(str);
+                return CheckHelper.IsEmail(str);
             case formdef.mobile:
-                return CheckHelper.checkMobileNumber(str);
-            case formdef.BusniessID:
-                return CheckHelper.checkBusinessRegisterNo(str);
+                return CheckHelper.IsMobileNumber(str);
+            case formdef.BusinessID:
+                return CheckHelper.IsBusinessRegisterNo(str);
             case formdef.Chinese:
-                return CheckHelper.checkChinese(str);
+                return CheckHelper.IsChinese(str);
             case formdef.id:
-                return CheckHelper.checkID(str, 15);
+                return CheckHelper.IsID(str, 15);
             case formdef.noSpace:
-                return CheckHelper.noSpace(str);
+                return CheckHelper.notContainSpace(str);
             case formdef.name:
-                return CheckHelper.checkRealName(str);
+                return CheckHelper.IsRealName(str);
             case formdef.PersonID:
-                return CheckHelper.checkPersonCardID(str);
+                return CheckHelper.IsPersonCardID(str);
             case formdef.simpleDate:
-                return CheckHelper.checkDate(str);
+                return CheckHelper.IsDate(str);
             case formdef.week:
-                return CheckHelper.checkWeek(str);
+                return CheckHelper.IsWeek(str);
             case formdef.month:
-                return CheckHelper.checkMonth(str);
+                return CheckHelper.IsMonth(str);
             case formdef.ip:
-                return CheckHelper.isIP(str);
+                return CheckHelper.IsIP(str);
             case formdef.url:
                 return CheckHelper.IsUrl(str);
             case formdef.password:
                 return CheckHelper.IsPassword(str);
             case formdef.postCode:
-                return CheckHelper.IsPostalcode(str);
+                return CheckHelper.IsPostalCode(str);
             case formdef.Date:
                 return CheckHelper.IsDateAndYear(str);
             case formdef.Time:
@@ -325,7 +325,7 @@ public class FormHelper {
             case formdef.UnixDate:
                 try {
                     long l = Long.parseLong(str);
-                    return CheckHelper.checkUnixDate(l);
+                    return CheckHelper.IsUnixDate(l);
                 } catch (Exception e) {
                 }
                 break;
@@ -391,7 +391,7 @@ public class FormHelper {
         /**
          * 工商执照号
          */
-        public final static int BusniessID = 12;
+        public final static int BusinessID = 12;
         /**
          * 纯中文
          */
