@@ -3,7 +3,7 @@ package common.java.Session;
 import common.java.Authority.PermissionsPowerDef;
 import common.java.HttpServer.HttpContext;
 import common.java.nLogger.nLogger;
-import org.json.simple.JSONObject;
+import org.json.gsc.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;

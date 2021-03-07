@@ -1,7 +1,7 @@
 package common.java.Rpc;
 
 import common.java.HttpServer.HttpContext;
-import org.json.simple.JSONObject;
+import org.json.gsc.JSONObject;
 
 public class RpcTask {
     private String rpcURL;
@@ -9,7 +9,7 @@ public class RpcTask {
     private JSONObject postParameter;
 
     private RpcTask(JSONObject json) {
-        if (!JSONObject.isInvaild(json)) {
+        if (!JSONObject.isInvalided(json)) {
             this.rpcURL = json.getString("rpc");
             this.postParameter = json.getJson("parameter");
             this.header = json.getJson("header");

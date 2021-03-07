@@ -12,8 +12,8 @@ import common.java.OAuth.oauthApi;
 import common.java.Rpc.RpcPageInfo;
 import common.java.Rpc.rMsg;
 import common.java.String.StringHelper;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
+import org.json.gsc.JSONArray;
+import org.json.gsc.JSONObject;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -60,7 +60,7 @@ public class MicroServiceTemplate implements MicroServiceTemplateInterface {
             }
         }
         JSONObject sorts = ctx.sort();
-        if (!JSONObject.isInvaild(sorts)) {
+        if (!JSONObject.isInvalided(sorts)) {
             for (String field : sorts.keySet()) {
                 if (sorts.getString(field).equalsIgnoreCase("desc")) {
                     db.desc(field);
@@ -70,7 +70,7 @@ public class MicroServiceTemplate implements MicroServiceTemplateInterface {
             }
         }
         JSONObject options = ctx.option();
-        if (!JSONObject.isInvaild(options)) {
+        if (!JSONObject.isInvalided(options)) {
             // join开关
             if (options.containsKey("join")) {
                 db.outPiperEnable(options.getBoolean("join"));
@@ -123,14 +123,14 @@ public class MicroServiceTemplate implements MicroServiceTemplateInterface {
     }
 
     protected JSONArray joinOn(String localKey, JSONArray localArray, String foreignKey, Function<String, JSONArray> func, boolean save_null_item) {
-        if (JSONArray.isInvaild(localArray)) {
+        if (JSONArray.isInvalided(localArray)) {
             return localArray;
         }
         List<String> ids = new ArrayList<>();
         // 构造模板ID条件组
         for (Object obj : localArray) {
             JSONObject _obj = (JSONObject) obj;
-            if (JSONObject.isInvaild(_obj)) {
+            if (JSONObject.isInvalided(_obj)) {
                 continue;
             }
             String _ids = _obj.getString(localKey);
@@ -160,7 +160,7 @@ public class MicroServiceTemplate implements MicroServiceTemplateInterface {
 
     protected JSONObject joinOn(String localKey, JSONObject localObject, String foreignKey, Function<String, JSONArray> func) {
         JSONArray newArray = joinOn(localKey, JSONArray.addx(localObject), foreignKey, func);
-        return JSONArray.isInvaild(newArray) ? localObject : (JSONObject) newArray.get(0);
+        return JSONArray.isInvalided(newArray) ? localObject : (JSONObject) newArray.get(0);
     }
 
 
@@ -170,7 +170,7 @@ public class MicroServiceTemplate implements MicroServiceTemplateInterface {
     }
 
     public Object insert(JSONObject newData) {
-        if (!JSONObject.isInvaild(newData)) {
+        if (!JSONObject.isInvalided(newData)) {
             return db.data(newData).insertEx();
         }
         return null;
@@ -224,7 +224,7 @@ public class MicroServiceTemplate implements MicroServiceTemplateInterface {
 
     private int _update(String ids, JSONObject info, JSONArray cond) {
         int r = 0;
-        if (!JSONObject.isInvaild(info)) {
+        if (!JSONObject.isInvalided(info)) {
             _ids(db.getPk(), ids);
             _condition(cond);
             if (!db.nullCondition()) {
@@ -344,7 +344,7 @@ public class MicroServiceTemplate implements MicroServiceTemplateInterface {
     }
 
     private void _condition(JSONArray cond) {
-        if (!JSONArray.isInvaild(cond)) {
+        if (!JSONArray.isInvalided(cond)) {
             db.and().where(cond);
         }
     }

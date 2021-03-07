@@ -14,8 +14,8 @@ import common.java.HttpServer.HttpContext;
 import common.java.Session.UserSession;
 import common.java.String.StringHelper;
 import common.java.nLogger.nLogger;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
+import org.json.gsc.JSONArray;
+import org.json.gsc.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -186,8 +186,12 @@ public class GrapeDbLayerModel implements InterfaceDatabase<GrapeDbLayerModel> {
         boolean auth = true;
         if (checker != null && !tempAdmin) {
             switch (runtimeMode) {
-                case GrapeDBMode.safeMode -> auth = checker.filterAndCheckTable(dataCache, true);
-                case GrapeDBMode.checkMode -> auth = checker.checkTable(dataCache, true);
+                case GrapeDBMode.safeMode:
+                    auth = checker.filterAndCheckTable(dataCache, true);
+                    break;
+                case GrapeDBMode.checkMode:
+                    auth = checker.checkTable(dataCache, true);
+                    break;
             }
             fullDataCache.putAll(dataCache);
             this.db.data(fullDataCache);
@@ -413,8 +417,12 @@ public class GrapeDbLayerModel implements InterfaceDatabase<GrapeDbLayerModel> {
         boolean auth = true;
         if (checker != null && !tempAdmin) {//数据效验通过
             switch (runtimeMode) {
-                case GrapeDBMode.safeMode -> checker.filterProtect(dataCache);//过滤临时字段
-                case GrapeDBMode.checkMode -> auth = checker.checkTable(dataCache, false);
+                case GrapeDBMode.safeMode:
+                    checker.filterProtect(dataCache);//过滤临时字段
+                    break;
+                case GrapeDBMode.checkMode:
+                    auth = checker.checkTable(dataCache, false);
+                    break;
             }
         }
         return auth;
@@ -575,7 +583,7 @@ public class GrapeDbLayerModel implements InterfaceDatabase<GrapeDbLayerModel> {
             rs = this.db.field(pkField).find();
         }
         reInit();
-        return !JSONObject.isInvaild(rs);
+        return !JSONObject.isInvalided(rs);
     }
 
     //数据存储

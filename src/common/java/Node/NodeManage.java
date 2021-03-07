@@ -2,8 +2,8 @@ package common.java.Node;
 
 import common.java.Config.nConfig;
 import common.java.MasterService.MasterConnect;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
+import org.json.gsc.JSONArray;
+import org.json.gsc.JSONObject;
 
 import java.util.List;
 

@@ -9,7 +9,7 @@ import common.java.Number.NumberHelper;
 import common.java.String.StringHelper;
 import common.java.Time.TimeHelper;
 import common.java.nLogger.nLogger;
-import org.json.simple.JSONObject;
+import org.json.gsc.JSONObject;
 
 import java.util.Objects;
 import java.util.UUID;

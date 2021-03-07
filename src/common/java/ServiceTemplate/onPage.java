@@ -1,6 +1,6 @@
 package common.java.ServiceTemplate;
 
-import org.json.simple.JSONArray;
+import org.json.gsc.JSONArray;
 
 public class onPage {
     private int idx;

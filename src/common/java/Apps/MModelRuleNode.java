@@ -1,7 +1,7 @@
 package common.java.Apps;
 
 import common.java.Check.CheckType;
-import org.json.simple.JSONObject;
+import org.json.gsc.JSONObject;
 
 /**
  * 模型规则节点

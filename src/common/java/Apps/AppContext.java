@@ -8,7 +8,7 @@ import common.java.Rpc.RpcResponse;
 import common.java.ServiceTemplate.MasterServiceName;
 import common.java.String.StringHelper;
 import io.netty.channel.ChannelId;
-import org.json.simple.JSONObject;
+import org.json.gsc.JSONObject;
 
 import java.util.HashMap;
 import java.util.concurrent.ExecutorService;

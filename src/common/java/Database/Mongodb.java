@@ -14,8 +14,8 @@ import org.bson.json.JsonMode;
 import org.bson.json.JsonWriterSettings;
 import org.bson.json.StrictJsonWriter;
 import org.bson.types.ObjectId;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
+import org.json.gsc.JSONArray;
+import org.json.gsc.JSONObject;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -279,17 +279,25 @@ public class Mongodb {
     }
 
     private String logic2mongodb(String logic) {
-        String logicStr = switch (logic) {
-            case "=", "==" -> "$eq";
-            case "!=" -> "$ne";
-            case ">" -> "$gt";
-            case "<" -> "$lt";
-            case ">=" -> "$gte";
-            case "<=" -> "$lte";
-            case "like" -> "$regex";
-            default -> logic;
-        };
-        return logicStr;
+        switch (logic) {
+            case "=":
+            case "==":
+                return "$eq";
+            case "!=":
+                return "$ne";
+            case ">":
+                return "$gt";
+            case "<":
+                return "$lt";
+            case ">=":
+                return "$gte";
+            case "<=":
+                return "$lte";
+            case "like":
+                return "$regex";
+            default:
+                return logic;
+        }
     }
 
     private void addCondition(String field, Object value, String logic) {

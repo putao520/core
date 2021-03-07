@@ -1,6 +1,6 @@
 package common.java.File;
 
-import com.google.common.base.Charsets;
+import org.apache.commons.codec.Charsets;
 
 import java.io.*;
 import java.nio.charset.Charset;
@@ -12,7 +12,7 @@ public class FileText extends FileEx<FileText> {
 
     private FileText(File file) {
         super(file);
-        this.charset = Charsets.UTF_8;
+        this.charset = Charsets.toCharset("utf8");
     }
 
     private FileText(File file, Charset charset) {

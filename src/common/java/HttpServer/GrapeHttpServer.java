@@ -11,7 +11,7 @@ import io.netty.channel.*;
 import io.netty.handler.codec.http.*;
 import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
 import io.netty.handler.stream.ChunkedStream;
-import org.json.simple.JSONObject;
+import org.json.gsc.JSONObject;
 
 import java.io.File;
 import java.io.FileInputStream;

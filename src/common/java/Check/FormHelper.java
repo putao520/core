@@ -10,7 +10,7 @@ import common.java.Session.Session;
 import common.java.Session.UserSession;
 import common.java.String.StringHelper;
 import common.java.Time.TimeHelper;
-import org.json.simple.JSONObject;
+import org.json.gsc.JSONObject;
 
 import java.util.*;
 
@@ -144,20 +144,22 @@ public class FormHelper {
         Object rs = nowValue;
         if (nowValue instanceof String) {
             switch (nowValue.toString()) {
-                case ":timestamp" -> rs = TimeHelper.build().nowMillis();
-                case ":user" -> {
+                case ":timestamp":
+                    rs = TimeHelper.build().nowMillis();
+                    break;
+                case ":user": {
                     Session se = UserSession.current();
                     if (se.checkSession()) {
                         rs = UserSession.current().getUID();
                     }
+                    break;
                 }
-                case ":group" -> {
+                case ":group": {
                     Session se = UserSession.current();
                     if (se.checkSession()) {
                         rs = UserSession.current().getGID();
                     }
-                }
-                default -> {
+                    break;
                 }
             }
         }

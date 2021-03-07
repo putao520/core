@@ -2,7 +2,7 @@ package common.java.Concurrency;
 
 import common.java.Cache.CacheHelper;
 import common.java.GscCommon.checkModel;
-import org.json.simple.JSONObject;
+import org.json.gsc.JSONObject;
 
 public class AsyncStruct {
     private final CacheHelper cache = CacheHelper.buildCache();//使用当前服务的缓存
@@ -62,7 +62,7 @@ public class AsyncStruct {
     private AsyncStruct bindQueryKey(String queryKey) {
         this.queryKey = queryKey;
         JSONObject info = JSONObject.toJSON(cache.get(queryKey));
-        if (JSONObject.isInvaild(info)) {
+        if (JSONObject.isInvalided(info)) {
             this.currentNumber = 0;
             this.totalNumber = 100;
             this.currentText = "";

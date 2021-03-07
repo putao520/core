@@ -1,6 +1,6 @@
 package common.java.InterfaceModel.Type;
 
-import org.json.simple.JSONArray;
+import org.json.gsc.JSONArray;
 
 @FunctionalInterface
 public interface Aggregation {

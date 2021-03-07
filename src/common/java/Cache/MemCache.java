@@ -3,8 +3,7 @@ package common.java.Cache;
 import com.github.benmanes.caffeine.cache.CacheLoader;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.LoadingCache;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import common.java.nLogger.nLogger;
 
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
@@ -16,7 +15,6 @@ public class MemCache<K, V> {
      * @param <K>
      * @param <V>
      */
-    private final Logger logger = LoggerFactory.getLogger(getClass());
     // 缓存自动刷新周期
     protected int refreshDuration = 10;
     // 缓存刷新周期时间格式
@@ -51,8 +49,7 @@ public class MemCache<K, V> {
         try {
             return getCache().get(key);
         } catch (Exception e) {
-            logger.error("从内存缓存中获取内容时发生异常，key: " + key, e);
-            // throw e;
+            nLogger.errorInfo(e, "从内存缓存中获取内容时发生异常，key: " + key);
         }
         return null;
     }
@@ -61,7 +58,7 @@ public class MemCache<K, V> {
         try {
             return getCache().get(key);
         } catch (Exception e) {
-            logger.error("从内存缓存中获取内容时发生异常，key: " + key, e);
+            nLogger.errorInfo(e, "从内存缓存中获取内容时发生异常，key: " + key);
             return defaultValue;
         }
     }

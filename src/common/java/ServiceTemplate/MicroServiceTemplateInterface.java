@@ -2,8 +2,8 @@ package common.java.ServiceTemplate;
 
 import common.java.InterfaceModel.Type.ApiType;
 import common.java.Rpc.RpcPageInfo;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
+import org.json.gsc.JSONArray;
+import org.json.gsc.JSONObject;
 
 public interface MicroServiceTemplateInterface {
     /**

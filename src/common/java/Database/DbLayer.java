@@ -8,8 +8,8 @@ import common.java.HttpServer.HttpContext;
 import common.java.Reflect._reflect;
 import common.java.String.StringHelper;
 import common.java.nLogger.nLogger;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
+import org.json.gsc.JSONArray;
+import org.json.gsc.JSONObject;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -62,18 +62,14 @@ public class DbLayer implements InterfaceDatabase<DbLayer> {
     }
 
     public DbLayer addFieldOutPipe(String fieldName, Function<Object, Object> func) {
-        if (func != null) {
-            List<Function<Object, Object>> link = outHookFunc.get(fieldName);
-            if (link == null) {
-                link = new ArrayList<>();
-            }
-            link.add(func);
-            outHookFunc.put(fieldName, link);
-        }
-        return this;
+        return getDbLayer(fieldName, func, outHookFunc);
     }
 
     public DbLayer addFieldInPipe(String fieldName, Function<Object, Object> func) {
+        return getDbLayer(fieldName, func, inHookFunc);
+    }
+
+    private DbLayer getDbLayer(String fieldName, Function<Object, Object> func, HashMap<String, List<Function<Object, Object>>> inHookFunc) {
         if (func != null) {
             List<Function<Object, Object>> link = inHookFunc.get(fieldName);
             if (link == null) {
@@ -86,7 +82,7 @@ public class DbLayer implements InterfaceDatabase<DbLayer> {
     }
 
     private void fieldPiper(JSONObject data, HashMap<String, List<Function<Object, Object>>> inList) {
-        if (JSONObject.isInvaild(data)) {
+        if (JSONObject.isInvalided(data)) {
             return;
         }
         for (String k : inList.keySet()) {
@@ -128,15 +124,17 @@ public class DbLayer implements InterfaceDatabase<DbLayer> {
                 if (obj != null) {
                     dbName = obj.getString("dbName").toLowerCase();
                     switch (dbName) {
-                        case "mongodb" -> {
+                        case "mongodb": {
                             _db = (new _reflect(Mongodb.class)).newInstance(_configString);
                             _dbName = dbType.mongodb;
+                            break;
                         }
-                        case "oracle" -> {
+                        case "oracle": {
                             _db = (new _reflect(Oracle.class)).newInstance(_configString);
                             _dbName = dbType.oracle;
+                            break;
                         }
-                        default -> {
+                        default: {
                             _db = (new _reflect(Sql.class)).newInstance(_configString);
                             _dbName = dbType.mysql;
                         }

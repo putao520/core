@@ -7,8 +7,8 @@ import common.java.Number.NumberHelper;
 import common.java.String.StringHelper;
 import common.java.Time.TimeHelper;
 import common.java.nLogger.nLogger;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
+import org.json.gsc.JSONArray;
+import org.json.gsc.JSONObject;
 
 import java.io.BufferedReader;
 import java.io.Reader;
@@ -610,9 +610,14 @@ public class Oracle {
                     n = m.getColumnDisplaySize(i);
                     //fieldName += " NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP";
                     switch (fieldType) {
-                        case "INT UNSIGNED" -> fieldType = "INT(" + n + ") UNSIGNED";
-                        case "TIMESTAMP" -> fieldType += " NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP";
-                        default -> fieldType = fieldType + "(" + n + ")";
+                        case "INT UNSIGNED":
+                            fieldType = "INT(" + n + ") UNSIGNED";
+                            break;
+                        case "TIMESTAMP":
+                            fieldType += " NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP";
+                            break;
+                        default:
+                            fieldType = fieldType + "(" + n + ")";
                     }
                     if (m.isAutoIncrement(i)) {
                         fieldType += " auto_increment primary key";

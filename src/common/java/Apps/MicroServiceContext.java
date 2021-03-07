@@ -6,7 +6,7 @@ import common.java.HttpServer.HttpContext;
 import common.java.MasterService.MasterProxy;
 import common.java.Rpc.RpcResponse;
 import common.java.ServiceTemplate.MasterServiceName;
-import org.json.simple.JSONObject;
+import org.json.gsc.JSONObject;
 
 import java.util.HashMap;
 

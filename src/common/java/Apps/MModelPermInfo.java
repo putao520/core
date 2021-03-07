@@ -1,7 +1,7 @@
 package common.java.Apps;
 
 import common.java.Authority.PlvDef;
-import org.json.simple.JSONObject;
+import org.json.gsc.JSONObject;
 
 /**
  * 权限节点设计,包含权限类型和权限值

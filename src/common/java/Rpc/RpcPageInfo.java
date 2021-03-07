@@ -1,6 +1,6 @@
 package common.java.Rpc;
 
-import org.json.simple.JSONArray;
+import org.json.gsc.JSONArray;
 
 public class RpcPageInfo {
     private final int idx;

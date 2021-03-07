@@ -1,7 +1,7 @@
 package common.java.Apps;
 
 import common.java.Authority.PermissionsPowerDef;
-import org.json.simple.JSONObject;
+import org.json.gsc.JSONObject;
 
 import java.util.HashMap;
 

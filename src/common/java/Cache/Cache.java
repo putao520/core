@@ -5,7 +5,7 @@ import common.java.Apps.MicroServiceContext;
 import common.java.Config.nConfig;
 import common.java.Reflect._reflect;
 import common.java.nLogger.nLogger;
-import org.json.simple.JSONObject;
+import org.json.gsc.JSONObject;
 
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -81,19 +81,23 @@ public class Cache implements InterfaceCache {
                     cacheName = obj.getString("cacheName");
                     //缓存名
                     switch (cacheName) {
-                        case "redis" -> {
+                        case "redis": {
                             _cache = (new _reflect(RedisSingle.class)).newInstance(_configString);
+                            break;
                         }
-                        case "redis-cluster" -> {
+                        case "redis-cluster": {
                             _cache = (new _reflect(RedisCluster.class)).newInstance(_configString);
+                            break;
                         }
-                        case "redis-sentinel" -> {
+                        case "redis-sentinel": {
                             _cache = (new _reflect(RedisSentinel.class)).newInstance(_configString);
+                            break;
                         }
-                        case "redis-masterslave" -> {
+                        case "redis-masterslave": {
                             _cache = (new _reflect(RedisMasterSlave.class)).newInstance(_configString);
+                            break;
                         }
-                        default -> {
+                        default: {
                             _cache = new _reflect(CaffeineCache.class);
                         }
                     }

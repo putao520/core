@@ -10,8 +10,8 @@ import common.java.nLogger.nLogger;
 import kong.unirest.HttpRequestWithBody;
 import kong.unirest.RequestBodyEntity;
 import kong.unirest.Unirest;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
+import org.json.gsc.JSONArray;
+import org.json.gsc.JSONObject;
 
 import java.util.Arrays;
 

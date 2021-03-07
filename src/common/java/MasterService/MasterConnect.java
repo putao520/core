@@ -1,7 +1,6 @@
 package common.java.MasterService;
 
 import common.java.Config.lConfig;
-import common.java.Coordination.Zookeeper;
 import common.java.String.StringHelper;
 import common.java.nLogger.nLogger;
 import org.apache.curator.framework.CuratorFramework;

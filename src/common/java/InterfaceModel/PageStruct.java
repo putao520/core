@@ -1,7 +1,7 @@
 package common.java.InterfaceModel;
 
 
-import org.json.simple.JSONArray;
+import org.json.gsc.JSONArray;
 
 public class PageStruct {
     private final long idx;

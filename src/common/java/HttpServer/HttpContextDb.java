@@ -1,8 +1,8 @@
 package common.java.HttpServer;
 
 import common.java.String.StringHelper;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
+import org.json.gsc.JSONArray;
+import org.json.gsc.JSONObject;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -20,10 +20,10 @@ public class HttpContextDb {
         field_array = new HashSet<>();
         // 初始化字段组
         JSONArray t_field_array = nHeader.getJsonArray(fields);
-        if (JSONArray.isInvaild(t_field_array)) {
+        if (JSONArray.isInvalided(t_field_array)) {
             t_field_array = new JSONArray();
             JSONObject not_field_json = nHeader.getJson(fields);
-            if (!JSONObject.isInvaild(not_field_json)) {
+            if (!JSONObject.isInvalided(not_field_json)) {
                 for (String key : not_field_json.keySet()) {
                     if (key.equalsIgnoreCase("not")) {
                         field_logic_not = true;

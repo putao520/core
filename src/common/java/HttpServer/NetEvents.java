@@ -17,7 +17,7 @@ import io.netty.handler.codec.http.multipart.HttpPostRequestDecoder.EndOfDataDec
 import io.netty.handler.codec.http.multipart.InterfaceHttpData;
 import io.netty.handler.codec.http.multipart.InterfaceHttpData.HttpDataType;
 import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
-import org.json.simple.JSONObject;
+import org.json.gsc.JSONObject;
 
 import java.io.File;
 import java.io.IOException;

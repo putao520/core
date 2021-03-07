@@ -1,12 +1,11 @@
 package common.java.Config;
 
-import common.java.Coordination.PathMapped;
 import common.java.JGrapeSystem.SystemDefined;
 import common.java.MasterService.MasterProxy;
 import common.java.Rpc.RpcResponse;
 import common.java.ServiceTemplate.MasterServiceName;
 import common.java.String.StringHelper;
-import org.json.simple.JSONObject;
+import org.json.gsc.JSONObject;
 
 import java.io.FileInputStream;
 import java.io.IOException;

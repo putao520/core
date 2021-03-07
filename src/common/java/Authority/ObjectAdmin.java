@@ -3,7 +3,7 @@ package common.java.Authority;
 import common.java.Apps.AppContext;
 import common.java.Database.DbLayer;
 import common.java.Session.Session;
-import org.json.simple.JSONObject;
+import org.json.gsc.JSONObject;
 
 /* objectAdmin_appid
  * oid : int			管理员用户唯一ID

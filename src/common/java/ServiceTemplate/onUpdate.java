@@ -1,7 +1,7 @@
 package common.java.ServiceTemplate;
 
 
-import org.json.simple.JSONObject;
+import org.json.gsc.JSONObject;
 
 public class onUpdate {
     private String[] ids;

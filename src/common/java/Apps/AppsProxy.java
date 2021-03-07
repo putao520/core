@@ -1,11 +1,10 @@
 package common.java.Apps;
 
-import common.java.Coordination.PathMapped;
 import common.java.Database.DbFilter;
 import common.java.MasterService.MasterProxy;
 import common.java.Rpc.RpcResponse;
 import common.java.ServiceTemplate.MasterServiceName;
-import org.json.simple.JSONObject;
+import org.json.gsc.JSONObject;
 
 public class AppsProxy {
     private static final String appPath = "/apps";

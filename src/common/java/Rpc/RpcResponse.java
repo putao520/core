@@ -1,7 +1,7 @@
 package common.java.Rpc;
 
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
+import org.json.gsc.JSONArray;
+import org.json.gsc.JSONObject;
 
 public class RpcResponse {
     private final JSONObject r;
@@ -66,7 +66,7 @@ public class RpcResponse {
         JSONArray t0 = r.getJsonArray("record");
         if (t0 == null) {
             JSONObject t1 = r.getJson("record");
-            if (!JSONObject.isInvaild(t1)) {
+            if (!JSONObject.isInvalided(t1)) {
                 t0 = JSONArray.addx(t1);
             }
         }

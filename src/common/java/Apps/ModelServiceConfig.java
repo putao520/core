@@ -1,6 +1,6 @@
 package common.java.Apps;
 
-import org.json.simple.JSONObject;
+import org.json.gsc.JSONObject;
 
 public class ModelServiceConfig {
     private JSONObject store;
@@ -65,7 +65,7 @@ public class ModelServiceConfig {
     }
 
     public ModelServiceConfig putOtherConfig(String key, Object value) {
-        if (JSONObject.isInvaild(this.store)) {
+        if (JSONObject.isInvalided(this.store)) {
             this.store = new JSONObject();
             this.store.put("other", new JSONObject());
         }
@@ -74,7 +74,7 @@ public class ModelServiceConfig {
     }
 
     public ModelServiceConfig removeOtherConfig(String key) {
-        if (JSONObject.isInvaild(this.store)) {
+        if (JSONObject.isInvalided(this.store)) {
             this.store = new JSONObject();
             this.store.put("other", new JSONObject());
         } else {

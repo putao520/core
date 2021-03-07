@@ -276,25 +276,48 @@ public class CheckHelper {
             if (str.length() <= 1) {
                 break;
             }
-            _char = StringHelper.build(str).charAtFrist().toString();
+            _char = StringHelper.build(str).charAtFirst().toString();
             switch (_char) {
-                case "周", "星", "期", "礼", "拜" -> {
+                case "星":
+                case "期":
+                case "礼":
+                case "拜":
+                case "周": {
                     str = StringHelper.build(str).removeTrailingFrom().toString();
                     state = true;
+                    break;
                 }
-                default -> state = false;
+                default:
+                    state = false;
             }
         }
-        tmp = switch (str) {
-            case "一" -> "1";
-            case "二" -> "2";
-            case "三" -> "3";
-            case "四" -> "4";
-            case "五" -> "5";
-            case "六" -> "6";
-            case "日", "天", "七" -> "7";
-            default -> str;
-        };
+        switch (str) {
+            case "一":
+                tmp = "1";
+                break;
+            case "二":
+                tmp = "2";
+                break;
+            case "三":
+                tmp = "3";
+                break;
+            case "四":
+                tmp = "4";
+                break;
+            case "五":
+                tmp = "5";
+                break;
+            case "六":
+                tmp = "6";
+                break;
+            case "日":
+            case "天":
+            case "七":
+                tmp = "7";
+                break;
+            default:
+                tmp = str;
+        }
         return IsInt(tmp) && (Integer.parseInt(tmp) > 0 && Integer.parseInt(tmp) < 8);
     }
 
@@ -314,29 +337,57 @@ public class CheckHelper {
             }
             _char = StringHelper.build(str).charAtLast().toString();
             switch (_char) {
-                case "月", "份" -> {
+                case "月":
+                case "份": {
                     str = StringHelper.build(str).removeTrailingFrom().toString();
                     state = true;
+                    break;
                 }
-                default -> state = false;
+                default:
+                    state = false;
             }
         }
 
-        tmp = switch (str) {
-            case "一" -> "1";
-            case "二" -> "2";
-            case "三" -> "3";
-            case "四" -> "4";
-            case "五" -> "5";
-            case "六" -> "6";
-            case "七" -> "7";
-            case "八" -> "8";
-            case "九" -> "9";
-            case "十" -> "10";
-            case "十一" -> "11";
-            case "十二" -> "12";
-            default -> str;
-        };
+        switch (str) {
+            case "一":
+                tmp = "1";
+                break;
+            case "二":
+                tmp = "2";
+                break;
+            case "三":
+                tmp = "3";
+                break;
+            case "四":
+                tmp = "4";
+                break;
+            case "五":
+                tmp = "5";
+                break;
+            case "六":
+                tmp = "6";
+                break;
+            case "七":
+                tmp = "7";
+                break;
+            case "八":
+                tmp = "8";
+                break;
+            case "九":
+                tmp = "9";
+                break;
+            case "十":
+                tmp = "10";
+                break;
+            case "十一":
+                tmp = "11";
+                break;
+            case "十二":
+                tmp = "12";
+                break;
+            default:
+                tmp = str;
+        }
         return IsInt(tmp) && (Integer.parseInt(tmp) > 0 && Integer.parseInt(tmp) < 13);
     }
 

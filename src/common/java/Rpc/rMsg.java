@@ -3,8 +3,8 @@ package common.java.Rpc;
 
 import common.java.Number.NumberHelper;
 import common.java.String.StringHelper;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
+import org.json.gsc.JSONArray;
+import org.json.gsc.JSONObject;
 
 public class rMsg {
     public static String netMSG(Object state, Object data) {
@@ -14,13 +14,13 @@ public class rMsg {
     public static String netMSG(Object data) {
         if (data instanceof JSONObject) {
             JSONObject json = (JSONObject) data;
-            if (JSONObject.isInvaild(json)) {
+            if (JSONObject.isInvalided(json)) {
                 return netState(false);
             }
         }
         if (data instanceof JSONArray) {
             JSONArray array = (JSONArray) data;
-            if (JSONArray.isInvaild(array)) {
+            if (JSONArray.isInvalided(array)) {
                 return netState(false);
             }
         }

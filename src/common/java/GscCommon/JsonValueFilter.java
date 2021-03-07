@@ -2,7 +2,7 @@ package common.java.GscCommon;
 
 import common.java.Session.UserSession;
 import common.java.String.StringHelper;
-import org.json.simple.JSONObject;
+import org.json.gsc.JSONObject;
 
 public class JsonValueFilter {
     private final JSONObject in;
@@ -45,8 +45,12 @@ public class JsonValueFilter {
         if (cap.length > 1) {
             String caption = cap[0].toLowerCase();
             switch (caption) {
-                case "session" -> r = JSONObject.isInvaild(this.userSession) ? null : this.userSession.get(cap[1]);
-                case "other" -> r = this.otherData.getString(cap[1]);
+                case "session":
+                    r = JSONObject.isInvalided(this.userSession) ? null : this.userSession.get(cap[1]);
+                    break;
+                case "other":
+                    r = this.otherData.getString(cap[1]);
+                    break;
             }
         }
         return r;

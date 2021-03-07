@@ -3,7 +3,7 @@ package common.java.File;
 import common.java.HttpServer.HttpContext;
 import common.java.nLogger.nLogger;
 import io.netty.buffer.ByteBuf;
-import org.json.simple.JSONObject;
+import org.json.gsc.JSONObject;
 
 import java.io.File;
 import java.io.FileNotFoundException;

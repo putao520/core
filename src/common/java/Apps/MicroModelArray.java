@@ -1,6 +1,6 @@
 package common.java.Apps;
 
-import org.json.simple.JSONObject;
+import org.json.gsc.JSONObject;
 
 import java.util.HashMap;
 import java.util.function.BiConsumer;

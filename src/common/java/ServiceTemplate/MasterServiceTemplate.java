@@ -8,8 +8,8 @@ import common.java.InterfaceModel.Type.ApiType;
 import common.java.JGrapeSystem.SystemDefined;
 import common.java.Rpc.RpcPageInfo;
 import common.java.String.StringHelper;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
+import org.json.gsc.JSONArray;
+import org.json.gsc.JSONObject;
 
 import java.util.HashMap;
 import java.util.concurrent.TimeUnit;
@@ -124,7 +124,7 @@ public class MasterServiceTemplate implements MicroServiceTemplateInterface {
 
     private int _update(String uids, String base64Json, String cond) {
         JSONObject info = GscJson.decode(base64Json);
-        if (JSONObject.isInvaild(info)) {
+        if (JSONObject.isInvalided(info)) {
             return 0;
         }
         if (HttpContext.current().appid() > 0) {//非管理员情况下

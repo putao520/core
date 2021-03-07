@@ -1,7 +1,7 @@
 package main.interfaceApplication;
 
 import common.java.JGrapeSystem.GscBooter;
-import org.json.simple.JSONObject;
+import org.json.gsc.JSONObject;
 
 public class test {
     public static void main(String[] args) {

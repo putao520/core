@@ -3,7 +3,7 @@ package common.java.Apps;
 import common.java.Authority.PermissionsPowerDef;
 import common.java.Database.DbFilter;
 import common.java.Database.DbLayer;
-import org.json.simple.JSONObject;
+import org.json.gsc.JSONObject;
 
 import java.util.HashMap;
 
@@ -98,29 +98,33 @@ public class MicroModel {
         String valueString = null;
         if (op < 4) {
             switch (op) {
-                case 0 -> {
+                case 0: {
                     oldValue = oldPerm.createPerm().type();
                     newValue = newPerm.createPerm().type();
                     modeString = PermissionsPowerDef.createMode;
                     valueString = PermissionsPowerDef.createValue;
+                    break;
                 }
-                case 1 -> {
+                case 1: {
                     oldValue = oldPerm.deletePerm().type();
                     newValue = newPerm.deletePerm().type();
                     modeString = PermissionsPowerDef.deleteMode;
                     valueString = PermissionsPowerDef.deleteValue;
+                    break;
                 }
-                case 2 -> {
+                case 2: {
                     oldValue = oldPerm.readPerm().type();
                     newValue = newPerm.readPerm().type();
                     modeString = PermissionsPowerDef.readMode;
                     valueString = PermissionsPowerDef.readValue;
+                    break;
                 }
-                case 3 -> {
+                case 3: {
                     oldValue = oldPerm.updatePerm().type();
                     newValue = newPerm.updatePerm().type();
                     modeString = PermissionsPowerDef.updateMode;
                     valueString = PermissionsPowerDef.updateValue;
+                    break;
                 }
             }
             if (oldValue != newValue) {   // 比较权限类型有没有改变

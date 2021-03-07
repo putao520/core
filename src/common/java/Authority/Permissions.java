@@ -7,7 +7,7 @@ import common.java.Authority.PlvDef.plvType;
 import common.java.Database.DbFilter;
 import common.java.Number.NumberHelper;
 import common.java.Session.Session;
-import org.json.simple.JSONObject;
+import org.json.gsc.JSONObject;
 
 import java.util.List;
 
@@ -62,17 +62,20 @@ public class Permissions {
         Object val = pInfo.value();
         Session se = getSE();
         switch (chkType) {
-            case plvType.powerVal -> {
+            case plvType.powerVal: {
                 int nowPowerVal = se.getInt(powvalFieldName);
                 rs = nowPowerVal >= NumberHelper.number2int(val);
+                break;
             }
-            case plvType.userOwn -> {
+            case plvType.userOwn: {
                 String nowUID = se.getUID();
                 rs = nowUID.equals(val);
+                break;
             }
-            case plvType.groupOwn -> {
+            case plvType.groupOwn: {
                 String nowgid = se.get(fatherIDFieldName).toString();
                 rs = val.equals(nowgid);
+                break;
             }
         }
         return rs;
@@ -87,17 +90,20 @@ public class Permissions {
         // 如果没有权限会话，直接返回不通过
         int chkType = pInfo.type();
         switch (chkType) {
-            case plvType.userOwn -> {
+            case plvType.userOwn: {
                 String nowUID = se.getUID();
                 newCond.eq(valueCaption, nowUID);
+                break;
             }
-            case plvType.groupOwn -> {
+            case plvType.groupOwn: {
                 String nowGid = se.get(fatherIDFieldName).toString();
                 newCond.eq(fatherIDFieldName, nowGid);
+                break;
             }
-            case plvType.powerVal -> {
+            case plvType.powerVal: {
                 int nowPowerVal = se.getInt(powvalFieldName);
                 newCond.lte(valueCaption, nowPowerVal);
+                break;
             }
         }
         return newCond.buildEx();
@@ -117,14 +123,17 @@ public class Permissions {
     }
 
     public List<List<Object>> filterCond(int plvOperate) {
-        List<List<Object>> rs = switch (plvOperate) {
-            case PlvDef.Operater.read, PlvDef.Operater.statist -> getAuthCond(PermissionsPowerDef.readValue, tempMode.readPerm());
-            case PlvDef.Operater.update -> getAuthCond(PermissionsPowerDef.updateValue, tempMode.updatePerm());
-            case PlvDef.Operater.delete -> getAuthCond(PermissionsPowerDef.deleteValue, tempMode.deletePerm());
-            default -> null;
-        };
-        //普通用户判断
-        return rs;
+        switch (plvOperate) {
+            case PlvDef.Operater.read:
+            case PlvDef.Operater.statist:
+                return getAuthCond(PermissionsPowerDef.readValue, tempMode.readPerm());
+            case PlvDef.Operater.update:
+                return getAuthCond(PermissionsPowerDef.updateValue, tempMode.updatePerm());
+            case PlvDef.Operater.delete:
+                return getAuthCond(PermissionsPowerDef.deleteValue, tempMode.deletePerm());
+            default:
+                return null;
+        }
     }
 
     //判断当前操作是否有权
@@ -136,13 +145,19 @@ public class Permissions {
             return _checkObject(se.getUID());
         }
         //普通用户判断
-        return switch (plvOperate) {
-            case PlvDef.Operater.create -> _operateChk(tempMode.createPerm());
-            case PlvDef.Operater.statist -> _operateChk(tempMode.statisticsPerm());
-            case PlvDef.Operater.read -> _operateChk(tempMode.readPerm());
-            case PlvDef.Operater.update -> _operateChk(tempMode.updatePerm());
-            case PlvDef.Operater.delete -> _operateChk(tempMode.deletePerm());
-            default -> false;
-        };
+        switch (plvOperate) {
+            case PlvDef.Operater.create:
+                return _operateChk(tempMode.createPerm());
+            case PlvDef.Operater.statist:
+                return _operateChk(tempMode.statisticsPerm());
+            case PlvDef.Operater.read:
+                return _operateChk(tempMode.readPerm());
+            case PlvDef.Operater.update:
+                return _operateChk(tempMode.updatePerm());
+            case PlvDef.Operater.delete:
+                return _operateChk(tempMode.deletePerm());
+            default:
+                return false;
+        }
     }
 }

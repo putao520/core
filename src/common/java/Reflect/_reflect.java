@@ -13,8 +13,8 @@ import common.java.Rpc.RpcError;
 import common.java.Session.UserSession;
 import common.java.String.StringHelper;
 import common.java.nLogger.nLogger;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
+import org.json.gsc.JSONArray;
+import org.json.gsc.JSONObject;
 
 import java.io.*;
 import java.lang.annotation.Annotation;
@@ -78,13 +78,24 @@ public class _reflect {
 
     // api接口类型文本化
     private static String declApiType(ApiType _at) {
-        return switch (_at.value()) {
-            case CloseApi -> "closeApi";
-            case OauthApi -> "oauth2Api";
-            case PrivateApi -> "LocalApi";
-            case SessionApi -> "SessionApi";
-            default -> "PublicApi";
-        } + ",";
+        String r;
+        switch (_at.value()) {
+            case CloseApi:
+                r = "closeApi";
+                break;
+            case OauthApi:
+                r = "oauth2Api";
+                break;
+            case PrivateApi:
+                r = "LocalApi";
+                break;
+            case SessionApi:
+                r = "SessionApi";
+                break;
+            default:
+                r = "PublicApi";
+        }
+        return r + ",";
     }
 
     /**

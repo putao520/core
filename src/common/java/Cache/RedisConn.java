@@ -14,7 +14,7 @@ import io.lettuce.core.cluster.api.StatefulRedisClusterConnection;
 import io.lettuce.core.codec.Utf8StringCodec;
 import io.lettuce.core.masterreplica.MasterReplica;
 import io.lettuce.core.masterreplica.StatefulRedisMasterReplicaConnection;
-import org.json.simple.JSONObject;
+import org.json.gsc.JSONObject;
 
 import java.time.Duration;
 import java.util.ArrayList;
@@ -47,7 +47,7 @@ public class RedisConn {
 
     public static RedisConn build(String config) {
         JSONObject configJson = JSONObject.toJSON(config);
-        if (JSONObject.isInvaild(configJson)) {
+        if (JSONObject.isInvalided(configJson)) {
             nLogger.errorInfo("配置信息格式错误 ->[" + config + "]");
         }
         return new RedisConn(configJson);

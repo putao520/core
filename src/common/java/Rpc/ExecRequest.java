@@ -7,7 +7,7 @@ import common.java.HttpServer.RequestSession;
 import common.java.Reflect._reflect;
 import common.java.String.StringHelper;
 import common.java.nLogger.nLogger;
-import org.json.simple.JSONObject;
+import org.json.gsc.JSONObject;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;

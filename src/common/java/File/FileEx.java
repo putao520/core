@@ -1,6 +1,5 @@
 package common.java.File;
 
-import com.google.common.io.Files;
 import sun.misc.Unsafe;
 
 import java.io.File;
@@ -9,6 +8,8 @@ import java.io.FileOutputStream;
 import java.lang.reflect.Method;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.ArrayList;
@@ -85,7 +86,7 @@ public class FileEx<T extends FileEx> {
      */
     public T copy(File path) {
         try {
-            Files.copy(this.file, path);
+            Files.copy(this.file.toPath(), path.toPath(), StandardCopyOption.REPLACE_EXISTING);
         } catch (Exception e) {
             error_handle();
         }
@@ -114,7 +115,7 @@ public class FileEx<T extends FileEx> {
     public boolean equal(File file) {
         boolean rb;
         try {
-            rb = Files.equal(this.file, file);
+            rb = Files.isSameFile(this.file.toPath(), file.toPath());
         } catch (Exception e) {
             rb = false;
         }

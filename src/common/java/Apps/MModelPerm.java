@@ -3,7 +3,7 @@ package common.java.Apps;
 import common.java.Authority.PermissionsPowerDef;
 import common.java.Authority.PlvDef;
 import common.java.Session.Session;
-import org.json.simple.JSONObject;
+import org.json.gsc.JSONObject;
 
 import java.util.HashMap;
 

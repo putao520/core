@@ -5,8 +5,8 @@ import common.java.Authority.PermissionsPowerDef;
 import common.java.Database.DbLayer;
 import common.java.HttpServer.HttpContext;
 import common.java.InterfaceModel.Type.Aggregation;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
+import org.json.gsc.JSONArray;
+import org.json.gsc.JSONObject;
 
 import java.util.*;
 import java.util.concurrent.ForkJoinPool;
@@ -271,12 +271,12 @@ public class GrapeTreeDbLayerModel extends GrapeDbLayerModel {
         if (json != null) {
             // 管线方式过滤数据
             JSONArray rArray = JSONArray.addx(json);
-            if (pipeJSONArray_Out != null && !JSONArray.isInvaild(rArray)) {
+            if (pipeJSONArray_Out != null && !JSONArray.isInvalided(rArray)) {
                 for (Function<JSONArray, JSONArray> func : pipeJSONArray_Out) {
                     rArray = func.apply(rArray);
                 }
             }
-            json = JSONArray.isInvaild(rArray) ? null : (JSONObject) rArray.get(0);
+            json = JSONArray.isInvalided(rArray) ? null : (JSONObject) rArray.get(0);
             if (json != null) {
                 if ((count() > 10)) {
                     getAllChildren0(json);
@@ -294,7 +294,7 @@ public class GrapeTreeDbLayerModel extends GrapeDbLayerModel {
     private JSONObject getAllChildren1(JSONObject json) {
         // 获得表全部数据库
         JSONArray array = select();
-        if (JSONArray.isInvaild(array)) {
+        if (JSONArray.isInvalided(array)) {
             System.out.println("返回集合为空");
         }
         // 根据根数据构造树
@@ -403,9 +403,9 @@ public class GrapeTreeDbLayerModel extends GrapeDbLayerModel {
             niceCond();
         }
         JSONObject rInfo = super.find();
-        if (!JSONObject.isInvaild(rInfo)) {
+        if (!JSONObject.isInvalided(rInfo)) {
             JSONArray rArray = runOutPipe(JSONArray.addx(rInfo));
-            if (!JSONArray.isInvaild(rArray)) {
+            if (!JSONArray.isInvalided(rArray)) {
                 rInfo = (JSONObject) rArray.get(0);
             }
         }
@@ -456,17 +456,20 @@ public class GrapeTreeDbLayerModel extends GrapeDbLayerModel {
         String fieldName = null;
         String vFieldName = null;
         switch (op) {
-            case 0 -> {
+            case 0: {
                 fieldName = PermissionsPowerDef.readMode;
                 vFieldName = PermissionsPowerDef.readValue;
+                break;
             }
-            case 1 -> {
+            case 1: {
                 fieldName = PermissionsPowerDef.updateMode;
                 vFieldName = PermissionsPowerDef.updateValue;
+                break;
             }
-            case 2 -> {
+            case 2: {
                 fieldName = PermissionsPowerDef.deleteMode;
                 vFieldName = PermissionsPowerDef.deleteValue;
+                break;
             }
         }
         if (fieldName != null) {
@@ -493,12 +496,20 @@ public class GrapeTreeDbLayerModel extends GrapeDbLayerModel {
 
     private JSONObject getAuth(int op) {
         JSONObject rs = null;
-        String fieldName = switch (op) {
-            case 0 -> PermissionsPowerDef.readMode;
-            case 1 -> PermissionsPowerDef.updateMode;
-            case 2 -> PermissionsPowerDef.deleteMode;
-            default -> null;
-        };
+        String fieldName;
+        switch (op) {
+            case 0:
+                fieldName = PermissionsPowerDef.readMode;
+                break;
+            case 1:
+                fieldName = PermissionsPowerDef.updateMode;
+                break;
+            case 2:
+                fieldName = PermissionsPowerDef.deleteMode;
+                break;
+            default:
+                fieldName = null;
+        }
         if (fieldName != null) {
             JSONObject json = field(fieldName)._find();
             if (json != null && json.containsKey(fieldName)) {

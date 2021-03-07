@@ -10,7 +10,7 @@ import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpUtil;
 import io.netty.util.AsciiString;
-import org.json.simple.JSONObject;
+import org.json.gsc.JSONObject;
 
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
@@ -334,31 +334,57 @@ public class HttpContext {
                 if (stype.length > 0) {//包含类型信息
                     switch (stype[0]) {
 //string
-                        case "s" -> arglist[idx] = svalue.substring(2);
+                        case "s":
+                            arglist[idx] = svalue.substring(2);
+                            break;
 //int
-                        case "int" -> arglist[idx] = Integer.parseInt(svalue.substring(4));
+                        case "int":
+                            arglist[idx] = Integer.parseInt(svalue.substring(4));
+                            break;
 //long
-                        case "long" -> arglist[idx] = Long.parseLong(svalue.substring(5));
+                        case "long":
+                            arglist[idx] = Long.parseLong(svalue.substring(5));
+                            break;
 //char
-                        case "char" -> arglist[idx] = svalue.charAt(5);
+                        case "char":
+                            arglist[idx] = svalue.charAt(5);
+                            break;
 //float
-                        case "float" -> arglist[idx] = Float.parseFloat(svalue.substring(6));
+                        case "float":
+                            arglist[idx] = Float.parseFloat(svalue.substring(6));
+                            break;
 //double
-                        case "double" -> arglist[idx] = Double.parseDouble(svalue.substring(7));
+                        case "double":
+                            arglist[idx] = Double.parseDouble(svalue.substring(7));
+                            break;
 //short
-                        case "short" -> arglist[idx] = Short.parseShort(svalue.substring(6));
+                        case "short":
+                            arglist[idx] = Short.parseShort(svalue.substring(6));
+                            break;
 //Integer
-                        case "i" -> arglist[idx] = Integer.parseInt(svalue.substring(2));
+                        case "i":
+                            arglist[idx] = Integer.parseInt(svalue.substring(2));
+                            break;
 //boolean
-                        case "b", "bool" -> arglist[idx] = Boolean.parseBoolean(svalue.substring(2));
+                        case "b":
+                        case "bool":
+                            arglist[idx] = Boolean.parseBoolean(svalue.substring(2));
+                            break;
 //float
-                        case "f" -> arglist[idx] = Float.parseFloat(svalue.substring(2));
+                        case "f":
+                            arglist[idx] = Float.parseFloat(svalue.substring(2));
+                            break;
 //long
-                        case "l" -> arglist[idx] = Long.parseLong(svalue.substring(2));
+                        case "l":
+                            arglist[idx] = Long.parseLong(svalue.substring(2));
+                            break;
 //double
-                        case "d" -> arglist[idx] = Double.parseDouble(svalue.substring(2));
+                        case "d":
+                            arglist[idx] = Double.parseDouble(svalue.substring(2));
+                            break;
 //boolean
-                        default -> arglist[idx] = svalue;
+                        default:
+                            arglist[idx] = svalue;
                     }
                 } else {
                     arglist[i] = svalue;
