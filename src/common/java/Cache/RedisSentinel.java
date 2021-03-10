@@ -1,7 +1,7 @@
 package common.java.Cache;
 
 import common.java.Apps.MicroServiceContext;
-import common.java.Config.nConfig;
+import common.java.Config.Config;
 import common.java.String.StringHelper;
 import io.lettuce.core.api.StatefulRedisConnection;
 import io.lettuce.core.api.async.RedisAsyncCommands;
@@ -26,7 +26,7 @@ public class RedisSentinel implements InterfaceCache {
     }
 
     public RedisSentinel() {
-        init(nConfig.netConfig(MicroServiceContext.current().config().cache()));
+        init(Config.netConfig(MicroServiceContext.current().config().cache()));
     }
 
     private void init(String config) {

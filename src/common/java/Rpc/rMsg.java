@@ -26,7 +26,7 @@ public class rMsg {
         }
         if (data instanceof String) {
             String str = (String) data;
-            if (StringHelper.invaild(str)) {
+            if (StringHelper.isInvalided(str)) {
                 return netState(false);
             }
         }

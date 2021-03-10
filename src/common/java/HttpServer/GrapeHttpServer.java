@@ -105,7 +105,7 @@ public class GrapeHttpServer {
             if (appid == 0 && !GrapeRequest[0].equalsIgnoreCase("grapefw")) {
                 appContext = new AppContext(host);
                 if (appContext.hasData()) {    // 域名有效,重置appid
-                    appid = appContext.appid();
+                    appid = appContext.appId();
                     ctx.appid(appid);
                 }
             }

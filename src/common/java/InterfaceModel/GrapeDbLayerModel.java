@@ -152,7 +152,7 @@ public class GrapeDbLayerModel implements InterfaceDatabase<GrapeDbLayerModel> {
     private GrapeDbLayerModel descriptionModel(String modelName) {
         this.mModel = MicroServiceContext.current().model(modelName);
         String tableName = this.mModel.tableName();
-        if (!StringHelper.invaild(tableName)) {
+        if (!StringHelper.isInvalided(tableName)) {
             pkField = this.db.form(tableName).bind().getGeneratedKeys();
             checker = (new FormHelper()).importField(this.mModel.rules());
             enableCheck();

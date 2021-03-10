@@ -49,7 +49,7 @@ public class oauthApi {
         // 通过上下文获得内容
         HttpContext header = HttpContext.current();
         String token_key = header.token();
-        if (StringHelper.invaild(token_key)) {
+        if (StringHelper.isInvalided(token_key)) {
             return false;
         }
         String api_name = build_api_name(header.serviceName(), header.className(), header.actionName());

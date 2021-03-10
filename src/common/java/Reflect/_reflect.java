@@ -1,6 +1,5 @@
 package common.java.Reflect;
 
-import common.java.Config.nConfig;
 import common.java.File.UploadFile;
 import common.java.InterfaceModel.Type.ApiType;
 import common.java.InterfaceModel.Type.ApiTypes;
@@ -320,7 +319,7 @@ public class _reflect {
         Object rs = null;
         if (comMethod != null) {
             //------------------方法注解检查，多个注解权限时，OR逻辑连接多个注解条件
-            if (!nConfig.debug && !privateMode) {
+            if (!privateMode) {
                 Annotation[] ans = comMethod.getDeclaredAnnotations();
                 // Annotation[] ans = comMethod.getAnnotations();
                 for (Annotation an : ans) {//遍历全部注解

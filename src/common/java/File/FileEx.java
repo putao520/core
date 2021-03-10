@@ -30,6 +30,10 @@ public class FileEx<T extends FileEx> {
         this.file = file;
     }
 
+    public static FileEx load(File file) {
+        return new FileEx<>(file);
+    }
+
     protected void error_handle() {
         if (func != null) {
             func.accept(this.file);
@@ -37,7 +41,7 @@ public class FileEx<T extends FileEx> {
         }
     }
 
-    public T setErrorHanle(Consumer<File> func) {
+    public T setErrorHandle(Consumer<File> func) {
         this.func = func;
         return (T) this;
     }

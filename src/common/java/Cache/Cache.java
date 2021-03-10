@@ -2,7 +2,7 @@ package common.java.Cache;
 
 import common.java.Apps.AppContext;
 import common.java.Apps.MicroServiceContext;
-import common.java.Config.nConfig;
+import common.java.Config.Config;
 import common.java.Reflect._reflect;
 import common.java.nLogger.nLogger;
 import org.json.gsc.JSONObject;
@@ -73,7 +73,7 @@ public class Cache implements InterfaceCache {
     private _reflect getCacheObject(String cN) {
         String cacheName;
         JSONObject obj;
-        String _configString = nConfig.netConfig(cN);
+        String _configString = Config.netConfig(cN);
         try {
             if (_configString != null) {
                 obj = JSONObject.toJSON(_configString);

@@ -134,7 +134,7 @@ public class MicroServiceTemplate implements MicroServiceTemplateInterface {
                 continue;
             }
             String _ids = _obj.getString(localKey);
-            if (StringHelper.invaild(_ids)) {
+            if (StringHelper.isInvalided(_ids)) {
                 continue;
             }
             // 填入多个值
@@ -318,29 +318,30 @@ public class MicroServiceTemplate implements MicroServiceTemplateInterface {
 
     public int _ids(String fieldName, String ids) {
         DbFilter dbf = DbFilter.buildDbFilter();
-        String[] _ids = StringHelper.invaild(ids) ? null : ids.split(",");
-        if (_ids != null) {
-            if (_ids.length > 1) {
-                JSONObject rJson = new JSONObject();
-                for (String id : _ids) {
-                    rJson.put(id, "");
-                }
-                List<String> idArray = new ArrayList<>();
-                for (String key : rJson.keySet()) {
-                    idArray.add(key);
-                }
-
-                for (String id : idArray) {
-                    dbf.or().eq(fieldName, id);
-                }
-                if (dbf.nullCondition()) {
-                    db.and().groupCondition(dbf.buildEx());
-                }
-            } else if (_ids.length == 1) {
-                db.and().eq(fieldName, _ids[0]);
-            }
+        if (StringHelper.isInvalided(ids)) {
+            return 0;
         }
-        return _ids != null ? _ids.length : 0;
+        String[] _ids = ids.split(",");
+        if (_ids.length > 1) {
+            JSONObject rJson = new JSONObject();
+            for (String id : _ids) {
+                rJson.put(id, "");
+            }
+            List<String> idArray = new ArrayList<>();
+            for (String key : rJson.keySet()) {
+                idArray.add(key);
+            }
+
+            for (String id : idArray) {
+                dbf.or().eq(fieldName, id);
+            }
+            if (dbf.nullCondition()) {
+                db.and().groupCondition(dbf.buildEx());
+            }
+        } else if (_ids.length == 1) {
+            db.and().eq(fieldName, _ids[0]);
+        }
+        return _ids.length;
     }
 
     private void _condition(JSONArray cond) {

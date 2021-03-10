@@ -1,16 +1,13 @@
 package common.java.Rpc;
 
 import common.java.Apps.MicroServiceContext;
-import common.java.EventWorker.EventBus;
 import common.java.HttpServer.HttpContext;
-import common.java.Node.NodeManage;
 import common.java.OAuth.oauthApi;
 import common.java.String.StringHelper;
 import common.java.nLogger.nLogger;
 import kong.unirest.HttpRequestWithBody;
 import kong.unirest.RequestBodyEntity;
 import kong.unirest.Unirest;
-import org.json.gsc.JSONArray;
 import org.json.gsc.JSONObject;
 
 import java.util.Arrays;
@@ -90,26 +87,6 @@ public class rpc {
         String[] strArr = url.split("/");
         Object[] args = Arrays.stream(strArr).skip(4).toArray();
         return call(StringHelper.join(strArr, "/", 0, 4), ctx, api_auth, args);
-    }
-
-    public static void broadCast(String servPath) {
-        broadCast(servPath, HttpContext.current());
-    }
-
-    public static void broadCast(String servPath, HttpContext ctx, Object... args) {
-        JSONArray nodes = NodeManage.getNodes();
-        for (Object obj : nodes) {
-            JSONObject info = (JSONObject) obj;
-            String host = "http://" + info.getString("ip") + ":" + info.getInt("port");
-            try {
-                EventBus.event(() -> {
-                    String path = host + "/" + StringHelper.build(servPath).trimFrom('/').toString();
-                    call(path, ctx, args);
-                });
-            } catch (InterruptedException e) {
-                nLogger.logInfo(e, "广播RPC[" + servPath + "] ...失败!");
-            }
-        }
     }
 
     /**

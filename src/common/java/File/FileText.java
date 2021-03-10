@@ -120,16 +120,32 @@ public class FileText extends FileEx<FileText> {
     }
 
     public Stream<String> read() {
-        Stream<String> rArray = null;
         try (FileReader read = new FileReader(this.file)) {
             try (BufferedReader bw = new BufferedReader(read)) {
-                rArray = bw.lines();
+                return bw.lines();
             } catch (Exception e) {
                 error_handle();
             }
         } catch (Exception e) {
             error_handle();
         }
-        return rArray;
+        return null;
+    }
+
+    public String readString() {
+        StringBuilder sb = new StringBuilder();
+        try (FileReader read = new FileReader(this.file)) {
+            try (BufferedReader bw = new BufferedReader(read)) {
+                Stream<String> rArray = bw.lines();
+                rArray.forEach(str -> {
+                    sb.append(str);
+                });
+            } catch (Exception e) {
+                error_handle();
+            }
+        } catch (Exception e) {
+            error_handle();
+        }
+        return sb.toString();
     }
 }

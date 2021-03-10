@@ -6,7 +6,6 @@ import com.mongodb.client.*;
 import com.mongodb.client.model.*;
 import com.mongodb.client.result.DeleteResult;
 import com.mongodb.client.result.UpdateResult;
-import common.java.Config.nConfig;
 import common.java.nLogger.nLogger;
 import org.bson.Document;
 import org.bson.conversions.Bson;
@@ -984,9 +983,6 @@ public class Mongodb {
             List<Object> tempConds = new ArrayList<>(conditionJSON);
             rBSON = translate2bsonAndRun(tempConds);
             // rBSON = killAnd(rBSON);  // 最外层 $and 转成 obj
-        }
-        if (nConfig.debug) {
-            System.out.println(rBSON.toJson());
         }
         return rBSON;
     }

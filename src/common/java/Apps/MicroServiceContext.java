@@ -1,11 +1,6 @@
 package common.java.Apps;
 
-import common.java.Database.DbFilter;
-import common.java.Encrypt.GscJson;
 import common.java.HttpServer.HttpContext;
-import common.java.MasterService.MasterProxy;
-import common.java.Rpc.RpcResponse;
-import common.java.ServiceTemplate.MasterServiceName;
 import org.json.gsc.JSONObject;
 
 import java.util.HashMap;
@@ -42,8 +37,8 @@ public class MicroServiceContext {
         // 获得对应微服务信息
         this.servInfo = AppsProxy.getServiceInfo(this.appId, this.servName);
         if (this.servInfo != null) {
-            this.servModelInfo = new MicroModelArray(this.servInfo.getJson("tableConfig"));
-            this.servConfig = new ModelServiceConfig(this.servInfo.getJson("configName"));
+            this.servModelInfo = new MicroModelArray(this.servInfo.getJson("dataModel"));
+            this.servConfig = new ModelServiceConfig(this.servInfo.getJson("config"));
         }
     }
 
@@ -58,7 +53,7 @@ public class MicroServiceContext {
      * 获得最佳服务节点
      */
     public String bestServer() {
-        String[] servers = servInfo.getString("url").split(",");
+        String[] servers = servInfo.getString("peerAddr").split(",");
         currentno++;
         return servers[currentno % servers.length];
     }
@@ -66,9 +61,11 @@ public class MicroServiceContext {
     /**
      * 获得微服务对应的JAR名称
      */
+    /*
     public String serviceFileName() {
         return servInfo.getString("serviceTarget");
     }
+    */
 
     /**
      * 获得微服务的配置
@@ -101,6 +98,7 @@ public class MicroServiceContext {
     /**
      * 更新数据模型
      */
+    /*
     public boolean updateMicroModel() {
         boolean rb = false;
         // 更新模型定义
@@ -117,4 +115,5 @@ public class MicroServiceContext {
         }
         return rb;
     }
+    */
 }

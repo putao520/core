@@ -1,29 +1,19 @@
 package common.java.JGrapeSystem;
 
-import common.java.Config.nConfig;
+import common.java.Apps.MicroServiceContext;
+import common.java.Config.Config;
 import common.java.HttpServer.GscServer;
 import common.java.HttpServer.HttpContext;
-import common.java.Node.NodeManage;
+import common.java.MasterService.MasterActor;
 import common.java.Time.TimeHelper;
 import common.java.nLogger.nLogger;
 import io.netty.channel.ChannelHandlerContext;
 
-public class GscBooter {
-    public static void start() {
-        startServer(nConfig.netConfig("name"), false);
-    }
-
-    public static void start(String serverName) {
-        startServer(serverName, false);
-    }
-
-    public static void startMaster() {
-        startServer("GrapeFW", true);
-    }
-
-    private static void _before(String serverName, boolean master) {
+public class GscBooster {
+    private static void _before(String serverName) {
+        boolean debugStatus = MicroServiceContext.current().isDebug();
         // 设置日志回调
-        nLogger.setDebug(nConfig.debug);
+        nLogger.setDebug(debugStatus);
         nLogger.clientFunc = (info, type) -> {
             HttpContext context = HttpContext.current();
             if (context == null) {
@@ -38,32 +28,39 @@ public class GscBooter {
                     + "信息:\n" + info + "\n"
                     + "============================";
             System.out.println(printInfo);
-            if (nConfig.debug) {
+            if (MicroServiceContext.current().isDebug()) {
                 HttpContext.showMessage(ctx, printInfo);
             }
         };
         // 获得端口
-        // 注册服务节点(非master节点)
-        if (!master) {
-            NodeManage.addNode();
-            System.out.println("节点号:[" + nConfig.nodeID + "]");
-            System.out.println("微服务:[" + serverName + "] ...启动完毕");
-        } else {
-            System.out.println("GrapeFW主控端 ...启动");
-        }
-        System.out.println("监听:" + nConfig.bindip + ":" + nConfig.port + " ...成功");
+        System.out.println("节点号:[" + Config.nodeID + "]");
+        System.out.println("微服务:[" + serverName + "] ...启动完毕");
+        System.out.println("监听:" + Config.bindIP + ":" + Config.port + " ...成功");
         // 设置本地服务名
         System.setProperty("AppName", serverName);
-        if (nConfig.debug) {
+        if (debugStatus) {
             System.out.println("调试模式:开");
         }
     }
 
-    private static void startServer(String serverName, boolean master) {
+    public static void start() {
+        start(Config.serviceName);
+    }
+
+    public static void start(String serverName) {
         try {
-            _before(serverName, master);
+            // 此时订阅全部用到的数据
+            // Application 分类
+            MasterActor.getInstance("apps").subscribe().waitLoaded();
+            // 微服务
+            MasterActor.getInstance("services").subscribe().waitLoaded();
+            // 配置
+            MasterActor.getInstance("configs").subscribe().waitLoaded();
+
+            // 设置日志过滤器
+            _before(serverName);
             // 启动http服务
-            GscServer.start(nConfig.bindip, nConfig.port);
+            GscServer.start(Config.bindIP, Config.port);
         } catch (Exception e) {
             nLogger.logInfo(e);
         } finally {

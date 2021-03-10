@@ -96,7 +96,7 @@ class NetEvents extends ChannelInboundHandlerAdapter {
     }
 
     private boolean isGscPost(String str) {
-        if (StringHelper.invaild(str)) {
+        if (StringHelper.isInvalided(str)) {
             return false;
         }
         return str.startsWith("gsc-post:");
@@ -145,7 +145,7 @@ class NetEvents extends ChannelInboundHandlerAdapter {
             if (isGscPost(tempBody)) {
                 // 将请求格式是 gsc-rpc 的post转化成等同的get
                 appendURL = tryfixURL(tempBody);
-                if (!appendURL.equals("") && !StringHelper.invaild(appendURL)) {
+                if (!appendURL.equals("") && !StringHelper.isInvalided(appendURL)) {
                     _url += "/" + appendURL;
                 }
                 nLogger.debugInfo("gsc-post:" + _url);

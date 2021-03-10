@@ -3,7 +3,7 @@ package common.java.Database;
 import common.java.Apps.AppContext;
 import common.java.Apps.MicroServiceContext;
 import common.java.Cache.Cache;
-import common.java.Config.nConfig;
+import common.java.Config.Config;
 import common.java.HttpServer.HttpContext;
 import common.java.Reflect._reflect;
 import common.java.String.StringHelper;
@@ -49,7 +49,7 @@ public class DbLayer implements InterfaceDatabase<DbLayer> {
 
     public DbLayer putAllOr(String ids, String field) {
         DbFilter dbf = DbFilter.buildDbFilter();
-        if (!StringHelper.invaild(ids)) {
+        if (!StringHelper.isInvalided(ids)) {
             String[] idList = ids.split(",");
             if (idList.length > 0) {
                 for (String s : idList) {
@@ -117,7 +117,7 @@ public class DbLayer implements InterfaceDatabase<DbLayer> {
     private _reflect getDBObject(String cN) {
         String dbName;
         JSONObject obj;
-        String _configString = nConfig.netConfig(cN);
+        String _configString = Config.netConfig(cN);
         try {
             if (_configString != null) {
                 obj = JSONObject.toJSON(_configString);

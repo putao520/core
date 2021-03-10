@@ -1,6 +1,6 @@
 package main.interfaceApplication;
 
-import common.java.JGrapeSystem.GscBooter;
+import common.java.JGrapeSystem.GscBooster;
 import org.json.gsc.JSONObject;
 
 public class test {
@@ -13,7 +13,7 @@ public class test {
         System.out.println("启动服务...");
         System.setProperty("AppName", packs[packs.length - 1]);
         try {
-            GscBooter.start("测试服务");
+            GscBooster.start("测试服务");
         } catch (Exception e) {
             e.printStackTrace();
             System.out.println("服务器崩溃!");

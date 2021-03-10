@@ -1,11 +1,7 @@
 package common.java.Apps;
 
-import common.java.Encrypt.GscJson;
 import common.java.HttpServer.HttpContext;
 import common.java.HttpServer.RequestSession;
-import common.java.MasterService.MasterProxy;
-import common.java.Rpc.RpcResponse;
-import common.java.ServiceTemplate.MasterServiceName;
 import common.java.String.StringHelper;
 import io.netty.channel.ChannelId;
 import org.json.gsc.JSONObject;
@@ -147,7 +143,7 @@ public class AppContext {
     /**
      * 获得当前应用id
      */
-    public int appid() {
+    public int appId() {
         return this.appid;
     }
 
@@ -156,19 +152,6 @@ public class AppContext {
      */
     public HashMap<String, MicroServiceContext> microServiceInfo() {
         return this.microServiceInfo;
-    }
-
-    /**
-     * 更新应用程序的配置数据
-     */
-    public boolean updateAppConfig() {
-        return RpcResponse.build(
-                MasterProxy.serviceName(MasterServiceName.Application)
-                        .update(
-                                String.valueOf(this.appid),
-                                GscJson.encode(JSONObject.putx("configName", this.msc.toJson()))
-                        )
-        ).status();
     }
 
     /**

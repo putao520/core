@@ -144,7 +144,7 @@ public class Session {
 
     public static boolean checkSession(String sid) {
         CacheHelper ch = getCacher();
-        return ch != null && !StringHelper.invaild(ch.get(sid));
+        return ch != null && !StringHelper.isInvalided(ch.get(sid));
     }
 
     /**
