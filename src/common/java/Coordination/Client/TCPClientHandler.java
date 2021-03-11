@@ -2,6 +2,7 @@ package common.java.Coordination.Client;
 
 import common.java.Coordination.Common.GscCenterEvent;
 import common.java.Coordination.Common.GscCenterPacket;
+import common.java.Coordination.Common.payPacket;
 import common.java.MasterService.MasterActor;
 import common.java.nLogger.nLogger;
 import io.netty.channel.ChannelHandlerContext;
@@ -11,12 +12,13 @@ import io.netty.handler.timeout.IdleState;
 import io.netty.handler.timeout.IdleStateEvent;
 import org.json.gsc.JSONObject;
 
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
 
 public class TCPClientHandler extends ChannelInboundHandlerAdapter {
     private ChannelHandlerContext ctx;
-
+    public static ConcurrentHashMap<String, payPacket> preload = new ConcurrentHashMap<>();    // 通讯线路id, 预存字节集
     public TCPClientHandler() {
     }
 
@@ -24,6 +26,7 @@ public class TCPClientHandler extends ChannelInboundHandlerAdapter {
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
         super.channelActive(ctx);
         this.ctx = ctx;
+        // Ping(ctx);
     }
 
     @Override
@@ -33,6 +36,13 @@ public class TCPClientHandler extends ChannelInboundHandlerAdapter {
         final EventLoop eventLoop = ctx.channel().eventLoop();
         eventLoop.schedule(() -> TcpClient.build().run(), 1L, TimeUnit.SECONDS);
         super.channelInactive(ctx);
+        preload.remove(ctx.channel().id().asLongText());
+    }
+
+    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+        super.exceptionCaught(ctx, cause);
+        preload.remove(ctx.channel().id().asLongText());
+        cause.printStackTrace();
     }
 
     @Override
@@ -40,7 +50,7 @@ public class TCPClientHandler extends ChannelInboundHandlerAdapter {
         // 拿到传过来的msg数据，开始处理
         GscCenterPacket respMsg = (GscCenterPacket) source;// 转化为GscCenterPacket
         // 挂载点更新,挂载点内容更新(收到服务端推送过来的数据)
-        if (respMsg.getStatus()) {  // 是执行成功的返回就直接略过
+        if (!respMsg.getStatus()) {  // 是执行失败的返回就直接略过
             return;
         }
         // 根据订阅key获得实例对象
@@ -70,24 +80,27 @@ public class TCPClientHandler extends ChannelInboundHandlerAdapter {
             case GscCenterEvent.Clear:
                 centerClient.onClear();
                 break;
+            case GscCenterEvent.HeartPong:
+                System.out.println("Pong...");
+                break;
         }
+    }
+
+    private void Ping(ChannelHandlerContext ctx) {
+        ctx.writeAndFlush(GscCenterPacket.build("", JSONObject.build(), GscCenterEvent.HeartPing, true));
     }
 
     @Override
     public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
-        super.userEventTriggered(ctx, evt);
         if (evt instanceof IdleStateEvent) {
-            IdleStateEvent event = (IdleStateEvent) evt;
-            if (event.state().equals(IdleState.READER_IDLE)) {
-                System.out.println("长期没收到服务器推送数据");
-                //可以选择重新连接
-            } else if (event.state().equals(IdleState.WRITER_IDLE)) {
+            IdleState state = ((IdleStateEvent) evt).state();
+            if (state.equals(IdleState.WRITER_IDLE)) {
                 System.out.println("长期未向服务器发送数据");
                 //发送心跳包
-                ctx.writeAndFlush(GscCenterPacket.build("", JSONObject.build(), GscCenterEvent.HeartPing, true));
-            } else if (event.state().equals(IdleState.ALL_IDLE)) {
-                System.out.println("ALL");
+                Ping(ctx);
             }
+        } else {
+            super.userEventTriggered(ctx, evt);
         }
     }
 

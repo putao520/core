@@ -43,6 +43,7 @@ public class TcpServer {
         ChannelFuture channelFuture = serverBootstrap.bind(port).sync();
         if (channelFuture.isSuccess()) {
             System.out.println("TCP服务启动 成功---------------");
+            isRunning = true;
         }
     }
 

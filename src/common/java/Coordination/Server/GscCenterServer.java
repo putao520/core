@@ -408,9 +408,14 @@ public class GscCenterServer {
                 appIdArr.add(line.getString("appId"));
             }
         }
+        if (appIdArr.size() == 0) {
+            return;
+        }
         JSONArray resultArr = JSONArray.build();
         for (String appId : appIdArr) {
-            resultArr.add(appsMap.getJson(appId));
+            if (appsMap.containsKey(appId)) {
+                resultArr.add(appsMap.getJson(appId));
+            }
         }
         ReturnChannelMsg("apps", resultArr, ctx);
     }
@@ -462,10 +467,15 @@ public class GscCenterServer {
             // 批处理计算
             pushConfigName(configNameArr, config, "blockComputer");
         }
+        if (configNameArr.size() == 0) {
+            return;
+        }
         // 获得全部配置集合
         JSONArray resultArr = JSONArray.build();
         for (String configName : configNameArr) {
-            resultArr.add(configsMap.getJson(configName));
+            if (configsMap.containsKey(configName)) {
+                resultArr.add(configsMap.getJson(configName));
+            }
         }
         ReturnChannelMsg("configs", resultArr, ctx);
     }
@@ -522,6 +532,7 @@ public class GscCenterServer {
         Set<ChannelHandlerContext> queue;
         if (!subscribeQueue.containsKey(key)) {
             queue = new HashSet<>();
+            subscribeQueue.put(key, queue);
         } else {
             queue = subscribeQueue.get(key);
         }

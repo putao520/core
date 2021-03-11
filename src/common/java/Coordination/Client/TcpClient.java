@@ -32,12 +32,11 @@ public class TcpClient {
                     protected void initChannel(SocketChannel ch) throws Exception {
                         ChannelPipeline pipeline = ch.pipeline();
                         //自定义解码器
-                        pipeline.addLast(new MessagePacketDecoder());
+                        pipeline.addLast(new MessagePacketDecoder(TCPClientHandler.preload));
                         //自定义编码器
                         pipeline.addLast(new MessagePacketEncoder());
                         //自定义Handler
                         pipeline.addLast(clientHandle);
-
                     }
                 });
     }
@@ -65,8 +64,8 @@ public class TcpClient {
             });
             //注册关闭事件
             channelFuture.channel().closeFuture().addListener(cfl -> {
+                nLogger.errorInfo("客户端[" + channelFuture.channel().localAddress().toString() + "]已断开...服务器主动断开");
                 close();
-                nLogger.errorInfo("客户端[" + channelFuture.channel().localAddress().toString() + "]已断开...");
             });
         } catch (Exception e) {
             nLogger.errorInfo(e, "连接GscCenter服务器失败!");
@@ -81,6 +80,7 @@ public class TcpClient {
     }
 
     private void close() {
+        System.out.println("客户端[关闭连接]!!!");
         //关闭客户端套接字
         if (clientChannel != null) {
             clientChannel.close();

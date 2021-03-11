@@ -44,13 +44,28 @@ public class GscCenterPacket {
         // 获得val字节集
         byte[] key_byte = new byte[key_length];
         buffer.readBytes(key_byte);
-        String key_str = new String(key_byte);
+        String key_str = new String(key_byte, StandardCharsets.UTF_8);
         // 获得val长度
         int val_length = buffer.readInt();
         // 获得val字节集
         byte[] array = new byte[val_length];
         buffer.readBytes(array);
-        return new GscCenterPacket(key_str, JSONObject.build(new String(array)), eventId, status == (short) 1);
+        String val_str = new String(array, StandardCharsets.UTF_8);
+        /*
+        int tlen = val_str.getBytes(StandardCharsets.UTF_8).length;
+        // 测试打印最后4个字节值
+        int tl = val_length-4;
+        byte[] tE = new byte[4];
+        byte[] tS = new byte[4];
+        for(int i = 0; i < 4; i++){
+            tS[i] = array[i];
+            tE[i] = array[i+tl];
+        }
+        System.out.println("字符串长度:" + val_str.length());
+        System.out.println("开头:" + new String(tS));
+        System.out.println("结尾:" + new String(tE));
+         */
+        return new GscCenterPacket(key_str, JSONObject.build(val_str), eventId, status == (short) 1);
     }
 
     public JSONObject getData() {
@@ -74,25 +89,37 @@ public class GscCenterPacket {
         return this.key;
     }
 
-    public byte[] toByteArray() {
+    public ByteBuf toByteBuf() {
         byte[] bKey = key.getBytes(StandardCharsets.UTF_8);
         short lKey = (short) bKey.length;
-        byte[] bVal = val.toJSONString().getBytes(StandardCharsets.UTF_8);
+        String sVal = val.toJSONString();
+        byte[] bVal = sVal.getBytes(StandardCharsets.UTF_8);
         int lVal = bVal.length;
+        // 测试打印最后4个字节值
+        /*
+        int tl = lVal-4;
+        byte[] tE = new byte[4];
+        byte[] tS = new byte[4];
+        for(int i = 0; i < 4; i++){
+            tS[i] = bVal[i];
+            tE[i] = bVal[i+tl];
+        }
+        System.out.println("字符串长度:" + sVal.length());
+        System.out.println("开头:" + new String(tS));
+        System.out.println("结尾:" + new String(tE));
+         */
         int lPacket = (4 + 4) +                          // 头和包长度
                 (2 + 2) +                  // 事件id和状态值
                 (2 + lKey) +               // 数据key长度和key
                 (4 + lVal)                // 数据长度和数据
                 ;
-        ByteBuf buffer = Unpooled.buffer(lPacket);
-        return buffer.writeBytes("GSC_".getBytes())
+        return Unpooled.buffer(lPacket).writeBytes("GSC_".getBytes(StandardCharsets.UTF_8))
                 .writeInt(lPacket)
                 .writeShort(eventId)
                 .writeShort(status)
                 .writeShort(lKey)
                 .writeBytes(bKey)
                 .writeInt(lVal)
-                .writeBytes(bVal)
-                .array();
+                .writeBytes(bVal);
     }
 }

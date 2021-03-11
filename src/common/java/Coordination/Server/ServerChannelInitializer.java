@@ -23,12 +23,8 @@ public class ServerChannelInitializer extends ChannelInitializer<SocketChannel> 
         //IdleStateHandler心跳机制,如果超时触发Handle中userEventTrigger()方法
         pipeline.addLast("idleStateHandler",
                 new IdleStateHandler(15, 0, 0, TimeUnit.MINUTES));
-// netty基于分割符的自带解码器，根据提供的分隔符解析报文，这里是0x7e;1024表示单条消息的最大长度，解码器在查找分隔符的时候，达到该长度还没找到的话会抛异常
-//        pipeline.addLast(
-//                new DelimiterBasedFrameDecoder(1024, Unspoiled.copiedBuffer(new byte[] { 0x7e }),
-//                        Unspoiled.copiedBuffer(new byte[] { 0x7e })));
         //自定义解码器
-        pipeline.addLast(new MessagePacketDecoder());
+        pipeline.addLast(new MessagePacketDecoder(TCPServerHandler.preload));
         //自定义编码器
         pipeline.addLast(new MessagePacketEncoder());
         //自定义Handler
