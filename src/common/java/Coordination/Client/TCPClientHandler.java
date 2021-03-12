@@ -5,9 +5,9 @@ import common.java.Coordination.Common.GscCenterPacket;
 import common.java.Coordination.Common.payPacket;
 import common.java.MasterService.MasterActor;
 import common.java.nLogger.nLogger;
+import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
-import io.netty.channel.EventLoop;
 import io.netty.handler.timeout.IdleState;
 import io.netty.handler.timeout.IdleStateEvent;
 import org.json.gsc.JSONObject;
@@ -26,17 +26,19 @@ public class TCPClientHandler extends ChannelInboundHandlerAdapter {
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
         super.channelActive(ctx);
         this.ctx = ctx;
-        // Ping(ctx);
     }
 
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-        nLogger.errorInfo("掉线了...");
-        //使用过程中断线重连
-        final EventLoop eventLoop = ctx.channel().eventLoop();
-        eventLoop.schedule(() -> TcpClient.build().run(), 1L, TimeUnit.SECONDS);
         super.channelInactive(ctx);
-        preload.remove(ctx.channel().id().asLongText());
+        nLogger.errorInfo("掉线了...");
+        Channel ch = ctx.channel();
+        preload.remove(ch.id().asLongText());
+        //使用过程中断线重连
+        ch.eventLoop().schedule(() -> {
+            TcpClient.build().run();
+        }, 2, TimeUnit.SECONDS);
+        ctx.close();
     }
 
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {

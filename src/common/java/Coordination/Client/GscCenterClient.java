@@ -15,7 +15,7 @@ public class GscCenterClient {
     private final String rootKey;
     private final HashMap<String, JSONObject> indexMap;
     private JSONArray<JSONObject> store;
-    private TCPClientHandler ctx;
+    private TcpClient client;
     private boolean isLoaded;
 
     private GscCenterClient(String rootKey) {
@@ -23,12 +23,12 @@ public class GscCenterClient {
         this.rootKey = rootKey;
         this.store = JSONArray.build();
         this.indexMap = new HashMap<>();
+        this.client = TcpClient.build().run();
     }
 
     public static GscCenterClient build(String rootKey) {
         // 建立连接
         GscCenterClient cls = new GscCenterClient(rootKey);
-        cls.setChannel(TcpClient.build().run());
         return cls;
     }
 
@@ -62,8 +62,8 @@ public class GscCenterClient {
         return val.getJson(indexVal);
     }
 
-    private void setChannel(TCPClientHandler ctx) {
-        this.ctx = ctx;
+    private void setClient(TcpClient handle) {
+        this.client = handle;
     }
 
     public GscCenterClient load(JSONArray data) {
@@ -143,7 +143,7 @@ public class GscCenterClient {
      * @apiNote 订阅挂载(订阅除了key外, 还要带入当前微服务名和节点ID)
      */
     public GscCenterClient subscribe() {
-        ctx.send(GscCenterPacket.build(rootKey, JSONObject.build("name", Config.serviceName).puts("node", Config.nodeID), GscCenterEvent.Subscribe, false));
+        client.getHandle().send(GscCenterPacket.build(rootKey, JSONObject.build("name", Config.serviceName).puts("node", Config.nodeID), GscCenterEvent.Subscribe, false));
         return this;
     }
 
@@ -151,7 +151,16 @@ public class GscCenterClient {
      * @apiNote 取消订阅挂载(订阅除了key外, 还要带入当前微服务名和节点ID)
      */
     public GscCenterClient unSubscribe() {
-        ctx.send(GscCenterPacket.build(rootKey, JSONObject.build("name", Config.serviceName).puts("node", Config.nodeID), GscCenterEvent.UnSubscribe, false));
+        client.getHandle().send(GscCenterPacket.build(rootKey, JSONObject.build("name", Config.serviceName).puts("node", Config.nodeID), GscCenterEvent.UnSubscribe, false));
         return this;
+    }
+
+    public GscCenterClient disconnect() {
+        client.getHandle().send(GscCenterPacket.build(rootKey, JSONObject.build("name", Config.serviceName).puts("node", Config.nodeID), GscCenterEvent.TestDisconnect, false));
+        return this;
+    }
+
+    public void close() {
+        client.close();
     }
 }

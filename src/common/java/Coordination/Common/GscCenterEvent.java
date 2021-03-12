@@ -8,6 +8,8 @@ public class GscCenterEvent {
     public final static short Clear = 0x00000014;   // 数据全局强制完全删除
     public final static short Subscribe = 0x00000007;
     public final static short UnSubscribe = 0x00000008;
+
+    public final static short TestDisconnect = 0x0000000f0;
     public final static short HeartPing = 0x000000fe;
     public final static short HeartPong = 0x000000ff;
 }

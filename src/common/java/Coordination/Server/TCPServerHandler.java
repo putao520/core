@@ -48,8 +48,11 @@ public class TCPServerHandler extends ChannelInboundHandlerAdapter {
     public void channelRead(ChannelHandlerContext ctx, Object source) throws Exception {
         // 拿到传过来的msg数据，开始处理
         GscCenterPacket respMsg = (GscCenterPacket) source;// 转化为GscCenterPacket
+        short eventId = respMsg.getEventId();
+        System.out.println("Recv:" + eventId);
+
         // 收到数据修改请求
-        switch (respMsg.getEventId()) {
+        switch (eventId) {
             case Subscribe: // 订阅
                 centerServer.subscribe(respMsg.getKey(), respMsg.getData(), ctx);
                 break;
@@ -58,6 +61,9 @@ public class TCPServerHandler extends ChannelInboundHandlerAdapter {
                 break;
             case HeartPing:
                 ctx.writeAndFlush(GscCenterPacket.build(respMsg.getKey(), JSONObject.build("status", true), HeartPong, true));
+                break;
+            case TestDisconnect:    // 客户端发起断开连接
+                ctx.disconnect();
                 break;
         }
     }
