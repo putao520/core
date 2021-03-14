@@ -54,13 +54,22 @@ public class TCPServerHandler extends ChannelInboundHandlerAdapter {
         // 收到数据修改请求
         switch (eventId) {
             case Subscribe: // 订阅
-                centerServer.subscribe(respMsg.getKey(), respMsg.getData(), ctx);
+                centerServer.pushWork(GscChangeMsg.build(respMsg.getKey(), "subscribe", respMsg.getData(), ctx), 0);
                 break;
             case UnSubscribe: // 取消订阅
-                centerServer.unSubscribe(respMsg.getKey(), ctx);
+                centerServer.pushWork(GscChangeMsg.build(respMsg.getKey(), "unsubscribe", respMsg.getData(), ctx), 0);
                 break;
             case HeartPing:
                 ctx.writeAndFlush(GscCenterPacket.build(respMsg.getKey(), JSONObject.build("status", true), HeartPong, true));
+                break;
+            case Insert:
+                centerServer.pushWork(GscChangeMsg.build(respMsg.getKey(), "insert", respMsg.getData(), ctx), 0);
+                break;
+            case Update:
+                centerServer.pushWork(GscChangeMsg.build(respMsg.getKey(), "update", respMsg.getData(), ctx), 0);
+                break;
+            case Delete:
+                centerServer.pushWork(GscChangeMsg.build(respMsg.getKey(), "delete", respMsg.getData(), ctx), 0);
                 break;
             case TestDisconnect:    // 客户端发起断开连接
                 ctx.disconnect();

@@ -62,21 +62,9 @@ public class TCPClientHandler extends ChannelInboundHandlerAdapter {
             // 订阅后返回初始值(全局初始化)
             case GscCenterEvent.DataInit:
                 // 设置初始化数据
-                centerClient.onInit(respMsg.getData());
+                centerClient.onChange(respMsg.getKey(), respMsg.getData());
                 // 设置已初始化标志
                 centerClient.setLoaded();
-                break;
-            // 新增N行数据
-            case GscCenterEvent.Insert:
-                centerClient.onInsert(respMsg.getData());
-                break;
-            // 更新N行数据
-            case GscCenterEvent.Update:
-                centerClient.onUpdate(respMsg.getData());
-                break;
-            // 删除N行数据
-            case GscCenterEvent.Delete:
-                centerClient.onDelete(respMsg.getData());
                 break;
             // 清空数据
             case GscCenterEvent.Clear:

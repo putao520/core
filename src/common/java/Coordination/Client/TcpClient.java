@@ -1,6 +1,7 @@
 package common.java.Coordination.Client;
 
 import common.java.Config.Config;
+import common.java.Coordination.Common.GscCenterPacket;
 import common.java.Coordination.Common.MessagePacketDecoder;
 import common.java.Coordination.Common.MessagePacketEncoder;
 import common.java.Thread.ThreadEx;
@@ -14,7 +15,6 @@ import io.netty.channel.socket.nio.NioSocketChannel;
 import java.util.concurrent.TimeUnit;
 
 public class TcpClient {
-    public static TcpClient handle = null;
     private Bootstrap bootstrap;
     private final EventLoopGroup group = new NioEventLoopGroup();
     /**
@@ -31,10 +31,7 @@ public class TcpClient {
      * @apiNote 获得TcpClient实例 ->单例模式
      */
     public static TcpClient build() {
-        if (handle == null) {
-            handle = new TcpClient();
-        }
-        return handle;
+        return new TcpClient();
     }
 
     private void init() {
@@ -98,8 +95,8 @@ public class TcpClient {
         return this;
     }
 
-    public TCPClientHandler getHandle() {
-        return this.clientHandle;
+    public void send(GscCenterPacket packet) {
+        clientChannel.writeAndFlush(packet);
     }
 
     public void close() {

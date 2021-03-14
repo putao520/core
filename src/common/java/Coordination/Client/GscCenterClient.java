@@ -8,20 +8,19 @@ import org.json.gsc.JSONArray;
 import org.json.gsc.JSONObject;
 
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.concurrent.TimeoutException;
 
 public class GscCenterClient {
     private final String rootKey;
     private final HashMap<String, JSONObject> indexMap;
-    private JSONArray<JSONObject> store;
+    private final JSONObject store;
     private TcpClient client;
     private boolean isLoaded;
 
     private GscCenterClient(String rootKey) {
         this.isLoaded = false;
         this.rootKey = rootKey;
-        this.store = JSONArray.build();
+        this.store = JSONObject.build();
         this.indexMap = new HashMap<>();
         this.client = TcpClient.build().run();
     }
@@ -49,8 +48,8 @@ public class GscCenterClient {
         return rootKey;
     }
 
-    public JSONArray getData() {
-        return store;
+    public JSONArray getData(String className) {
+        return store.getJson(className).getJsonArray("store");
     }
 
     // 根据排序字段获得对应数据(有可能返回null)
@@ -64,11 +63,6 @@ public class GscCenterClient {
 
     private void setClient(TcpClient handle) {
         this.client = handle;
-    }
-
-    public GscCenterClient load(JSONArray data) {
-        this.store = data;
-        return this;
     }
 
     public GscCenterClient waitLoaded() throws TimeoutException {
@@ -92,46 +86,25 @@ public class GscCenterClient {
         return this;
     }
 
+    private void updateById(JSONArray<JSONObject> local_arr, JSONArray<JSONObject> arr) {
+        JSONObject maps = local_arr.mapsByKey("id");
+        for (JSONObject v : arr) {
+            String nId = v.getString("id");
+            // 如果当前存储包含输入项目,更新当前项目
+            if (maps.containsKey(nId)) {
+                maps.getJson(nId).putAll(v);
+            }
+            // 如果当前存储不包含输入项目,直接新增数据
+            else {
+                local_arr.add(v);
+            }
+        }
+    }
+
     // 初始化数据
-    public void onInit(JSONObject data) {
-        onClear();
-        onInsert(data);
-    }
-
-    // 新增数据
-    public void onInsert(JSONObject data) {
-        store.addAll(data.getJsonArray("data"));
-        rebuildIndex();
-    }
-
-    // 更新数据(查询条件是2个集合字段值相等)
-    public void onUpdate(JSONObject data) {
-        String queryKey = data.getString("query");
-        JSONArray<JSONObject> content = data.getJsonArray("data");
-        for (JSONObject json : content) {
-            for (JSONObject item : store) {
-                if (item.get(queryKey).equals(json.get(queryKey))) {
-                    item.putAll(json);
-                }
-            }
-        }
-        rebuildIndex();
-    }
-
-    // 删除数据(查询条件是2个集合字段值相等)
-    public void onDelete(JSONObject data) {
-        String queryKey = data.getString("query");
-        JSONArray<JSONObject> content = data.getJsonArray("data");
-        for (JSONObject json : content) {
-            Iterator<JSONObject> it = store.iterator();
-            while (it.hasNext()) {
-                JSONObject item = it.next();
-                if (item.get(queryKey).equals(json.get(queryKey))) {
-                    it.remove();
-                }
-            }
-        }
-        rebuildIndex();
+    public void onChange(String key, JSONObject data) {
+        JSONArray local_arr = store.containsKey(key) ? store.getJsonArray(key) : JSONArray.build();
+        updateById(local_arr, data.getJsonArray("data"));
     }
 
     public void onClear() {
@@ -143,7 +116,7 @@ public class GscCenterClient {
      * @apiNote 订阅挂载(订阅除了key外, 还要带入当前微服务名和节点ID)
      */
     public GscCenterClient subscribe() {
-        client.getHandle().send(GscCenterPacket.build(rootKey, JSONObject.build("name", Config.serviceName).puts("node", Config.nodeID), GscCenterEvent.Subscribe, false));
+        client.send(GscCenterPacket.build(Config.serviceName, JSONObject.build("node", Config.nodeID), GscCenterEvent.Subscribe, false));
         return this;
     }
 
@@ -151,12 +124,33 @@ public class GscCenterClient {
      * @apiNote 取消订阅挂载(订阅除了key外, 还要带入当前微服务名和节点ID)
      */
     public GscCenterClient unSubscribe() {
-        client.getHandle().send(GscCenterPacket.build(rootKey, JSONObject.build("name", Config.serviceName).puts("node", Config.nodeID), GscCenterEvent.UnSubscribe, false));
+        client.send(GscCenterPacket.build(Config.serviceName, JSONObject.build("node", Config.nodeID), GscCenterEvent.UnSubscribe, false));
         return this;
     }
 
     public GscCenterClient disconnect() {
-        client.getHandle().send(GscCenterPacket.build(rootKey, JSONObject.build("name", Config.serviceName).puts("node", Config.nodeID), GscCenterEvent.TestDisconnect, false));
+        client.send(GscCenterPacket.build(Config.serviceName, JSONObject.build("node", Config.nodeID), GscCenterEvent.TestDisconnect, false));
+        return this;
+    }
+
+    public GscCenterClient insert(String className, JSONObject data) {
+        client.send(GscCenterPacket.build(Config.serviceName,
+                JSONObject.build("data", data).puts("name", className)
+                , GscCenterEvent.Insert, false));
+        return this;
+    }
+
+    public GscCenterClient update(String className, JSONObject data) {
+        client.send(GscCenterPacket.build(Config.serviceName,
+                JSONObject.build("data", data).puts("name", className)
+                , GscCenterEvent.Update, false));
+        return this;
+    }
+
+    public GscCenterClient delete(String className, JSONObject data) {
+        client.send(GscCenterPacket.build(Config.serviceName,
+                JSONObject.build("data", data).puts("name", className)
+                , GscCenterEvent.Delete, false));
         return this;
     }
 
