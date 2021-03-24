@@ -12,9 +12,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.*;
 
 import static common.java.Coordination.Common.GscCenterEvent.DataInit;
 
@@ -22,8 +20,21 @@ import static common.java.Coordination.Common.GscCenterEvent.DataInit;
 public class GscCenterServer {
     private static final HashMap<String, GscCenterServer> handle = new HashMap<>();
     private static final HashMap<String, HashMap<String, ChannelHandlerContext>> nodeArr = new HashMap<>();
-    private static final ConcurrentHashMap<String, GscChangeMsg> work_queue = new ConcurrentHashMap<>();
-    private static final ExecutorService worker = Executors.newSingleThreadExecutor();
+    private static final ConcurrentHashMap<String, GscBroadCastMsg> broadcast_queue = new ConcurrentHashMap<>();
+    private static final ScheduledExecutorService broadcast_worker = Executors.newSingleThreadScheduledExecutor();  // 广播数据线程
+    private static final ExecutorService cmd_worker = Executors.newSingleThreadExecutor();  // 管理命令线程
+
+    static {
+        // 定时广播数据
+        broadcast_worker.scheduleAtFixedRate(() -> {
+            if (!broadcast_queue.isEmpty()) {
+                for (String serviceName : broadcast_queue.keySet()) {
+                    broadcast_queue.get(serviceName).broadCast();
+                }
+            }
+        }, 1, 5, TimeUnit.SECONDS);
+    }
+
     // 获得该对象时,必须确保并发安全!!!(目前不安全)
     private final JSONObject store;
     /**
@@ -82,9 +93,12 @@ public class GscCenterServer {
         }
     }
 
+    /**
+     * @apiNote 通过 pushWork 将收到的命令压入命令执行序列,确保多线程下store数据可靠
+     */
     public void pushWork(GscChangeMsg msg, int errorNo) {
         if (errorNo < 3) {
-            worker.submit(() -> {
+            cmd_worker.submit(() -> {
                 if (!workerRunner(msg)) {
                     pushWork(msg, errorNo + 1);
                 }
@@ -115,17 +129,17 @@ public class GscCenterServer {
                                   String key,                   // 分类名称
                                   JSONArray resultArr,          // 返回结果集合
                                   ChannelHandlerContext ctx) {
-        // 没包含特定网络通道
+        // 没包含特定网络通道,需要广播,投递到广播任务队列
         if (ctx == null) {
             if (subscribeQueue.containsKey(serviceName)) {
                 var queue = subscribeQueue.get(serviceName);
-                for (ChannelHandlerContext _ctx : queue) {
-                    _ctx.writeAndFlush(GscCenterPacket.build(
+                if (!queue.isEmpty()) {
+                    broadcast_queue.put(serviceName, GscBroadCastMsg.build(GscCenterPacket.build(
                             key,
                             JSONObject.build("data", resultArr),
                             DataInit,
                             true
-                    ));
+                    ), queue));
                 }
             }
         } else {
