@@ -32,7 +32,7 @@ public class GscCenterServer {
                     broadcast_queue.get(serviceName).broadCast();
                 }
             }
-        }, 1, 5, TimeUnit.SECONDS);
+        }, 1, 1, TimeUnit.SECONDS);
     }
 
     // 获得该对象时,必须确保并发安全!!!(目前不安全)
