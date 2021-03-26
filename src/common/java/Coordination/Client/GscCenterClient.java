@@ -8,27 +8,62 @@ import org.json.gsc.JSONArray;
 import org.json.gsc.JSONObject;
 
 import java.util.HashMap;
-import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class GscCenterClient {
-    private final String rootKey;
     private final HashMap<String, JSONObject> indexMap;
     private final JSONObject store;
     private TcpClient client;
-    private boolean isLoaded;
+    private final AtomicInteger loadCnt;
+    private boolean liveStatus;
+    private boolean keepLived;
 
-    private GscCenterClient(String rootKey) {
-        this.isLoaded = false;
-        this.rootKey = rootKey;
+    private GscCenterClient() {
+        this.liveStatus = false;
+        this.keepLived = false;
+        this.loadCnt = new AtomicInteger(0);
         this.store = JSONObject.build();
         this.indexMap = new HashMap<>();
-        this.client = TcpClient.build().run();
+        this.client = TcpClient.build(this).run();
     }
 
-    public static GscCenterClient build(String rootKey) {
+    public static GscCenterClient build() {
         // 建立连接
-        GscCenterClient cls = new GscCenterClient(rootKey);
+        GscCenterClient cls = new GscCenterClient();
         return cls;
+    }
+
+    public GscCenterClient reConnect() {
+        if (this.keepLived) {
+            this.client.close().run();
+        }
+        return this;
+    }
+
+    public boolean getLiveStatus() {
+        return this.liveStatus;
+    }
+
+    public GscCenterClient setLiveStatus(boolean status) {
+        this.liveStatus = status;
+        return this;
+    }
+
+    public boolean getKeepLived() {
+        return this.keepLived;
+    }
+
+    public GscCenterClient setKeepLived(boolean keepLived) {
+        this.keepLived = keepLived;
+        return this;
+    }
+
+    public void waitLived() {
+        int err_no = 100;
+        while (!this.liveStatus && err_no > 10) {
+            ThreadEx.SleepEx(100);
+            err_no--;
+        }
     }
 
     // 增加索引字段
@@ -44,46 +79,32 @@ public class GscCenterClient {
         }
     }
 
-    public String getRootKey() {
-        return rootKey;
-    }
-
     public JSONArray getData(String className) {
-        return store.getJson(className).getJsonArray("store");
-    }
-
-    // 根据排序字段获得对应数据(有可能返回null)
-    public JSONObject getDataByIndex(String indexString, String indexVal) {
-        if (!indexMap.containsKey(indexString)) {   // 隐式新增index
-            addIndex(indexString);
-        }
-        JSONObject val = indexMap.get(indexString);
-        return val.getJson(indexVal);
+        return store.getJsonArray(className);
     }
 
     private void setClient(TcpClient handle) {
         this.client = handle;
     }
 
-    public GscCenterClient waitLoaded() throws TimeoutException {
-        int max_length = 100;
-        while (!this.isLoaded && max_length > 0) {
-            ThreadEx.SleepEx(300);
-            max_length--;
+    // 获得等待
+    public void getResponse() {
+        if (loadCnt.get() > 0) {
+            loadCnt.set(loadCnt.decrementAndGet());
         }
-        if (!this.isLoaded) {
-            throw new TimeoutException("获得订阅初始化数据超时");
-        }
-        return this;
     }
 
-    public boolean getLoaded() {
-        return isLoaded;
+    public void setResponse(int no) {
+        loadCnt.addAndGet(no);
     }
 
-    public GscCenterClient setLoaded() {
-        isLoaded = true;
-        return this;
+    // 需要等待
+    public void waitResponse() {
+        int max_errno = 100;
+        while (loadCnt.get() > 0 && max_errno > 0) {
+            ThreadEx.SleepEx(100);
+            max_errno--;
+        }
     }
 
     private void updateById(JSONArray<JSONObject> local_arr, JSONArray<JSONObject> arr) {
@@ -103,8 +124,10 @@ public class GscCenterClient {
 
     // 初始化数据
     public void onChange(String key, JSONObject data) {
-        JSONArray local_arr = store.containsKey(key) ? store.getJsonArray(key) : JSONArray.build();
-        updateById(local_arr, data.getJsonArray("data"));
+        if (!store.containsKey(key)) {
+            store.put(key, JSONArray.build());
+        }
+        updateById(store.getJsonArray(key), data.getJsonArray("data"));
     }
 
     public void onClear() {
@@ -116,7 +139,9 @@ public class GscCenterClient {
      * @apiNote 订阅挂载(订阅除了key外, 还要带入当前微服务名和节点ID)
      */
     public GscCenterClient subscribe() {
+        this.setResponse(3);
         client.send(GscCenterPacket.build(Config.serviceName, JSONObject.build("node", Config.nodeID), GscCenterEvent.Subscribe, false));
+        this.waitResponse();
         return this;
     }
 
@@ -155,6 +180,7 @@ public class GscCenterClient {
     }
 
     public void close() {
+        this.setKeepLived(false);
         client.close();
     }
 }

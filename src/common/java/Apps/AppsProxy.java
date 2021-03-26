@@ -1,14 +1,13 @@
 package common.java.Apps;
 
-import common.java.Coordination.Client.GscCenterClient;
-import common.java.MasterService.MasterActor;
+import common.java.MasterProxy.MasterActor;
 import org.json.gsc.JSONObject;
 
 public class AppsProxy {
     private static final String appPath = "apps";
-    private static final GscCenterClient appMapped = MasterActor.getInstance(appPath);
+    private static final MasterActor appMapped = MasterActor.getInstance(appPath);
     private static final String servicePath = "services";
-    private static final GscCenterClient serviceMapped = MasterActor.getInstance(servicePath);
+    private static final MasterActor serviceMapped = MasterActor.getInstance(servicePath);
 
     // 获得应用信息
     public static JSONObject getAppInfo(int appId) {

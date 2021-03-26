@@ -13,29 +13,34 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class TcpClient {
     private Bootstrap bootstrap;
-    private final EventLoopGroup group = new NioEventLoopGroup();
+    private final GscCenterClient cli;
+    private EventLoopGroup group;
     /**
      * 客户端通道
      */
     private Channel clientChannel;
     private TCPClientHandler clientHandle;
 
-    private TcpClient() {
-
+    private TcpClient(GscCenterClient cli) {
+        this.group = null;
+        this.cli = cli;
+        this.clientHandle = null;
     }
 
     /**
      * @apiNote 获得TcpClient实例 ->单例模式
      */
-    public static TcpClient build() {
-        return new TcpClient();
+    public static TcpClient build(GscCenterClient cli) {
+        return new TcpClient(cli);
     }
 
     private void init() {
-        clientHandle = new TCPClientHandler();
+        clientHandle = new TCPClientHandler(cli);
+        group = new NioEventLoopGroup();
         bootstrap = new Bootstrap()
                 .group(group)
                 .channel(NioSocketChannel.class)
@@ -54,12 +59,9 @@ public class TcpClient {
                 });
     }
 
-    public TcpClient run() {
-        if (clientChannel != null) {
-            clientChannel.close();
-            clientChannel = null;
-        }
-        init();
+    private void _connect() {
+        int err_no = 100;
+        AtomicBoolean waitFlag = new AtomicBoolean(false);
         try {
             ChannelFuture channelFuture = bootstrap.connect(Config.masterHost, Config.masterPort);
             channelFuture.addListener((ChannelFutureListener) future -> {
@@ -67,30 +69,32 @@ public class TcpClient {
                 if (future.isSuccess()) {
                     nLogger.errorInfo("客户端[" + channelFuture.channel().localAddress().toString() + "]已连接...");
                     clientChannel = channelFuture.channel();
+                    this.cli.setLiveStatus(true);
+                    this.cli.setKeepLived(true);
                 }
                 //如果连接失败，尝试重新连接
                 else {
                     nLogger.errorInfo("客户端[" + channelFuture.channel().localAddress().toString() + "]连接失败，重新连接中...");
                     future.channel().close().channel().eventLoop().schedule(() -> {
-                        run();
+                        this.cli.reConnect();
                     }, 3, TimeUnit.SECONDS);
+                    this.cli.setLiveStatus(false);
                 }
+                waitFlag.set(true);
             });
-            //注册关闭事件
-            /*
-            channelFuture.channel().closeFuture().addListener(cfl -> {
-                nLogger.errorInfo("客户端[" + channelFuture.channel().localAddress().toString() + "]已断开...服务器主动断开");
-                // close();
-            });
-            */
+            while (!waitFlag.get() && err_no > 0) {
+                ThreadEx.SleepEx(100);
+                err_no--;
+            }
         } catch (Exception e) {
             nLogger.errorInfo(e, "连接GscCenter服务器失败!");
         }
-        long timeOut = 120 * 100;
-        long timeCost = 0;
-        while (clientChannel == null && timeCost < timeOut) {
-            ThreadEx.SleepEx(10);
-            timeCost += 10;
+    }
+
+    public TcpClient run() {
+        if (clientChannel == null) {
+            init();
+            _connect();
         }
         return this;
     }
@@ -99,15 +103,17 @@ public class TcpClient {
         clientChannel.writeAndFlush(packet);
     }
 
-    public void close() {
+    public TcpClient close() {
         System.out.println("客户端[关闭连接]!!!");
         //关闭客户端套接字
         if (clientChannel != null) {
             clientChannel.close();
+            clientChannel = null;
         }
         //关闭客户端线程组
         if (group != null) {
             group.shutdownGracefully();
         }
+        return this;
     }
 }

@@ -4,7 +4,7 @@ import common.java.Apps.MicroServiceContext;
 import common.java.Config.Config;
 import common.java.HttpServer.GscServer;
 import common.java.HttpServer.HttpContext;
-import common.java.MasterService.MasterActor;
+import common.java.MasterProxy.MasterActor;
 import common.java.Time.TimeHelper;
 import common.java.nLogger.nLogger;
 import io.netty.channel.ChannelHandlerContext;
@@ -50,13 +50,7 @@ public class GscBooster {
     public static void start(String serverName) {
         try {
             // 此时订阅全部用到的数据
-            // Application 分类
-            MasterActor.getInstance("apps").subscribe().waitLoaded();
-            // 微服务
-            MasterActor.getInstance("services").subscribe().waitLoaded();
-            // 配置
-            MasterActor.getInstance("configs").subscribe().waitLoaded();
-
+            MasterActor.getClient().subscribe();
             // 设置日志过滤器
             _before(serverName);
             // 启动http服务

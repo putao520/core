@@ -1,8 +1,7 @@
 package common.java.Config;
 
-import common.java.Coordination.Client.GscCenterClient;
 import common.java.JGrapeSystem.SystemDefined;
-import common.java.MasterService.MasterActor;
+import common.java.MasterProxy.MasterActor;
 import common.java.nLogger.nLogger;
 import org.json.gsc.JSONObject;
 
@@ -21,7 +20,7 @@ public class Config {
     public static String nodeID;
 
     private static String configPath = "gfw.cfg";
-    private static GscCenterClient configs;
+    private static MasterActor configs;
 
     static {
         updateConfig();
@@ -32,7 +31,7 @@ public class Config {
         configPath = newConfigPath;
     }
 
-    private static GscCenterClient getNetConfigHandle() {
+    private static MasterActor getNetConfigHandle() {
         if (configs == null) {
             configs = MasterActor.getInstance(configNodePath);
         }

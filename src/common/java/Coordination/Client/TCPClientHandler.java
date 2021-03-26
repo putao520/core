@@ -3,7 +3,6 @@ package common.java.Coordination.Client;
 import common.java.Coordination.Common.GscCenterEvent;
 import common.java.Coordination.Common.GscCenterPacket;
 import common.java.Coordination.Common.payPacket;
-import common.java.MasterService.MasterActor;
 import common.java.nLogger.nLogger;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
@@ -18,8 +17,11 @@ import java.util.concurrent.TimeUnit;
 
 public class TCPClientHandler extends ChannelInboundHandlerAdapter {
     private ChannelHandlerContext ctx;
+    private final GscCenterClient cli;
     public static ConcurrentHashMap<String, payPacket> preload = new ConcurrentHashMap<>();    // 通讯线路id, 预存字节集
-    public TCPClientHandler() {
+
+    public TCPClientHandler(GscCenterClient cli) {
+        this.cli = cli;
     }
 
     @Override
@@ -36,9 +38,10 @@ public class TCPClientHandler extends ChannelInboundHandlerAdapter {
         preload.remove(ch.id().asLongText());
         //使用过程中断线重连
         ch.eventLoop().schedule(() -> {
-            TcpClient.build().run();
+            this.cli.reConnect();
         }, 2, TimeUnit.SECONDS);
         ctx.close();
+        this.cli.setLiveStatus(false);
     }
 
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
@@ -56,19 +59,18 @@ public class TCPClientHandler extends ChannelInboundHandlerAdapter {
             return;
         }
         // 根据订阅key获得实例对象
-        GscCenterClient centerClient = MasterActor.getInstance(respMsg.getKey());
         // 处理收到的广播数据
         switch (respMsg.getEventId()) {
             // 订阅后返回初始值(全局初始化)
             case GscCenterEvent.DataInit:
                 // 设置初始化数据
-                centerClient.onChange(respMsg.getKey(), respMsg.getData());
+                cli.onChange(respMsg.getKey(), respMsg.getData());
                 // 设置已初始化标志
-                centerClient.setLoaded();
+                cli.getResponse();
                 break;
             // 清空数据
             case GscCenterEvent.Clear:
-                centerClient.onClear();
+                cli.onClear();
                 break;
             case GscCenterEvent.HeartPong:
                 System.out.println("Pong...");

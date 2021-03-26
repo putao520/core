@@ -8,10 +8,7 @@ import org.json.gsc.JSONArray;
 import org.json.gsc.JSONObject;
 
 import java.nio.file.Path;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.*;
 
 import static common.java.Coordination.Common.GscCenterEvent.DataInit;
@@ -19,8 +16,8 @@ import static common.java.Coordination.Common.GscCenterEvent.DataInit;
 
 public class GscCenterServer {
     private static final HashMap<String, GscCenterServer> handle = new HashMap<>();
-    private static final HashMap<String, HashMap<String, ChannelHandlerContext>> nodeArr = new HashMap<>();
-    private static final ConcurrentHashMap<String, GscBroadCastMsg> broadcast_queue = new ConcurrentHashMap<>();
+    private static final HashMap<String, ConcurrentHashMap<String, ChannelHandlerContext>> nodeArr = new HashMap<>();
+    private static final ConcurrentHashMap<String, List<GscBroadCastMsg>> broadcast_queue = new ConcurrentHashMap<>();
     private static final ScheduledExecutorService broadcast_worker = Executors.newSingleThreadScheduledExecutor();  // 广播数据线程
     private static final ExecutorService cmd_worker = Executors.newSingleThreadExecutor();  // 管理命令线程
 
@@ -28,8 +25,14 @@ public class GscCenterServer {
         // 定时广播数据
         broadcast_worker.scheduleAtFixedRate(() -> {
             if (!broadcast_queue.isEmpty()) {
-                for (String serviceName : broadcast_queue.keySet()) {
-                    broadcast_queue.get(serviceName).broadCast();
+                var iter = broadcast_queue.keySet().iterator();
+                while (iter.hasNext()) {
+                    var arr = broadcast_queue.get(iter.next());
+                    var it = arr.iterator();
+                    while (it.hasNext()) {
+                        it.next().broadCast();
+                        it.remove();
+                    }
                 }
             }
         }, 1, 1, TimeUnit.SECONDS);
@@ -42,7 +45,7 @@ public class GscCenterServer {
      * keyB:[]
      * keyC:[]
      */
-    private final HashMap<String, Set<ChannelHandlerContext>> subscribeQueue = new HashMap<>();
+    private final HashMap<String, ConcurrentHashMap<String, ChannelHandlerContext>> subscribeQueue = new HashMap<>();
 
     private GscCenterServer() {
         this.store = JSONObject.build();
@@ -77,11 +80,14 @@ public class GscCenterServer {
     public boolean workerRunner(GscChangeMsg msg) {
         switch (msg.getAction()) {
             case "insert":
-                return onInsert(msg.getServiceName(), msg.getData(), msg.getChannel());
+                // return onInsert(msg.getServiceName(), msg.getData(), msg.getChannel());
+                return onInsert(msg.getServiceName(), msg.getData(), null);
             case "update":
-                return onUpdate(msg.getServiceName(), msg.getData(), msg.getChannel());
+                // return onUpdate(msg.getServiceName(), msg.getData(), msg.getChannel());
+                return onUpdate(msg.getServiceName(), msg.getData(), null);
             case "delete":
-                return onDelete(msg.getServiceName(), msg.getData(), msg.getChannel());
+                // return onDelete(msg.getServiceName(), msg.getData(), msg.getChannel());
+                return onDelete(msg.getServiceName(), msg.getData(), null);
             case "subscribe":
                 subscribe(msg.getServiceName(), msg.getData(), msg.getChannel());
                 return true;
@@ -134,7 +140,10 @@ public class GscCenterServer {
             if (subscribeQueue.containsKey(serviceName)) {
                 var queue = subscribeQueue.get(serviceName);
                 if (!queue.isEmpty()) {
-                    broadcast_queue.put(serviceName, GscBroadCastMsg.build(GscCenterPacket.build(
+                    if (!broadcast_queue.containsKey(serviceName)) {
+                        broadcast_queue.put(serviceName, new ArrayList<>());
+                    }
+                    broadcast_queue.get(serviceName).add(GscBroadCastMsg.build(GscCenterPacket.build(
                             key,
                             JSONObject.build("data", resultArr),
                             DataInit,
@@ -158,13 +167,19 @@ public class GscCenterServer {
         if (StringHelper.isInvalided(nodeId)) {
             return;
         }
-        var queue = nodeArr.getOrDefault(serviceName, new HashMap<>());
+        if (!nodeArr.containsKey(serviceName)) {
+            nodeArr.put(serviceName, new ConcurrentHashMap<>());
+        }
+        var queue = nodeArr.get(serviceName);
         queue.put(nodeId, ctx);
     }
 
     private void pushConfigName(HashMap<String, JSONObject> configNameArr, JSONObject config, String name, JSONObject configStore) {
         if (config.containsKey(name)) {
-            configNameArr.put(name, configStore.getJson(name));
+            String val = config.getString(name);
+            if (!StringHelper.isInvalided(val) && configStore.containsKey(val)) {
+                configNameArr.put(val, configStore.getJson(val));
+            }
         }
     }
 
@@ -277,7 +292,7 @@ public class GscCenterServer {
         // 下发与service有关数据
         PushAll(serviceName, ctx);
         // 添加订阅到队列
-        getSubscribeChannel(serviceName).add(ctx);
+        getSubscribeChannel(serviceName).put(ctx.name(), ctx);
     }
 
     /**
@@ -287,7 +302,7 @@ public class GscCenterServer {
      */
     public GscCenterServer unSubscribe(String serviceName, JSONObject data, ChannelHandlerContext ctx) {
         String nodeId = data.getString("node");
-        getSubscribeChannel(serviceName).remove(ctx);
+        getSubscribeChannel(serviceName).remove(ctx.name());
         store.getJson("nodes").remove(nodeId);
         return this;
     }
@@ -296,14 +311,17 @@ public class GscCenterServer {
      * @apiNote 从所有订阅记录中删除对应通道
      */
     public GscCenterServer removeChannel(ChannelHandlerContext ctx) {
-        for (Set<ChannelHandlerContext> ctxArray : subscribeQueue.values()) {
-            ctxArray.remove(ctx);
+        for (ConcurrentHashMap<String, ChannelHandlerContext> ctxArray : subscribeQueue.values()) {
+            ctxArray.remove(ctx.name());
         }
         return this;
     }
 
-    private Set<ChannelHandlerContext> getSubscribeChannel(String serviceName) {
-        return subscribeQueue.getOrDefault(serviceName, new HashSet<>());
+    private ConcurrentHashMap<String, ChannelHandlerContext> getSubscribeChannel(String serviceName) {
+        if (!subscribeQueue.containsKey(serviceName)) {
+            subscribeQueue.put(serviceName, new ConcurrentHashMap<>());
+        }
+        return subscribeQueue.get(serviceName);
     }
 
     private String updateIndex(JSONObject info, JSONObject data) {
@@ -325,7 +343,7 @@ public class GscCenterServer {
             case "configs":
                 ReturnChannelMsg(serviceName, "configs", findConfigs4ServiceName(serviceName), ctx);
                 break;
-            case "serviceDeploy":
+            case "servicesDeploy":
                 PushAll(serviceName, ctx);
         }
     }
