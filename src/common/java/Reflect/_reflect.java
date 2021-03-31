@@ -290,22 +290,18 @@ public class _reflect {
         switch (_at.value()) {
             case SessionApi:
                 if (!UserSession.current().checkSession()) {//会话不存在
-                    // rs = rMsg.netMSG(SystemDefined.interfaceSystemErrorCode.SessionApi, "当前请求不在有效会话上下文内");
                     rs = RpcError.Instant(SystemDefined.interfaceSystemErrorCode.SessionApi, "当前请求不在有效会话上下文内");
                 }
                 break;
             case OauthApi:
                 if (!oauthApi.getInstance().checkApiToken()) {
-                    // rs = rMsg.netMSG(SystemDefined.interfaceSystemErrorCode.OauthApi, "当前token无效或已过期");
                     rs = RpcError.Instant(SystemDefined.interfaceSystemErrorCode.OauthApi, "当前token无效或已过期");
                 }
                 break;
             case CloseApi:
-                // rs = rMsg.netMSG(SystemDefined.interfaceSystemErrorCode.CloseApi, "非法接口");
                 rs = RpcError.Instant(SystemDefined.interfaceSystemErrorCode.CloseApi, "非法接口");
                 break;
             case PrivateApi:
-                // rs = _superMode ? null : rMsg.netMSG(SystemDefined.interfaceSystemErrorCode.PrivateApi, "内部接口");
                 rs = _superMode ? null : RpcError.Instant(SystemDefined.interfaceSystemErrorCode.PrivateApi, "内部接口");
                 break;
             default:

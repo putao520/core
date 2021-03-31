@@ -1,5 +1,6 @@
-package common.java.Cache;
+package common.java.Cache.Redis;
 
+import common.java.Cache.Cache;
 import common.java.Encrypt.Md5;
 import common.java.nLogger.nLogger;
 import io.lettuce.core.ClientOptions;

@@ -141,9 +141,28 @@ public class Mongodb {
         }
     }
 
+    public Mongodb data(JSONObject doc) {
+        dataBSON.add(json2document(doc));
+        return this;
+    }
+
     public Mongodb data(String jsonString) {
         data(JSONObject.toJSON(jsonString));
         return this;
+    }
+
+    public List<JSONObject> clearData() {
+        List<JSONObject> v = data();
+        dataBSON.clear();
+        return v;
+    }
+
+    public List<JSONObject> data() {
+        List<JSONObject> arr = new ArrayList<>();
+        for (var doc : dataBSON) {
+            arr.add(bson2json(doc));
+        }
+        return arr;
     }
 
     private void reinit() {
@@ -372,12 +391,6 @@ public class Mongodb {
         return this;
     }
 
-    public Mongodb data(JSONObject doc) {
-        dataBSON.clear();
-        dataBSON.add(json2document(doc));
-        return this;
-    }
-
     public Mongodb field() {
         fieldBSON.clear();
         return this;
@@ -482,7 +495,7 @@ public class Mongodb {
             _insertOnce(false);
         }
         reinit();
-        int l = dataBSON.size();
+        // int l = dataBSON.size();
         for (Document document : dataBSON) {
             rList.add(document.get("_id"));
         }

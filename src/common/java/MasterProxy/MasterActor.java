@@ -26,6 +26,14 @@ public class MasterActor {
         return client;
     }
 
+    public static void updateAll(String actionName) {
+        for (MasterActor actor : master_actors.values()) {
+            if (actor.getActionName().equals(actionName)) {
+                actor.update();
+            }
+        }
+    }
+
     public static GscCenterClient getClient() {
         return check();
     }
@@ -41,6 +49,10 @@ public class MasterActor {
         for (MasterActor actor : master_actors.values()) {
             actor.update();
         }
+    }
+
+    public String getActionName() {
+        return actionName;
     }
 
     public void update() {

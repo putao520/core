@@ -1,7 +1,7 @@
 package common.java.Database;
 
 import common.java.Apps.AppContext;
-import common.java.Apps.MicroServiceContext;
+import common.java.Apps.MicroService.MicroServiceContext;
 import common.java.Cache.Cache;
 import common.java.Config.Config;
 import common.java.HttpServer.HttpContext;
@@ -226,7 +226,7 @@ public class DbLayer implements InterfaceDatabase<DbLayer> {
         return rs;
     }
 
-    public void invaildCache() {
+    public void invalidCache() {
         String key = getFormName() + getConditionString();
         Cache c = getCache();
         if (c != null) {
@@ -353,17 +353,25 @@ public class DbLayer implements InterfaceDatabase<DbLayer> {
         return this;
     }
 
+    public List<JSONObject> clearData() {
+        return (List<JSONObject>) _db._call(Thread.currentThread().getStackTrace()[1].getMethodName());
+    }
+
+    public List<JSONObject> data() {
+        return (List<JSONObject>) _db._call(Thread.currentThread().getStackTrace()[1].getMethodName());
+    }
+
     public DbLayer field() {
         _db._call(Thread.currentThread().getStackTrace()[1].getMethodName());
         return this;
     }
 
-    public DbLayer field(String fieldString) {
+    public DbLayer field(String[] fieldString) {
         _db._call(Thread.currentThread().getStackTrace()[1].getMethodName(), fieldString);
         return this;
     }
 
-    public DbLayer mask(String fieldString) {
+    public DbLayer mask(String[] fieldString) {
         _db._call(Thread.currentThread().getStackTrace()[1].getMethodName(), fieldString);
         return this;
     }
@@ -399,7 +407,6 @@ public class DbLayer implements InterfaceDatabase<DbLayer> {
         return this;
     }
 
-    @SuppressWarnings("unchecked")
     public List<Object> insert() {
         updatefix();
         return (List<Object>) _db._call(Thread.currentThread().getStackTrace()[1].getMethodName());

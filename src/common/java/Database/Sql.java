@@ -533,6 +533,16 @@ public class Sql {
         return this;
     }
 
+    public List<JSONObject> clearData() {
+        List<JSONObject> v = data();
+        dataJSON.clear();
+        return v;
+    }
+
+    public List<JSONObject> data() {
+        return dataJSON;
+    }
+
     public Sql field(String fieldString) {
         fastfieldString = fieldString;
         field(fieldString.split(","));

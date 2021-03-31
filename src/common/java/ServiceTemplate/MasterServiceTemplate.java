@@ -1,11 +1,10 @@
 package common.java.ServiceTemplate;
 
-import common.java.Cache.MemCache;
+import common.java.Cache.Mem.MemCache;
 import common.java.Database.DbLayer;
 import common.java.Encrypt.GscJson;
 import common.java.HttpServer.HttpContext;
 import common.java.InterfaceModel.Type.ApiType;
-import common.java.JGrapeSystem.SystemDefined;
 import common.java.Rpc.RpcPageInfo;
 import common.java.String.StringHelper;
 import org.json.gsc.JSONArray;
@@ -45,7 +44,7 @@ public class MasterServiceTemplate implements MicroServiceTemplateInterface {
 
     @ApiType(ApiType.type.CloseApi)
     public void init(String tableName) {
-        fdb = new DbLayer(SystemDefined.commonConfigUnit.LocalDB);
+        fdb = new DbLayer();
         fdb.form(tableName);
         if (caches.containsKey(tableName)) {
             _cache = caches.get(tableName);

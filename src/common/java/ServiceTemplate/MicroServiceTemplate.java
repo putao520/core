@@ -1,7 +1,7 @@
 package common.java.ServiceTemplate;
 
-import common.java.Apps.MModelRuleNode;
-import common.java.Apps.MicroServiceContext;
+import common.java.Apps.MicroService.MicroServiceContext;
+import common.java.Apps.MicroService.Model.MModelRuleNode;
 import common.java.Database.DbFilter;
 import common.java.Database.DbLayer;
 import common.java.HttpServer.HttpContext;
@@ -171,7 +171,7 @@ public class MicroServiceTemplate implements MicroServiceTemplateInterface {
 
     public Object insert(JSONObject newData) {
         if (!JSONObject.isInvalided(newData)) {
-            return db.data(newData).insertEx();
+            return db.data(newData).insertOnce();
         }
         return null;
     }
@@ -188,7 +188,7 @@ public class MicroServiceTemplate implements MicroServiceTemplateInterface {
 
     private int _delete(String ids, JSONArray cond) {
         int r = 0;
-        _ids(db.getPk(), ids);
+        _ids(db.getGeneratedKeys(), ids);
         _condition(cond);
         if (!db.nullCondition()) {
             r = (int) db.deleteAll();
@@ -225,7 +225,7 @@ public class MicroServiceTemplate implements MicroServiceTemplateInterface {
     private int _update(String ids, JSONObject info, JSONArray cond) {
         int r = 0;
         if (!JSONObject.isInvalided(info)) {
-            _ids(db.getPk(), ids);
+            _ids(db.getGeneratedKeys(), ids);
             _condition(cond);
             if (!db.nullCondition()) {
                 r = (int) db.data(info).updateAll();

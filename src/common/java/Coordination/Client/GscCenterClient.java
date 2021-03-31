@@ -3,6 +3,7 @@ package common.java.Coordination.Client;
 import common.java.Config.Config;
 import common.java.Coordination.Common.GscCenterEvent;
 import common.java.Coordination.Common.GscCenterPacket;
+import common.java.MasterProxy.MasterActor;
 import common.java.Thread.ThreadEx;
 import org.json.gsc.JSONArray;
 import org.json.gsc.JSONObject;
@@ -128,6 +129,8 @@ public class GscCenterClient {
             store.put(key, JSONArray.build());
         }
         updateById(store.getJsonArray(key), data.getJsonArray("data"));
+        // 刷新maps后的对应对象缓存数据
+        MasterActor.updateAll(key);
     }
 
     public void onClear() {

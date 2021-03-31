@@ -1,4 +1,4 @@
-package common.java.Apps;
+package common.java.Apps.MicroService.Model;
 
 import org.json.gsc.JSONArray;
 import org.json.gsc.JSONObject;
@@ -8,25 +8,21 @@ import java.util.HashMap;
 /**
  * 规则组
  */
-public class MModelRuleArray extends MModelRuleAutoFix {
+public class MModelRuleArray extends MModelSuperField {
     private HashMap<String, MModelRuleNode> hashmap;
 
-    public MModelRuleArray(JSONArray rules) {
-        init(rules, false);
+    public MModelRuleArray(JSONArray<JSONObject> rules) {
+        init(rules);
     }
 
-    public MModelRuleArray(JSONArray rules, boolean user) {
-        init(rules, user);
-    }
-
-    private void init(JSONArray rules, boolean user) {
+    private void init(JSONArray<JSONObject> rules) {
         hashmap = new HashMap<>();
-        for (Object l : rules) {
-            MModelRuleNode mrn = new MModelRuleNode((JSONObject) l);
+        for (JSONObject l : rules) {
+            MModelRuleNode mrn = new MModelRuleNode(l);
             hashmap.put(mrn.field(), mrn);
         }
         // 自动补齐模型未定义的gsc-tree模型必须字段
-        hashmap = super.ruleNodeFilter(hashmap, user);
+        hashmap = super.ruleNodeFilter(hashmap);
     }
 
     public HashMap<String, MModelRuleNode> self() {

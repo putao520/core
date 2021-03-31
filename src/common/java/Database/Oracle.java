@@ -525,6 +525,16 @@ public class Oracle {
         return this;
     }
 
+    public List<JSONObject> clearData() {
+        List<JSONObject> v = data();
+        dataJSON.clear();
+        return v;
+    }
+
+    public List<JSONObject> data() {
+        return dataJSON;
+    }
+
     public Oracle field(String fieldString) {
         fastfieldString = fieldString;
         field(fieldString.split(","));

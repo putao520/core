@@ -1,40 +1,116 @@
 package common.java.InterfaceModel;
 
 import common.java.Apps.AppContext;
-import common.java.Authority.PermissionsPowerDef;
+import common.java.Apps.MicroService.MicroServiceContext;
+import common.java.Apps.MicroService.Model.MicroModel;
+import common.java.Authority.Permissions;
+import common.java.Check.FormHelper;
+import common.java.Database.DbFilter;
 import common.java.Database.DbLayer;
+import common.java.Database.InterfaceDatabase;
 import common.java.HttpServer.HttpContext;
 import common.java.InterfaceModel.Type.Aggregation;
+import common.java.ServiceTemplate.SuperItemField;
+import common.java.Session.UserSession;
+import common.java.String.StringHelper;
 import org.json.gsc.JSONArray;
 import org.json.gsc.JSONObject;
 
-import java.util.*;
-import java.util.concurrent.ForkJoinPool;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.Vector;
 import java.util.function.Function;
 
 
-public class GrapeTreeDbLayerModel extends GrapeDbLayerModel {
-    private final List<Function<JSONArray, JSONArray>> pipeJSONArray_Out;
-    private final ForkJoinPool pStreamExec = new ForkJoinPool(10);
-    private List<String> fields;
-    private List<String> maskfields;
-    private boolean realMode = false;
+public class GrapeTreeDbLayerModel implements InterfaceDatabase<GrapeTreeDbLayerModel> {
+    private List<Function<JSONArray, JSONArray>> pipeJSONArray_Out;
+    private boolean hardMode = false;
+    private boolean SuperMode = false;
+    private DbLayer db;
+    private MicroModel mModel = null;
+    private String pkField = null;
+    private FormHelper checker = null;
+    private Permissions permissions = null;
+
     private Aggregation aggregationJSONArray_Out;
 
     private GrapeTreeDbLayerModel() {
-        super();
-        pipeJSONArray_Out = new ArrayList<>();
         init();
-    }
-
-    public DbLayer getPureDB() {
-        return super.getPureDB();
     }
 
     private GrapeTreeDbLayerModel(String modelName) {
-        super(modelName);
-        pipeJSONArray_Out = new ArrayList<>();
         init();
+        this.descriptionModel(modelName);
+    }
+
+    public DbLayer getPureDB() {
+        return this.db;
+    }
+
+    public GrapeTreeDbLayerModel outPiperEnable(boolean flag) {
+        this.db.setPiperEnable(flag);
+        return this;
+    }
+
+    public void Close() {
+        this.db.Close();
+    }
+
+    public void addConstantCond(String fieldName, Object CondValue) {
+        this.db.addConstantCond(fieldName, CondValue);
+    }
+
+    public String getConditionString() {
+        return this.db.getConditionString();
+    }
+
+    public boolean nullCondition() {
+        return this.db.nullCondition();
+    }
+
+    public GrapeTreeDbLayerModel groupCondition(List<List<Object>> conds) {
+        this.db.groupCondition(conds);
+        return this;
+    }
+
+    public GrapeTreeDbLayerModel groupWhere(JSONArray conds) {
+        this.db.groupWhere(conds);
+        return this;
+    }
+
+    public GrapeTreeDbLayerModel form(String _formName) {
+        this.db.form(_formName);
+        return this;
+    }
+
+    public GrapeTreeDbLayerModel skip(int no) {
+        this.db.skip(no);
+        return this;
+    }
+
+    public GrapeTreeDbLayerModel limit(int no) {
+        this.db.limit(no);
+        return this;
+    }
+
+    public GrapeTreeDbLayerModel findOne() {
+        this.db.findOne();
+        return this;
+    }
+
+    /**
+     * 填充模型和权限模型
+     */
+    private GrapeTreeDbLayerModel descriptionModel(String modelName) {
+        this.mModel = MicroServiceContext.current().model(modelName);
+        String tableName = this.mModel.tableName();
+        if (!StringHelper.isInvalided(tableName)) {
+            pkField = this.db.form(tableName).bind().getGeneratedKeys();
+            checker = FormHelper.build().importField(this.mModel.rules());
+            permissions = new Permissions(this.mModel.tableName());
+        }
+        return this;
     }
 
     public static GrapeTreeDbLayerModel getInstance() {
@@ -45,13 +121,13 @@ public class GrapeTreeDbLayerModel extends GrapeDbLayerModel {
         return new GrapeTreeDbLayerModel(modelName);
     }
 
-    public GrapeDbLayerModel fieldOutPipe(String fieldName, Function<Object, Object> func) {
-        super.addFieldOutPipe(fieldName, func);
+    public GrapeTreeDbLayerModel addFieldOutPipe(String fieldName, Function<Object, Object> func) {
+        this.db.addFieldOutPipe(fieldName, func);
         return this;
     }
 
-    public GrapeDbLayerModel fieldInPipe(String fieldName, Function<Object, Object> func) {
-        super.addFieldInPipe(fieldName, func);
+    public GrapeTreeDbLayerModel addFieldInPipe(String fieldName, Function<Object, Object> func) {
+        this.db.addFieldInPipe(fieldName, func);
         return this;
     }
 
@@ -68,7 +144,7 @@ public class GrapeTreeDbLayerModel extends GrapeDbLayerModel {
 
 
     // map-reduce执行
-    private JSONArray runOutPipe(JSONArray input) {
+    private JSONArray<JSONObject> runOutPipe(JSONArray<JSONObject> input) {
         JSONArray r = input;
         if (input != null) {
             if (aggregationJSONArray_Out != null) {
@@ -96,49 +172,56 @@ public class GrapeTreeDbLayerModel extends GrapeDbLayerModel {
 
 
     private void init() {
+        pipeJSONArray_Out = new ArrayList<>();
         aggregationJSONArray_Out = null;
-        fields = null;
-        maskfields = null;
+        db = new DbLayer();
     }
 
     /**
      * 真实模式，数据操作时不考虑特殊字段
      */
-    public GrapeTreeDbLayerModel realMode() {
-        realMode = true;
+    public GrapeTreeDbLayerModel hardMode() {
+        hardMode = true;
+        return this;
+    }
+
+    public GrapeTreeDbLayerModel softMode() {
+        hardMode = false;
         return this;
     }
 
     /**
-     *
+     * 超级模式,数据更新时,无视protected字段
      */
-    public GrapeTreeDbLayerModel niceMode() {
-        realMode = false;
+    public GrapeTreeDbLayerModel superMode() {
+        SuperMode = true;
         return this;
     }
 
+    public GrapeTreeDbLayerModel normalMode() {
+        SuperMode = false;
+        return this;
+    }
 
     public GrapeTreeDbLayerModel bind() {
-        super.bind();
+        this.db.bind();
         return this;
     }
 
+    public GrapeTreeDbLayerModel bind(String ownerID) {
+        this.db.bind(ownerID);
+        return this;
+    }
 
     public GrapeTreeDbLayerModel dirty() {
-        super.dirty();
+        this.db.dirty();
         return this;
     }
 
 
     public int pageMax(int max) {
-        return super.pageMax(max);
+        return this.db.pageMax(max);
     }
-
-
-    public GrapeTreeDbLayerModel handle() {
-        return this;
-    }
-
 
     public GrapeTreeDbLayerModel field(String fieldString) {
         if (fieldString != null) {
@@ -148,118 +231,94 @@ public class GrapeTreeDbLayerModel extends GrapeDbLayerModel {
         return this;
     }
 
+    public GrapeTreeDbLayerModel field() {
+        this.db.field();
+        return this;
+    }
 
     public GrapeTreeDbLayerModel field(String[] fields) {
-        this.fields = null;
-        if (fields != null && fields.length > 0) {
-            this.fields = Arrays.asList(fields);
-        }
-        super.field(fields);
-        maskfields = null;
+        this.db.field(fields);
         return this;
     }
 
 
     public GrapeTreeDbLayerModel mask(String fieldString) {
-        if (fieldString != null) {
-            String[] s = fieldString.split(",");
-            mask(s);
-        }
-        fields = null;
+        this.db.mask(fieldString.split(","));
         return this;
     }
 
 
     public GrapeTreeDbLayerModel mask(String[] fields) {
-        if (fields != null && fields.length > 0) {
-            maskfields = Arrays.asList(fields);
-            super.mask(fields);
-        }
-        this.fields = null;
+        mask(StringHelper.join(fields));
         return this;
     }
 
 
-    public GrapeTreeDbLayerModel max(String groupbyString) {
-        super.max(groupbyString);
+    public GrapeTreeDbLayerModel max(String groupByString) {
+        this.db.max(groupByString);
         return this;
     }
 
 
-    public GrapeTreeDbLayerModel min(String groupbyString) {
-        super.min(groupbyString);
+    public GrapeTreeDbLayerModel min(String groupByString) {
+        this.db.min(groupByString);
         return this;
     }
 
 
-    public GrapeTreeDbLayerModel avg(String groupbyString) {
-        super.avg(groupbyString);
+    public GrapeTreeDbLayerModel avg(String groupByString) {
+        this.db.avg(groupByString);
         return this;
     }
 
 
     public GrapeTreeDbLayerModel data(JSONObject obj) {
-        super.data(obj);
+        this.db.data(obj);
         return this;
     }
 
 
     public GrapeTreeDbLayerModel data(String str) {
-        super.data(str);
+        this.db.data(str);
         return this;
     }
 
-    //删除数据（实际标注数据删除状态为1）
-    public boolean deleteEx() {
-        return data(new JSONObject(PermissionsPowerDef.deleteField, 1)).updateEx();
+    public List<JSONObject> ClearData() {
+        return this.db.clearData();
     }
 
-    /**
-     * 直接删除
-     */
-    public boolean delete_() {
-        return super.deleteEx();
-    }
-
-    public long deleteAllEx() {
-        return data(new JSONObject(PermissionsPowerDef.deleteField, 1)).updateAll();
-    }
-
-    /**
-     * 直接删除全部
-     */
-    public long deleteAll_() {
-        return super.deleteAll();
+    public List<JSONObject> data() {
+        return this.db.data();
     }
 
     //显示数据
     public boolean show() {
-        return data(new JSONObject(PermissionsPowerDef.visableField, 0)).updateEx();
+        return data(new JSONObject(SuperItemField.visibleField, 0)).update() != null;
     }
 
     //隐藏数据
     public boolean hide() {
-        return data(new JSONObject(PermissionsPowerDef.visableField, 1)).updateEx();
+        return data(new JSONObject(SuperItemField.visibleField, 1)).update() != null;
     }
 
     //判断是否包含子节点，返回包含的子节点数量
     public long hasChildren() {
         long rl = 0;
-        String pkField = getPk();
+        String pkField = getGeneratedKeys();
         JSONObject json = field(pkField)._find();
         if (json != null && json.containsKey(pkField)) {
-            rl = eq(PermissionsPowerDef.fatherIDField, json.getPkValue(pkField)).count();
+            rl = eq(SuperItemField.fatherField, json.getPkValue(pkField)).count();
         }
         return rl;
     }
 
     //获得下1级子节点数据集合
-    public JSONArray getChilren(List<Function<JSONArray, JSONArray>> outPipe) {
+    public JSONArray getChildren(List<Function<JSONArray, JSONArray>> outPipe) {
         JSONArray rArray = null;
         JSONObject json = find();//获得当前数据
         if (json != null) {
             getChildren(json, null, false);
-            rArray = json.getJsonArray(PermissionsPowerDef.childrenData);
+            rArray = json.getJsonArray(SuperItemField.childrenData);
         }
         return rArray;
     }
@@ -285,8 +344,6 @@ public class GrapeTreeDbLayerModel extends GrapeDbLayerModel {
                 }
             }
         }
-        fields = null;
-        maskfields = null;
         return json;
     }
 
@@ -309,30 +366,20 @@ public class GrapeTreeDbLayerModel extends GrapeDbLayerModel {
     }
 
     //获得所有父ID是fid的数据
-    private boolean getChildren(JSONObject fristJson, JSONArray array, boolean isAll) {
+    private boolean getChildren(JSONObject firstJson, JSONArray array, boolean isAll) {
         Object fid = null;
-        String pkField = getPk();
-        if (pkField != null && fristJson.containsKey(pkField)) {
-            fid = fristJson.getPkValue(pkField);
+        String pkField = getGeneratedKeys();
+        if (pkField != null && firstJson.containsKey(pkField)) {
+            fid = firstJson.getPkValue(pkField);
         }
         if (fid != null) {
             JSONArray rArray = new JSONArray();
             if (array == null) {
-                if (fields != null) {
-                    String[] s = new String[fields.size()];
-                    fields.toArray(s);
-                    super.field(s);
-                }
-                if (maskfields != null) {
-                    String[] s = new String[maskfields.size()];
-                    maskfields.toArray(s);
-                    super.mask(s);
-                }
-                rArray = eq(PermissionsPowerDef.fatherIDField, fid).select();
+                rArray = eq(SuperItemField.fatherField, fid).select();
             } else {
                 // 找到所有fatherIDField == fid的数据
                 for (JSONObject obj : (Iterable<JSONObject>) array) {
-                    if (obj.get(PermissionsPowerDef.fatherIDField).equals(fid)) {
+                    if (obj.get(SuperItemField.fatherField).equals(fid)) {
                         rArray.add(obj);
                     }
                 }
@@ -354,7 +401,7 @@ public class GrapeTreeDbLayerModel extends GrapeDbLayerModel {
                     getChildren(tempJson, array, true);
                     rArray.set(i, tempJson);
                 }
-                fristJson.put(PermissionsPowerDef.childrenData, rArray);
+                firstJson.put(SuperItemField.childrenData, rArray);
             }
         }
         return fid != null;
@@ -368,9 +415,9 @@ public class GrapeTreeDbLayerModel extends GrapeDbLayerModel {
     //获得父节点值
     public Object getFather() {
         Object ro = null;
-        JSONObject json = field(PermissionsPowerDef.fatherIDField).find();
-        if (json != null && json.containsKey(PermissionsPowerDef.fatherIDField)) {
-            ro = json.get(PermissionsPowerDef.fatherIDField);
+        JSONObject json = field(SuperItemField.fatherField).find();
+        if (json != null && json.containsKey(SuperItemField.fatherField)) {
+            ro = json.get(SuperItemField.fatherField);
         }
         return ro;
     }
@@ -380,234 +427,449 @@ public class GrapeTreeDbLayerModel extends GrapeDbLayerModel {
         JSONObject rjson = null;
         Object ro = getFather();
         if (ro != null) {
-            rjson = eq(getPk(), ro).find();
+            rjson = eq(getGeneratedKeys(), ro).find();
         }
         return rjson;
     }
 
     private void niceCond() {
-        and().eq(PermissionsPowerDef.deleteField, 0);
-        //and().groupCondition(dbf.and().eq(PermissionsPowerDef.deleteField, 0).buildex());
+        if (!hardMode) {
+            and().eq(SuperItemField.deleteField, 0);
+        }
+    }
+
+    public void invalidCache() {
+        this.db.invalidCache();
+    }
+
+    // 写方法群
+    private JSONObject autoCompletePerms(JSONObject data) {
+        if (UserSession.hasSession()) {
+            UserSession us = UserSession.current();
+            if (us != null) {
+                data.puts(SuperItemField.userIdField, us.getUID())
+                        .put(SuperItemField.groupIdField, us.getGID());
+            }
+        }
+        return data;
+    }
+
+    /**
+     * @apiNote 按照字段定义过滤, 替换
+     */
+    private void _insertFilter() {
+        List<JSONObject> dataArr = db.clearData();
+        for (JSONObject data : dataArr) {
+            // 验证数据是否正确 和 补充额外数据字段 和 补充权限管理字段
+            db.data(autoCompletePerms(checker.autoComplete(data)));
+        }
+    }
+
+    public Object insertOnce() {
+        if (!permissions.writeFilter(db.data())) {
+            HttpContext.current().throwDebugOut("当前用户无权新增数据!");
+            return null;
+        }
+        _insertFilter();
+        return db.insertOnce();
+    }
+
+    public List<Object> insert() {
+        if (!permissions.writeFilter(db.data())) {
+            HttpContext.current().throwDebugOut("当前用户无权新增数据!");
+            return null;
+        }
+        _insertFilter();
+        return this.db.insert();
+    }
+
+    public void asyncInsert() {
+        if (!permissions.writeFilter(db.data())) {
+            HttpContext.current().throwDebugOut("当前用户无权新增数据!");
+            return;
+        }
+        _insertFilter();
+        this.db.asyncInsert();
+    }
+
+    // 更新操作群
+
+    /**
+     * @apiNote 按照字段定义过滤, 替换
+     * protectField:    不允许直接修改,需要显示提权
+     * lockerField:     不允许修改
+     */
+    private void _updateFilter(JSONObject v) {
+        // 去掉locker字段
+        checker.store(v).filterLocked();
+        // 普通模式时,过滤掉 protected 字段
+        if (!SuperMode) {
+            checker.filterProtect();
+        }
+        JSONObject info = checker.toJson();
+        if (JSONObject.isInvalided(info)) {
+            return;
+        }
+        db.data(info);
+    }
+
+    private boolean _updateImpl(JSONObject v) {
+        DbFilter q = DbFilter.buildDbFilter();
+        if (!permissions.updateFilter(q, v)) {
+            HttpContext.current().throwDebugOut("当前用户无权更新数据!");
+            return false;
+        }
+        _updateFilter(v);
+        if (!q.nullCondition()) {
+            this.db.and().groupCondition(q.buildEx());
+        }
+        return true;
+    }
+
+    private boolean _update() {
+        List<JSONObject> d = db.data();
+        if (d.size() == 0) {
+            return false;
+        }
+        JSONObject info = d.get(0);
+        if (JSONObject.isInvalided(info)) {
+            HttpContext.current().throwDebugOut("当前用户更新数据为空!");
+            return false;
+        }
+        if (!checker.checkTable(info, true)) {
+            HttpContext.current().throwDebugOut("当前用户更新数据[" + checker.getlastErrorName() + "] ->不合法!");
+            return false;
+        }
+        return _updateImpl(info);
+    }
+
+    public JSONObject update() {
+        return _update() ? this.db.update() : null;
+    }
+
+    public long updateAll() {
+        return _update() ? this.db.updateAll() : 0;
+    }
+
+    private boolean _computerOperator(String fieldName) {
+        if (!_updateImpl(JSONObject.build(fieldName, ""))) {
+            return false;
+        }
+        List<JSONObject> vArr = db.data();
+        return vArr.size() != 0 && !JSONObject.isInvalided(vArr.get(0));
+    }
+
+    public JSONObject inc(String fieldName) {
+        return _computerOperator(fieldName) ? this.db.inc(fieldName) : null;
+    }
+
+    public JSONObject dec(String fieldName) {
+        return _computerOperator(fieldName) ? this.db.dec(fieldName) : null;
+    }
+
+    public JSONObject add(String fieldName, long num) {
+        return _computerOperator(fieldName) ? this.db.add(fieldName, num) : null;
+    }
+
+    public JSONObject sub(String fieldName, long num) {
+        return _computerOperator(fieldName) ? this.db.sub(fieldName, num) : null;
+    }
+
+    // 删操作集群
+    private boolean _deleteFilter() {
+        DbFilter q = DbFilter.buildDbFilter();
+        if (!permissions.deleteFilter(q)) {
+            HttpContext.current().throwDebugOut("当前用户无权删除数据!");
+            return false;
+        }
+        if (!q.nullCondition()) {
+            db.and().groupCondition(q.buildEx());
+        }
+        return true;
+    }
+
+    /**
+     * 直接删除
+     */
+    public JSONObject delete() {
+        if (!_deleteFilter()) {
+            return null;
+        }
+        if (hardMode) {
+            return this.db.delete();
+        } else {
+            return data(new JSONObject(SuperItemField.deleteField, 1)).update();
+        }
+    }
+
+    /**
+     * 直接删除全部
+     */
+    public long deleteAll() {
+        if (!_deleteFilter()) {
+            return -1;
+        }
+        if (hardMode) {
+            return this.db.deleteAll();
+        } else {
+            return data(new JSONObject(SuperItemField.deleteField, 1)).updateAll();
+        }
+    }
+
+    // 读取方法群
+    private JSONObject findOutFilter(JSONObject rInfo) {
+        if (JSONObject.isInvalided(rInfo)) {
+            return rInfo;
+        }
+        JSONArray<JSONObject> rArray = runOutPipe(JSONArray.build(rInfo));
+        if (JSONArray.isInvalided(rArray)) {
+            return rInfo;
+        }
+        return rArray.get(0);
+    }
+
+    private boolean _readFilter() {
+        // 处理额外条件
+        DbFilter q = DbFilter.buildDbFilter();
+        if (!permissions.readFilter(q)) {
+            HttpContext.current().throwDebugOut("当前用户无权访问数据!");
+            return false;
+        }
+        if (!q.nullCondition()) {
+            db.and().groupCondition(q.buildEx());
+        }
+        // 处理mask字段
+        String[] mask_fields = checker.getMaskFields();
+        if (mask_fields.length > 0) {
+            db.mask(mask_fields);
+        }
+        return true;
     }
 
     private JSONObject _find() {
-        if (!realMode) {
-            niceCond();
-        }
-        return super.find();
+        return _readFilter() ? this.db.find() : null;
     }
-
 
     public JSONObject find() {
-        if (!realMode) {
-            niceCond();
-        }
-        JSONObject rInfo = super.find();
-        if (!JSONObject.isInvalided(rInfo)) {
-            JSONArray rArray = runOutPipe(JSONArray.addx(rInfo));
-            if (!JSONArray.isInvalided(rArray)) {
-                rInfo = (JSONObject) rArray.get(0);
-            }
-        }
-        return rInfo;
+        return findOutFilter(_find());
     }
 
+    public JSONObject findByCache(int second) {
+        return findOutFilter(
+                _readFilter() ?
+                        this.db.findByCache(second) :
+                        null
+        );
+    }
+
+    public JSONObject findByCache() {
+        return findOutFilter(
+                _readFilter() ?
+                        this.db.findByCache() :
+                        null
+        );
+    }
+
+    public JSONArray selectByCache(int second) {
+        return runOutPipe(_readFilter() ?
+                this.db.selectByCache(second) :
+                null
+        );
+    }
 
     public JSONArray select() {
-        if (!realMode) {
-            niceCond();
-        }
-        return runOutPipe(super.select());
+        return runOutPipe(_readFilter() ?
+                this.db.select() :
+                null
+        );
     }
 
-
-    public JSONArray page(int pageidx, int pagemax) {
-        if (!realMode) {
-            niceCond();
-        }
-        return runOutPipe(super.page(pageidx, pagemax));
+    public JSONArray page(int pageIdx, int pageMax) {
+        return runOutPipe(_readFilter() ?
+                this.db.page(pageIdx, pageMax) :
+                null
+        );
     }
 
+    public JSONArray page(int pageIdx, int pageMax, int lastId, String fastField) {
+        return runOutPipe(_readFilter() ?
+                this.db.page(pageIdx, pageMax, lastId, fastField) :
+                null
+        );
+    }
 
-    public JSONArray page(int pageidx, int pagemax, Object lastObj) {
-        if (!realMode) {
-            niceCond();
-        }
-        return runOutPipe(super.page(pageidx, pagemax, lastObj));
+    public JSONArray page(int pageIdx, int pageMax, Object lastObj) {
+        return runOutPipe(_readFilter() ?
+                this.db.and().eq(getGeneratedKeys(), lastObj).page(pageIdx, pageMax) :
+                null
+        );
+    }
+
+    public JSONArray group(String groupName) {
+        return (_readFilter() ?
+                this.db.group(groupName) :
+                null
+        );
+    }
+
+    //覆盖父类分组方法
+    public JSONArray group() {
+        return (_readFilter() ?
+                this.db.group() :
+                null
+        );
+    }
+
+    public long count() {
+        return (_readFilter() ?
+                this.db.count() :
+                -1
+        );
     }
 
     //设置数据权重级别
     public boolean setItemLevel(int newLevel) {
-        return data(new JSONObject(PermissionsPowerDef.levelField, newLevel)).updateEx();
+        return data(new JSONObject(SuperItemField.levelField, newLevel)).update() != null;
     }
 
     //设置数据排序权重级别
     public boolean setSort(int newSort) {
-        return data(new JSONObject(PermissionsPowerDef.sortField, newSort)).updateEx();
+        return data(new JSONObject(SuperItemField.sortField, newSort)).update() != null;
     }
 
     //设置父节点
-    public boolean setFather(Object newfid) {
-        return data(new JSONObject(PermissionsPowerDef.fatherIDField, newfid)).updateEx();
+    public boolean setFather(Object newFatherId) {
+        return data(new JSONObject(SuperItemField.fatherField, newFatherId)).update() != null;
     }
-
-    private boolean setAuth(int op, int type, Object val) {
-        boolean rb = false;
-        String fieldName = null;
-        String vFieldName = null;
-        switch (op) {
-            case 0: {
-                fieldName = PermissionsPowerDef.readMode;
-                vFieldName = PermissionsPowerDef.readValue;
-                break;
-            }
-            case 1: {
-                fieldName = PermissionsPowerDef.updateMode;
-                vFieldName = PermissionsPowerDef.updateValue;
-                break;
-            }
-            case 2: {
-                fieldName = PermissionsPowerDef.deleteMode;
-                vFieldName = PermissionsPowerDef.deleteValue;
-                break;
-            }
-        }
-        if (fieldName != null) {
-            JSONObject json = (new JSONObject(fieldName, type)).puts(vFieldName, val);
-            rb = data(json).updateEx();
-        }
-        return rb;
-    }
-
-    //设置读权限
-    public boolean readAuth(int checkType, Object checkCond) {
-        return setAuth(0, checkType, checkCond);
-    }
-
-    //设置改权限
-    public boolean updateAuth(int checkType, Object checkCond) {
-        return setAuth(1, checkType, checkCond);
-    }
-
-    //设置删权限
-    public boolean deleteAuth(int checkType, Object checkCond) {
-        return setAuth(2, checkType, checkCond);
-    }
-
-    private JSONObject getAuth(int op) {
-        JSONObject rs = null;
-        String fieldName;
-        switch (op) {
-            case 0:
-                fieldName = PermissionsPowerDef.readMode;
-                break;
-            case 1:
-                fieldName = PermissionsPowerDef.updateMode;
-                break;
-            case 2:
-                fieldName = PermissionsPowerDef.deleteMode;
-                break;
-            default:
-                fieldName = null;
-        }
-        if (fieldName != null) {
-            JSONObject json = field(fieldName)._find();
-            if (json != null && json.containsKey(fieldName)) {
-                rs = json.getJson(fieldName);
-            }
-        }
-        return rs;
-    }
-
-    //获得读权限
-    public JSONObject readAuth() {
-        return getAuth(0);
-    }
-
-    //获得改权限
-    public JSONObject updateAuth() {
-        return getAuth(1);
-    }
-
-    //获得删权限
-    public JSONObject deleteAuth() {
-        return getAuth(2);
-    }
-
 
     public GrapeTreeDbLayerModel and() {
-        super.and();
+        this.db.and();
         return this;
     }
 
 
     public GrapeTreeDbLayerModel or() {
-        super.or();
+        this.db.or();
         return this;
     }
 
 
     public GrapeTreeDbLayerModel where(JSONArray condArray) {
-        super.where(condArray);
+        this.db.where(condArray);
         return this;
     }
 
 
     public GrapeTreeDbLayerModel eq(String field, Object value) {//One Condition
-        super.eq(field, value);
+        this.db.eq(field, value);
         return this;
     }
 
 
     public GrapeTreeDbLayerModel ne(String field, Object value) {//One Condition
-        super.ne(field, value);
+        this.db.ne(field, value);
         return this;
     }
 
 
     public GrapeTreeDbLayerModel gt(String field, Object value) {//One Condition
-        super.gt(field, value);
+        this.db.gt(field, value);
         return this;
     }
 
 
     public GrapeTreeDbLayerModel lt(String field, Object value) {//One Condition
-        super.lt(field, value);
+        this.db.lt(field, value);
         return this;
     }
 
 
     public GrapeTreeDbLayerModel gte(String field, Object value) {//One Condition
-        super.gte(field, value);
+        this.db.gte(field, value);
         return this;
     }
 
 
     public GrapeTreeDbLayerModel lte(String field, Object value) {//One Condition
-        super.lte(field, value);
+        this.db.lte(field, value);
         return this;
     }
 
 
     public GrapeTreeDbLayerModel like(String field, Object value) {
-        super.like(field, value);
+        this.db.like(field, value);
         return this;
     }
 
 
     public GrapeTreeDbLayerModel asc(String field) {
-        super.asc(field);
+        this.db.asc(field);
         return this;
     }
 
 
     public GrapeTreeDbLayerModel desc(String field) {
-        super.desc(field);
+        this.db.desc(field);
         return this;
     }
 
-
     public JSONArray scan(Function<JSONArray, JSONArray> func, int max) {
-        return super.scan(func, max);
+        return this.db.scan(func, max);
+    }
+
+    public JSONArray scan(Function<JSONArray, JSONArray> func, int max, int synNo) {
+        return this.db.scan(func, max, synNo);
+    }
+
+    public JSONArray distinct(String fieldName) {
+        return this.db.distinct(fieldName);
+    }
+
+    public GrapeTreeDbLayerModel count(String groupByString) {
+        this.db.count(groupByString);
+        return this;
+    }
+
+    public GrapeTreeDbLayerModel sum(String groupByString) {
+        this.db.sum(groupByString);
+        return this;
+    }
+
+    public String getFullForm() {
+        return this.db.getFullForm();
+    }
+
+    public String getFormName() {
+        return this.db.getFormName();
+    }
+
+    public String getForm() {
+        return this.db.getForm();
+    }
+
+    public int limit() {
+        return this.db.limit();
+    }
+
+    public String getGeneratedKeys() {
+        return pkField == null ? this.db.getGeneratedKeys() : pkField;
+    }
+
+
+    public void clear() {
+        this.db.clear();
+    }
+
+    public JSONObject getCond() {
+        return this.db.getCond();
+    }
+
+    public GrapeTreeDbLayerModel setCond(JSONObject conJSON) {
+        this.db.setCond(conJSON);
+        return this;
+    }
+
+    public List<String> getAllTables() {
+        return this.db.getAllTables();
     }
 }

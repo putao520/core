@@ -1,4 +1,4 @@
-package common.java.Cache;
+package common.java.Cache.Mem;
 
 import com.github.benmanes.caffeine.cache.CacheLoader;
 import com.github.benmanes.caffeine.cache.Caffeine;

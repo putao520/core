@@ -1,10 +1,17 @@
 package common.java.Cache;
 
 import common.java.Apps.AppContext;
-import common.java.Apps.MicroServiceContext;
+import common.java.Apps.MicroService.MicroServiceContext;
+import common.java.Cache.Common.InterfaceCache;
+import common.java.Cache.Mem.CaffeineCache;
+import common.java.Cache.Redis.RedisCluster;
+import common.java.Cache.Redis.RedisMasterSlave;
+import common.java.Cache.Redis.RedisSentinel;
+import common.java.Cache.Redis.RedisSingle;
 import common.java.Config.Config;
 import common.java.Reflect._reflect;
 import common.java.nLogger.nLogger;
+import org.json.gsc.JSONArray;
 import org.json.gsc.JSONObject;
 
 import java.util.concurrent.ConcurrentHashMap;
@@ -121,6 +128,22 @@ public class Cache implements InterfaceCache {
             r = (String) _cache._call(Thread.currentThread().getStackTrace()[1].getMethodName(), objectName);
         }
         return r;
+    }
+
+    public JSONObject getJson(String objectName) {
+        String r = _mem_cache.get(objectName);
+        if (r == null && _cache != null) {
+            return (JSONObject) _cache._call(Thread.currentThread().getStackTrace()[1].getMethodName(), objectName);
+        }
+        return JSONObject.toJSON(r);
+    }
+
+    public JSONArray getJsonArray(String objectName) {
+        String r = _mem_cache.get(objectName);
+        if (r == null && _cache != null) {
+            return (JSONArray) _cache._call(Thread.currentThread().getStackTrace()[1].getMethodName(), objectName);
+        }
+        return JSONArray.toJSONArray(r);
     }
 
     public long inc(String objectName) {

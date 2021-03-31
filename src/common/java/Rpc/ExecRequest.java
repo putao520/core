@@ -1,7 +1,7 @@
 package common.java.Rpc;
 
 import common.java.Apps.AppContext;
-import common.java.Apps.MicroModel;
+import common.java.Apps.MicroService.Model.MicroModel;
 import common.java.HttpServer.HttpContext;
 import common.java.HttpServer.RequestSession;
 import common.java.Reflect._reflect;

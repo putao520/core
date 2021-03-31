@@ -3,10 +3,8 @@
  * */
 package common.java.Check;
 
-import common.java.Apps.MModelRuleNode;
-import common.java.Authority.PermissionsPowerDef;
+import common.java.Apps.MicroService.Model.MModelRuleNode;
 import common.java.Number.NumberHelper;
-import common.java.Session.Session;
 import common.java.Session.UserSession;
 import common.java.String.StringHelper;
 import common.java.Time.TimeHelper;
@@ -17,15 +15,29 @@ import java.util.*;
 public class FormHelper {
     private final HashMap<String, MModelRuleNode> checkObject;
     private final Set<String> maskCache;
+    private final boolean filterMask = false;
+    private JSONObject store;
+    private boolean filterProtected = false;
+    private boolean filterLocked = false;
 
     private boolean checkState;
     private String lastErrorKey;
 
-    public FormHelper() {
+    private FormHelper() {
         lastErrorKey = null;
         checkState = true;
         checkObject = new HashMap<>();
         maskCache = new HashSet<>();
+        store = new JSONObject();
+    }
+
+    public static final FormHelper build() {
+        return new FormHelper();
+    }
+
+    public FormHelper store(JSONObject store) {
+        this.store = store;
+        return this;
     }
 
     //返回false不检查，直接算过
@@ -50,32 +62,56 @@ public class FormHelper {
         return this;
     }
 
+    private void reInit() {
+        filterProtected = false;
+        filterLocked = false;
+    }
+
     //过滤保护字段，从输入字段中删除保护属性的字段
-    public JSONObject filterProtect(JSONObject inputJson) {
-        if (checkAuth() && inputJson != null && inputJson.size() > 0) {
-            MModelRuleNode tf;
-            JSONObject rjson = new JSONObject();
-            for (String key : inputJson.keySet()) {
-                tf = checkObject.get(key);
-                if (tf == null || tf.type() != MModelRuleNode.FieldType.protectField) {
-                    rjson.put(key, inputJson.get(key));
-                }
+    public FormHelper filterProtect() {
+        filterProtected = true;
+        return this;
+    }
+
+    //过滤锁定字段，从输入字段中删除锁定属性的字段
+    public FormHelper filterLocked() {
+        filterLocked = true;
+        return this;
+    }
+
+    public JSONObject toJson() {
+        try {
+            if (!checkAuth()) {
+                return store;
             }
-            inputJson = rjson;
+            if (JSONObject.isInvalided(store)) {
+                return store;
+            }
+            JSONObject rjson = new JSONObject();
+            MModelRuleNode tf;
+            for (String key : store.keySet()) {
+                tf = checkObject.get(key);
+                if (tf == null) {
+                    continue;
+                }
+                if (filterProtected && tf.type() == MModelRuleNode.FieldType.protectField) {
+                    continue;
+                }
+                if (filterLocked && tf.type() == MModelRuleNode.FieldType.lockerField) {
+                    continue;
+                }
+                rjson.put(key, store.get(key));
+            }
+            return rjson;
+        } finally {
+            reInit();
         }
-        return inputJson;
     }
 
-    public String filterMask(String inputField) {
-        return filterMask(inputField.split(","));
-    }
-
-    public String filterMask(String[] fields) {
-        String rs;
+    public String[] filterMask(String[] fields) {
         if (checkAuth()) {
             MModelRuleNode tf;
             List<String> newfield = new ArrayList<>();
-            // int l = fields.length;
             for (String field : fields) {
                 if (checkObject.containsKey(field)) {
                     tf = checkObject.get(field);
@@ -84,11 +120,12 @@ public class FormHelper {
                     }
                 }
             }
-            rs = StringHelper.join(newfield);
+            String[] rs = new String[newfield.size()];
+            newfield.toArray(rs);
+            return rs;
         } else {
-            rs = StringHelper.join(fields);
+            return fields;
         }
-        return rs;
     }
 
     //删除字段对象
@@ -112,19 +149,17 @@ public class FormHelper {
     }
 
     //自己补齐字段
-    public String autoComplete(String inputData, HashMap<String, MModelRuleNode> permInfos) {
-        return autoComplete(JSONObject.toJSON(inputData), permInfos).toJSONString();
+    public String autoComplete(String inputData) {
+        return autoComplete(JSONObject.toJSON(inputData)).toJSONString();
     }
 
     /**
-     * 根据gsc-model( 包含 db-model和 perm-model)自动补充入库前的数据
+     * 根据gsc-model( 包含 db-model )自动补充入库前的数据
      */
-    public JSONObject autoComplete(JSONObject inputData, HashMap<String, MModelRuleNode> permInfos) {
+    public JSONObject autoComplete(JSONObject inputData) {
         HashMap<String, MModelRuleNode> waitCheck = new HashMap<>();
         // 填充db-model定义
         waitCheck.putAll(checkObject);
-        // 填充符合当前会话的权限到db-model的定义
-        waitCheck.putAll(permInfos);
         // 过滤未定义字段
         JSONObject resultJson = new JSONObject();
         for (String key : waitCheck.keySet()) {
@@ -148,14 +183,14 @@ public class FormHelper {
                     rs = TimeHelper.build().nowMillis();
                     break;
                 case ":user": {
-                    Session se = UserSession.current();
+                    UserSession se = UserSession.current();
                     if (se.checkSession()) {
                         rs = UserSession.current().getUID();
                     }
                     break;
                 }
                 case ":group": {
-                    Session se = UserSession.current();
+                    UserSession se = UserSession.current();
                     if (se.checkSession()) {
                         rs = UserSession.current().getGID();
                     }
@@ -237,8 +272,6 @@ public class FormHelper {
                 }
             }
         }
-        // 附加权限字段作为默认mask
-        maskCache.addAll(PermissionsPowerDef.maskPermFields);
         String[] nStringArray = null;
         if (maskCache.size() > 0) {
             nStringArray = new String[maskCache.size()];

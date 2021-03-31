@@ -1,4 +1,4 @@
-package common.java.Apps;
+package common.java.Apps.MicroService.Model;
 
 import common.java.Check.CheckType;
 import org.json.gsc.JSONObject;
@@ -73,8 +73,9 @@ public class MModelRuleNode {
 
     public static class FieldType {
         public static final int publicField = 0;        //全公开字段
-        public static final int maskField = 1;            //隐藏字段，输出时，需要显示声明才包含
-        public static final int protectField = 2;        //保护字段，修改时,需要显示声明才包含
+        public static final int maskField = 1;          //隐藏字段，输出时，需要显示声明才包含
+        public static final int protectField = 2;       //保护字段，修改时,需要显示声明才包含
+        public static final int lockerField = 9;        //锁定字段，不可修改
     }
 
 }

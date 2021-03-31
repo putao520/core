@@ -1,6 +1,6 @@
 package common.java.Rpc;
 
-import common.java.Apps.MicroServiceContext;
+import common.java.Apps.MicroService.MicroServiceContext;
 import common.java.HttpServer.HttpContext;
 import common.java.OAuth.oauthApi;
 import common.java.String.StringHelper;
@@ -21,7 +21,7 @@ public class rpc {
 
     private rpc(String servName) {
         this.servName = servName;
-        boolean nullContext = false;
+        // boolean nullContext = false;
         this.needApiAuth = false;
         msc = new MicroServiceContext(this.servName);
     }

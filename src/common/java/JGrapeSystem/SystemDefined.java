@@ -12,19 +12,12 @@ public class SystemDefined {
     }
 
     public static class interfaceSystemErrorCode {
+        public final static int PublicApi = 10000;
         public final static int SessionApi = 10001;
         public final static int OauthApi = 10002;
         public final static int PrivateApi = 10003;
         public final static int CloseApi = 10004;
-        public final static int MissSession = 10005;
+        public final static int VerifyApi = 10005;
     }
 
-    public static class commonConfigUnit {
-        public final static String LocalDB = "localdb";
-        public final static String LocalCache = "localcache";
-        public final static String FileHost = "fileServer";
-        public final static String FileNode = "nodeServer";
-        public final static String appsNode = "apps";
-        public final static String sessionTable = "grapeSessionList";
-    }
 }

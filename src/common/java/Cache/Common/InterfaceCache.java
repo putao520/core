@@ -1,7 +1,14 @@
-package common.java.Cache;
+package common.java.Cache.Common;
 
-interface InterfaceCache {
+import org.json.gsc.JSONArray;
+import org.json.gsc.JSONObject;
+
+public interface InterfaceCache {
     String get(String objectName);
+
+    JSONObject getJson(String objectName);
+
+    JSONArray getJsonArray(String objectName);
 
     boolean setExpire(String objectName, int expire);
 

@@ -1,5 +1,8 @@
 package common.java.Apps;
 
+import common.java.Apps.MicroService.Config.ModelServiceConfig;
+import common.java.Apps.MicroService.MicroServiceContext;
+import common.java.Apps.Roles.AppRoles;
 import common.java.HttpServer.HttpContext;
 import common.java.HttpServer.RequestSession;
 import common.java.String.StringHelper;
@@ -17,6 +20,7 @@ public class AppContext {
     private JSONObject appInfo;
     private ModelServiceConfig msc;
     private HashMap<String, MicroServiceContext> microServiceInfo;
+    private AppRoles roles;
 
     private static final ExecutorService globalService = Executors.newCachedThreadPool();
 
@@ -113,6 +117,7 @@ public class AppContext {
             }
             this.msc = new ModelServiceConfig(this.appInfo.getJson("configName"));
         }
+        this.roles = AppRoles.build(this.appInfo.getJson("roles"));
     }
 
     public boolean hasData() {
@@ -145,6 +150,13 @@ public class AppContext {
      */
     public int appId() {
         return this.appid;
+    }
+
+    /**
+     * 获得当前应用角色定义
+     */
+    public AppRoles roles() {
+        return roles;
     }
 
     /**

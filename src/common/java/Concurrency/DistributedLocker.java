@@ -2,7 +2,6 @@ package common.java.Concurrency;
 
 import common.java.Cache.CacheHelper;
 import common.java.File.FileText;
-import common.java.JGrapeSystem.SystemDefined;
 import common.java.nLogger.nLogger;
 
 public class DistributedLocker {
@@ -11,7 +10,7 @@ public class DistributedLocker {
 
     static {
         // 本地JVM第一次载入类时，清除所有未释放全局锁，防止出现死锁
-        CacheHelper ch = CacheHelper.buildCache(SystemDefined.commonConfigUnit.LocalCache);
+        CacheHelper ch = CacheHelper.buildCache();
         FileText textFile = FileText.build(logFileName);
         textFile.read().forEach(lockerInfo -> {
             String[] locker = lockerInfo.split("\\|");
@@ -55,7 +54,7 @@ public class DistributedLocker {
 
     private CacheHelper getRedis() {
         if (ch == null) {
-            ch = CacheHelper.buildCache(SystemDefined.commonConfigUnit.LocalCache);
+            ch = CacheHelper.buildCache();
         }
         return ch.Global(this.globalMode);
     }

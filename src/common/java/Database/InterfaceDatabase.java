@@ -13,7 +13,7 @@ public interface InterfaceDatabase<T> {
 
     JSONArray selectByCache(int second);
 
-    void invaildCache();
+    void invalidCache();
 
     JSONObject findByCache(int second);
 
@@ -51,13 +51,17 @@ public interface InterfaceDatabase<T> {
 
     T data(String jsonString);
 
+    List<JSONObject> data();
+
     T data(JSONObject doc);
+
+    // T clearData();
 
     T field();
 
-    T field(String fieldString);
+    T field(String[] fieldString);
 
-    T mask(String fieldString);
+    T mask(String[] fieldString);
 
     T form(String _formName);
 

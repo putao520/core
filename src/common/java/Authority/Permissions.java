@@ -1,163 +1,157 @@
 package common.java.Authority;
 
-import common.java.Apps.MModelPerm;
-import common.java.Apps.MModelPermInfo;
-import common.java.Authority.PlvDef.UserMode;
-import common.java.Authority.PlvDef.plvType;
+import common.java.Apps.AppContext;
+import common.java.Apps.MicroService.MicroServiceContext;
+import common.java.Apps.MicroService.Model.RBAC.MModelPerm;
+import common.java.Apps.MicroService.Model.RBAC.MModelPermInfo;
+import common.java.Apps.Roles.AppRoles;
 import common.java.Database.DbFilter;
-import common.java.Number.NumberHelper;
-import common.java.Session.Session;
+import common.java.ServiceTemplate.SuperItemField;
+import common.java.Session.UserSession;
 import org.json.gsc.JSONObject;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /*
  * 权限模式使用，需要保证用户登录后，将用户个人信息，用户组信息都填充到位
- *
- * objectPower_appid
- * oid : int			对象唯一ID
- * objectName:string		对象名称
- * cMode:JSON			对象创建权限验证类型和条件
- * 	{"chkType":Long,"chkCond":Object }
- * 	chkType : 判断条件
- * 	chkCond : 在权值模式下代表所需权值，在用户，用户组模式下，为0表示继承，非0表示不继承
- * sMode:JSON			对象统计权限验证类型和条件
  * */
 public class Permissions {
-    private static final Session guesserSession;
-    private static final String powvalFieldName = PermissionsPowerDef.powerValField;
-    private static final String fatherIDFieldName = PermissionsPowerDef.fatherIDField;
-    private static final String adminFieldName = PermissionsPowerDef.adminField;
-    // private static final String userFieldName = PermissionsPowerDef.userField;
-    // private static final String saltFieldName = PermissionsPowerDef.saltField;
-    private static String commonSid = null;
-    private final String objName;
-    private MModelPerm tempMode = null;
+    private final MModelPerm perms;
 
-    static {
-        guesserSession = Session.build().memSession("defaultSession", JSONObject.putx(powvalFieldName, 0).puts(fatherIDFieldName, ""));
+    public Permissions(String tableName) {
+        this.perms = MicroServiceContext.current().model(tableName).perms();
     }
 
-    public Permissions(String objectName) {
-        objName = objectName;
-    }
-
-    public Permissions putPermInfo(MModelPerm pInfo) {
-        this.tempMode = pInfo;
-        return this;
-    }
-
-    private boolean _checkObject(String uid) {
-        boolean rs = false;
-        ObjectAdmin oadmin = new ObjectAdmin();
-        if (oadmin.bindAdmin(uid)) {//有效管理员账号
-            rs = oadmin.ishas(objName);
+    private String getFirstSet(Set<String> arr) {
+        for (String key : arr) {
+            return key;
         }
-        return rs;
+        return null;
     }
 
-    private boolean _operateChk(MModelPermInfo pInfo) {
-        boolean rs = false;
-        int chkType = pInfo.type();
-        Object val = pInfo.value();
-        Session se = getSE();
-        switch (chkType) {
-            case plvType.powerVal: {
-                int nowPowerVal = se.getInt(powvalFieldName);
-                rs = nowPowerVal >= NumberHelper.number2int(val);
-                break;
-            }
-            case plvType.userOwn: {
-                String nowUID = se.getUID();
-                rs = nowUID.equals(val);
-                break;
-            }
-            case plvType.groupOwn: {
-                String nowgid = se.get(fatherIDFieldName).toString();
-                rs = val.equals(nowgid);
-                break;
-            }
-        }
-        return rs;
-    }
-
-    /*
-    根据权限对象，获得过滤条件
-     */
-    public List<List<Object>> getAuthCond(String valueCaption, MModelPermInfo pInfo) {
-        DbFilter newCond = DbFilter.buildDbFilter();
-        Session se = getSE();
-        // 如果没有权限会话，直接返回不通过
-        int chkType = pInfo.type();
-        switch (chkType) {
-            case plvType.userOwn: {
-                String nowUID = se.getUID();
-                newCond.eq(valueCaption, nowUID);
-                break;
-            }
-            case plvType.groupOwn: {
-                String nowGid = se.get(fatherIDFieldName).toString();
-                newCond.eq(fatherIDFieldName, nowGid);
-                break;
-            }
-            case plvType.powerVal: {
-                int nowPowerVal = se.getInt(powvalFieldName);
-                newCond.lte(valueCaption, nowPowerVal);
-                break;
-            }
-        }
-        return newCond.buildEx();
-    }
-
-    // 获得对象权限设置
-    private Session getSE() {
-        if (commonSid.equalsIgnoreCase("guesser")) {
-            return guesserSession;
-        }
-        if (Session.checkSession(commonSid)) {
-            return Session.build(commonSid);
-        }
-        // 不存在有效会话时,返回默认会话
-        commonSid = "guesser";
-        return guesserSession;
-    }
-
-    public List<List<Object>> filterCond(int plvOperate) {
-        switch (plvOperate) {
-            case PlvDef.Operater.read:
-            case PlvDef.Operater.statist:
-                return getAuthCond(PermissionsPowerDef.readValue, tempMode.readPerm());
-            case PlvDef.Operater.update:
-                return getAuthCond(PermissionsPowerDef.updateValue, tempMode.updatePerm());
-            case PlvDef.Operater.delete:
-                return getAuthCond(PermissionsPowerDef.deleteValue, tempMode.deletePerm());
+    private Set<String> groupArr(MModelPermInfo perm) {
+        AppRoles roles = AppContext.current().roles();
+        switch (perm.logic()) {
+            case MModelPermDef.perm_group_logic_gt:
+                return roles.gt(getFirstSet(perm.value()));
+            case MModelPermDef.perm_group_logic_lt:
+                return roles.lt(getFirstSet(perm.value()));
+            case MModelPermDef.perm_group_logic_eq:
+                return perm.value();
             default:
-                return null;
+                return new HashSet<>();
         }
     }
 
-    //判断当前操作是否有权
-    //判断过程中生成条件对象
-    public boolean checkOperate(int plvOperate) {
-        Session se = getSE();
-        //管理员判定
-        if (se.getInt(adminFieldName) >= UserMode.admin) {//是管理员模式
-            return _checkObject(se.getUID());
+    private boolean queryFilter(DbFilter dbf, MModelPermInfo perm) {
+        if (perm == null) {        // 当前操作未定义权限,操作不限
+            return true;
         }
-        //普通用户判断
-        switch (plvOperate) {
-            case PlvDef.Operater.create:
-                return _operateChk(tempMode.createPerm());
-            case PlvDef.Operater.statist:
-                return _operateChk(tempMode.statisticsPerm());
-            case PlvDef.Operater.read:
-                return _operateChk(tempMode.readPerm());
-            case PlvDef.Operater.update:
-                return _operateChk(tempMode.updatePerm());
-            case PlvDef.Operater.delete:
-                return _operateChk(tempMode.deletePerm());
+        UserSession se = UserSession.current();
+        if (!se.checkSession()) {  // 当前定义了权限,但是用户未登录
+            return false;
+        }
+
+        switch (perm.type()) {
+            case MModelPermDef.perm_type_user:
+                dbf.and().eq(SuperItemField.userIdField, se.getUID());
+                break;
+            case MModelPermDef.perm_type_group:
+                var grpArr = this.groupArr(perm);
+                for (var grpName : grpArr) {
+                    dbf.or().eq(SuperItemField.groupIdField, grpName);
+                }
+                break;
             default:
                 return false;
         }
+
+        return true;
+    }
+
+    private void _completeFilter(JSONObject data, MModelPermInfo perm, UserSession se) {
+        switch (perm.type()) {
+            case MModelPermDef.perm_type_user:
+                data.put(SuperItemField.userIdField, se.getUID());
+                break;
+            case MModelPermDef.perm_type_group:
+                data.put(SuperItemField.groupIdField, se.getGID());
+                break;
+        }
+    }
+
+    private boolean completeFilter(JSONObject data, MModelPermInfo perm) {
+        if (perm == null) {        // 当前操作未定义权限,操作不限
+            return true;
+        }
+        UserSession se = UserSession.current();
+        if (!se.checkSession()) {  // 当前定义了权限,但是用户未登录
+            return false;
+        }
+        _completeFilter(data, perm, se);
+        return true;
+    }
+
+    // 读操作,增加过滤条件
+    public boolean readFilter(DbFilter dbf) {
+        return isAdmin() || queryFilter(dbf, perms.readPerm());
+    }
+
+    // 写操作,补充完善字段
+    public boolean writeFilter(List<JSONObject> data) {
+        if (isAdmin()) {
+            return true;
+        }
+        MModelPermInfo perm = perms.createPerm();
+        if (perm == null) {        // 当前操作未定义权限,操作不限
+            return true;
+        }
+        UserSession se = UserSession.current();
+        if (!se.checkSession()) {  // 当前定义了权限,但是用户未登录
+            return false;
+        }
+        for (JSONObject info : data) {
+            _completeFilter(info, perm, se);
+        }
+        return true;
+    }
+
+    public boolean writeFilter(JSONObject data) {
+        return isAdmin() || completeFilter(data, perms.createPerm());
+    }
+
+    // 删操作,增加过滤条件
+    public boolean deleteFilter(DbFilter dbf) {
+        return isAdmin() || queryFilter(dbf, perms.deletePerm());
+    }
+
+    // 改操作,补充完善字段和增加过滤条件
+    public boolean updateFilter(DbFilter dbf, JSONObject data) {
+        MModelPermInfo perm = perms.updatePerm();
+        return isAdmin() || (queryFilter(dbf, perm) && completeFilter(data, perm));
+    }
+
+    // 是否是管理员
+    private boolean isAdmin() {
+        MModelPermInfo perm = perms.adminPerm();
+        if (perm == null) {        // 当前操作未定义权限,未定义管理员
+            return false;
+        }
+        UserSession se = UserSession.current();
+        if (!se.checkSession()) {  // 当前定义了管理员,但是用户未登录
+            return false;
+        }
+        switch (perm.type()) {
+            case MModelPermDef.perm_type_user:
+                return perm.value().contains(se.getUID());  // 当前用户id包含在管理员用户组里
+            case MModelPermDef.perm_type_group:
+                this.groupArr(perm).contains(se.getGID());  // 当前用户组id包含在管理员组里
+                break;
+            default:
+                return false;
+        }
+        return false;
     }
 }

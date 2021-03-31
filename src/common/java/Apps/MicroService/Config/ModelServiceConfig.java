@@ -1,4 +1,4 @@
-package common.java.Apps;
+package common.java.Apps.MicroService.Config;
 
 import org.json.gsc.JSONObject;
 

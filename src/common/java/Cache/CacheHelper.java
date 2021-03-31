@@ -1,6 +1,9 @@
 package common.java.Cache;
 
+import common.java.Cache.Common.InterfaceCache;
 import common.java.HttpServer.HttpContext;
+import org.json.gsc.JSONArray;
+import org.json.gsc.JSONObject;
 
 public class CacheHelper implements InterfaceCache {
     private final Cache cache;
@@ -51,6 +54,14 @@ public class CacheHelper implements InterfaceCache {
      */
     public String get(String key) {
         return cache.get(prefixHook(key));
+    }
+
+    public JSONObject getJson(String key) {
+        return JSONObject.toJSON(cache.get(prefixHook(key)));
+    }
+
+    public JSONArray getJsonArray(String key) {
+        return JSONArray.toJSONArray(cache.get(prefixHook(key)));
     }
 
     /**

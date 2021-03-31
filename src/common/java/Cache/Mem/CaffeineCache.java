@@ -1,7 +1,10 @@
-package common.java.Cache;
+package common.java.Cache.Mem;
 
 import com.github.benmanes.caffeine.cache.Caffeine;
+import common.java.Cache.Common.InterfaceCache;
 import common.java.Number.NumberHelper;
+import org.json.gsc.JSONArray;
+import org.json.gsc.JSONObject;
 
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
@@ -29,6 +32,14 @@ public class CaffeineCache implements InterfaceCache {
 
     public String get(String objectName) {
         return jdc.getIfPresent(objectName);
+    }
+
+    public JSONObject getJson(String objectName) {
+        return JSONObject.toJSON(jdc.getIfPresent(objectName));
+    }
+
+    public JSONArray getJsonArray(String objectName) {
+        return JSONArray.toJSONArray(jdc.getIfPresent(objectName));
     }
 
     /**

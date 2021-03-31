@@ -1,4 +1,4 @@
-package common.java.Apps;
+package common.java.Apps.MicroService.Model;
 
 import org.json.gsc.JSONObject;
 
@@ -12,7 +12,7 @@ public class MicroModelArray {
         this.mModels = new HashMap<>();
         if (mModel != null) {
             for (String key : mModel.keySet()) {
-                this.mModels.put(key, new MicroModel(mModel.getJson(key)));
+                this.mModels.put(key, new MicroModel(key, mModel.getJson(key)));
             }
         }
     }

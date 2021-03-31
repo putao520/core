@@ -1,42 +1,64 @@
-package common.java.Cache;
+package common.java.Cache.Redis;
 
-import common.java.Apps.MicroServiceContext;
+import common.java.Apps.MicroService.MicroServiceContext;
+import common.java.Cache.Common.InterfaceCache;
 import common.java.Config.Config;
 import common.java.String.StringHelper;
 import io.lettuce.core.api.StatefulRedisConnection;
 import io.lettuce.core.api.async.RedisAsyncCommands;
+import org.json.gsc.JSONArray;
+import org.json.gsc.JSONObject;
+
 
 /**
- * * {
- * * 	"cacheName": "RedisSingle",
- * * 	"password": "admins",
- * * 	"maxIdle": 60000,
- * * 	"maxTotal": 1000,
- * * 	"maxWaitMillis": 10000,
- * * 	"ssl":true
- * * 	副本集模式
- * * 	"sentinel": "123.57.213.15:7000,123.57.213.15:7001,123.57.213.15:7002,123.57.213.15:7003,123.57.213.15:7004,123.57.213.15:7005"
- * * }
+ * {
+ * "cacheName": "RedisSingle",
+ * "password": "admins",
+ * *  * 	"maxIdle": 60000,
+ * *  * 	"maxTotal": 1000,
+ * *  * 	"maxWaitMillis": 10000,
+ * "ssl":true
+ * 单机模式
+ * "single":"123.57.213.15:7000"
+ * }
  */
-public class RedisSentinel implements InterfaceCache {
+public class RedisSingle implements InterfaceCache {
+    // private RedisConn<StatefulRedisConnection<String, String>> conn = null;
     private RedisAsyncCommands<String, String> command;
 
-    public RedisSentinel(String configString) {
+    public RedisSingle(String configString) {
         init(configString);
     }
 
-    public RedisSentinel() {
+    public RedisSingle() {
         init(Config.netConfig(MicroServiceContext.current().config().cache()));
     }
 
     private void init(String config) {
         this.command = ((StatefulRedisConnection<String, String>) RedisConn.build(config).getConnect()).async();
     }
+    // 关闭连接
 
     @Override
     public String get(String objectName) {
         try {
             return command.get(objectName).get();
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    public JSONObject getJson(String objectName) {
+        try {
+            return JSONObject.toJSON(command.get(objectName).get());
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    public JSONArray getJsonArray(String objectName) {
+        try {
+            return JSONArray.toJSONArray(command.get(objectName).get());
         } catch (Exception e) {
             return null;
         }

@@ -1,5 +1,6 @@
 package common.java.HttpServer;
 
+import common.java.Apps.MicroService.MicroServiceContext;
 import common.java.Number.NumberHelper;
 import common.java.Rpc.rMsg;
 import common.java.String.StringHelper;
@@ -443,9 +444,19 @@ public class HttpContext {
     /**
      * 任意地点抛出返回值
      */
-    public HttpContext throwOut(String msg) {
+    public void throwOut(String msg) {
         HttpContext.showMessage(this.channelContext(), msg);
-        throw new RuntimeException(msg);
+        new RuntimeException(msg);
+    }
+
+    /**
+     * 调试模式时,抛出异常
+     */
+    public void throwDebugOut(String msg) {
+        if (MicroServiceContext.current().isDebug()) {
+            HttpContext.showMessage(this.channelContext(), msg);
+            new RuntimeException(msg);
+        }
     }
 
     private HttpContext setValueSafe(String key, JSONObject nHeader) {
