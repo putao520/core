@@ -4,7 +4,7 @@ import common.java.Config.Config;
 import common.java.Coordination.Common.GscCenterEvent;
 import common.java.Coordination.Common.GscCenterPacket;
 import common.java.MasterProxy.MasterActor;
-import common.java.Thread.ThreadEx;
+import common.java.Thread.ThreadHelper;
 import org.json.gsc.JSONArray;
 import org.json.gsc.JSONObject;
 
@@ -62,7 +62,7 @@ public class GscCenterClient {
     public void waitLived() {
         int err_no = 100;
         while (!this.liveStatus && err_no > 10) {
-            ThreadEx.SleepEx(100);
+            ThreadHelper.sleep(100);
             err_no--;
         }
     }
@@ -103,7 +103,7 @@ public class GscCenterClient {
     public void waitResponse() {
         int max_errno = 100;
         while (loadCnt.get() > 0 && max_errno > 0) {
-            ThreadEx.SleepEx(100);
+            ThreadHelper.sleep(100);
             max_errno--;
         }
     }

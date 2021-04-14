@@ -184,7 +184,7 @@ public class DbLayer implements InterfaceDatabase<DbLayer> {
                 configName = inputConfigName;
             }
             if (configName == null || configName.equals("")) {
-                nLogger.logInfo("数据库配置丢失");
+                throw new RuntimeException("数据库配置丢失");
             }
             _db = getDBObject(configName);
 

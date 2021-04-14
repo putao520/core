@@ -1,4 +1,4 @@
-package common.java.HttpServer;
+package common.java.HttpServer.Common;
 
 import common.java.Reflect._reflect;
 import io.netty.channel.ChannelId;

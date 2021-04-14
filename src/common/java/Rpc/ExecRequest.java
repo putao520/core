@@ -2,8 +2,8 @@ package common.java.Rpc;
 
 import common.java.Apps.AppContext;
 import common.java.Apps.MicroService.Model.MicroModel;
+import common.java.HttpServer.Common.RequestSession;
 import common.java.HttpServer.HttpContext;
-import common.java.HttpServer.RequestSession;
 import common.java.Reflect._reflect;
 import common.java.String.StringHelper;
 import common.java.nLogger.nLogger;
@@ -104,7 +104,7 @@ public class ExecRequest {//框架内请求类
                         rs = obj._call(actionName, _objs);
                         rs = RpcResult(afterExecute(className, actionName, rs));
                     } catch (Exception e) {
-                        nLogger.logInfo(e, "实例化 " + _cls.toString() + " ...失败");
+                        nLogger.logInfo(e, "实例化 " + _cls + " ...失败");
                     }
                 } else {
                     rs = RpcError.Instant(filterReturn);

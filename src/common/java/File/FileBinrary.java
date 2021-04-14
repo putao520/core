@@ -11,7 +11,7 @@ import java.nio.MappedByteBuffer;
 /**
  * 不用本类时,一定要手动调用 release
  */
-public class FileBinrary extends FileEx<FileBinrary> {
+public class FileBinrary extends FileHelper<FileBinrary> {
 
     private FileBinrary(File file) {
         super(file);
@@ -27,18 +27,18 @@ public class FileBinrary extends FileEx<FileBinrary> {
 
     public ByteBuf slice(long offset, int length) {
         MappedByteBuffer[] mapArray = getFileBuffer(offset, length);
-        int currentOffet = (int) offset & MAX_BLOCK_LENGTH;
-        int currentLenght = MAX_BLOCK_LENGTH - currentOffet;
+        int currentOffset = (int) offset & MAX_BLOCK_LENGTH;
+        int currentLength = MAX_BLOCK_LENGTH - currentOffset;
         MappedByteBuffer fmap = mapArray[0];
         // wrap 文件内存映射
         ByteBuf bs = Unpooled.wrappedBuffer(fmap.array());
         // 复制头块
-        ByteBuf rbuff = Unpooled.wrappedBuffer(bs.slice(currentOffet, currentLenght));
+        ByteBuf rbuff = Unpooled.wrappedBuffer(bs.slice(currentOffset, currentLength));
         // 如果包含第二块，复制尾块
         if (mapArray.length > 1) {
             fmap = mapArray[1];
             bs = Unpooled.wrappedBuffer(fmap.array());
-            rbuff = Unpooled.wrappedBuffer(rbuff, Unpooled.wrappedBuffer(bs.slice(0, MAX_BLOCK_LENGTH - currentLenght)));
+            rbuff = Unpooled.wrappedBuffer(rbuff, Unpooled.wrappedBuffer(bs.slice(0, MAX_BLOCK_LENGTH - currentLength)));
         }
         return rbuff;
     }

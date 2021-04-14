@@ -22,8 +22,17 @@ public class CacheHelper implements InterfaceCache {
         return new CacheHelper(configName, globalShare);
     }
 
+    public static final CacheHelper buildLocalCache() {
+        return new CacheHelper(null, false);
+    }
+
     public static final CacheHelper buildCache(boolean globalShare) {
         return new CacheHelper(null, globalShare);
+    }
+
+    public CacheHelper secondCache(boolean flag) {
+        cache.secondCache(flag);
+        return this;
     }
 
     public static final CacheHelper buildCache(String configName) {

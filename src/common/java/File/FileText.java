@@ -7,7 +7,7 @@ import java.nio.charset.Charset;
 import java.util.List;
 import java.util.stream.Stream;
 
-public class FileText extends FileEx<FileText> {
+public class FileText extends FileHelper<FileText> {
     private final Charset charset;
 
     private FileText(File file) {

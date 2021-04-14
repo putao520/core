@@ -4,7 +4,7 @@ import common.java.Config.Config;
 import common.java.Coordination.Common.GscCenterPacket;
 import common.java.Coordination.Common.MessagePacketDecoder;
 import common.java.Coordination.Common.MessagePacketEncoder;
-import common.java.Thread.ThreadEx;
+import common.java.Thread.ThreadHelper;
 import common.java.nLogger.nLogger;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.*;
@@ -83,7 +83,7 @@ public class TcpClient {
                 waitFlag.set(true);
             });
             while (!waitFlag.get() && err_no > 0) {
-                ThreadEx.SleepEx(100);
+                ThreadHelper.sleep(100);
                 err_no--;
             }
         } catch (Exception e) {

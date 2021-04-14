@@ -1,6 +1,6 @@
 package common.java.Reflect;
 
-import common.java.File.UploadFile;
+import common.java.HttpServer.Upload.UploadFile;
 import common.java.InterfaceModel.Type.ApiType;
 import common.java.InterfaceModel.Type.ApiTypes;
 import common.java.JGrapeSystem.SystemDefined;
@@ -61,8 +61,8 @@ public class _reflect {
     private final HashMap<String, FilterCallback> filterCallback; //调用前接口HOOK数组
     private final HashMap<String, ReturnCallback> returnCallback; //调用后接口HOOK数组
     private Object _oObject;        //对象
-    private boolean _superMode;    //私有接口是否生效
-    private boolean privateMode;    //注解解析是否生效
+    private boolean _superMode;     //私有接口是否生效(是否允许调用 private 接口)
+    private boolean privateMode;    //注解解析是否生效(是否按照接口注解定义控制访问)
 
     public _reflect(Class<?> cls) {
         // 初始化属性
@@ -328,7 +328,7 @@ public class _reflect {
                             if (rs == null) {
                                 break;
                             } else {
-                                rs = "Interface Error:[" + rs.toString() + "]";
+                                rs = "Interface Error:[" + rs + "]";
                             }
                         }
                     }

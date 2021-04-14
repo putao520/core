@@ -2,7 +2,8 @@ package common.java.HttpServer;
 
 import common.java.Encrypt.UrlCode;
 import common.java.File.FileHelper;
-import common.java.File.UploadFileInfo;
+import common.java.HttpServer.Common.RequestSession;
+import common.java.HttpServer.Upload.UploadFileInfo;
 import common.java.String.StringHelper;
 import common.java.Xml.XmlHelper;
 import common.java.nLogger.nLogger;

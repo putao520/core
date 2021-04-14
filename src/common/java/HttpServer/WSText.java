@@ -17,8 +17,6 @@ public class WSText extends ChannelInboundHandlerAdapter {
         // TODO Auto-generated method stub
         WebSocketFrame frame = (WebSocketFrame) msg;
         ByteBuf buf = frame.content();  //真正的数据是放在buf里面的
-
-
         String aa = buf.toString(StandardCharsets.UTF_8);  //将数据按照utf-8的方式转化为字符串
         nLogger.debugInfo(aa);
         WebSocketFrame out = new TextWebSocketFrame(aa);  //创建一个websocket帧，将其发送给客户端
