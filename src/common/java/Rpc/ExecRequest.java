@@ -9,6 +9,7 @@ import common.java.String.StringHelper;
 import common.java.nLogger.nLogger;
 import org.json.gsc.JSONObject;
 
+import java.io.File;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -183,6 +184,10 @@ public class ExecRequest {//框架内请求类
             return rMsg.netState(o);
         } else if (o instanceof RpcError) {
             return o.toString();
+        } else if (o instanceof RpcLocation) {
+            return o;
+        } else if (o instanceof File) {
+            return o;
         } else {
             return rMsg.netMSG(o);
         }

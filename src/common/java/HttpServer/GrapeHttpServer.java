@@ -4,7 +4,9 @@ import com.alibaba.druid.util.StringUtils;
 import common.java.Apps.AppContext;
 import common.java.Http.Mime;
 import common.java.HttpServer.Common.RequestSession;
+import common.java.HttpServer.SpecHeader.Db.HttpContextDb;
 import common.java.Rpc.ExecRequest;
+import common.java.Rpc.RpcLocation;
 import common.java.Rpc.rMsg;
 import common.java.String.StringHelper;
 import common.java.nLogger.nLogger;
@@ -103,7 +105,7 @@ public class GrapeHttpServer {
         String[] GrapeRequest = StringHelper.build(path).trimFrom('/').toString().split("/");
         if (GrapeRequest.length >= 2) {
             // 当无有效appid时,根据域名重置Appid
-            if (appid == 0 && !GrapeRequest[0].equalsIgnoreCase("grapefw")) {
+            if (appid == 0) {
                 appContext = new AppContext(host);
                 if (appContext.hasData()) {    // 域名有效,重置appid
                     appid = appContext.appId();
@@ -150,7 +152,12 @@ public class GrapeHttpServer {
         response.headers().set("Access-Control-Allow-Headers",
                 HttpContext.GrapeHttpHeader.sid + " ," +
                         HttpContext.GrapeHttpHeader.token + " ," +
-                        HttpContext.GrapeHttpHeader.appid
+                        HttpContext.GrapeHttpHeader.appid + " ," +
+                        HttpContextDb.fields + " ," +
+                        HttpContextDb.sorts + " ," +
+                        HttpContextDb.options
+
+
         );
         if (hasChunked) {
             response.headers().set("Transfer-Encoding", "chunked");
@@ -228,7 +235,8 @@ public class GrapeHttpServer {
                 exHeader = new JSONObject(CONTENT_TYPE.toString(), Mime.getMime((File) responseData));
                 responseData = new FileInputStream((File) responseData);
             } catch (Exception e) {
-                responseData = null;
+                File f = (File) responseData;
+                responseData = rMsg.netMSG(false, "下载文件[" + f.getName() + "]失败");
             }
         }
         if (responseData instanceof InputStream) {//输入流，不管是字符集还是文件
@@ -236,43 +244,30 @@ public class GrapeHttpServer {
             return;
         }
         //----------字符输出
-        if (responseData == null) {//当返回值为null
-            responseData = "";
-        }
         if (responseData instanceof byte[]) {
             writeHttpResponse(ctx, (byte[]) responseData, null);
             return;
         }
+        //----------301重定向输出
+        if (responseData instanceof RpcLocation) {
+            RpcLocation loc = (RpcLocation) responseData;
+            location(ctx, loc.toString());
+            return;
+        }
         //----------wsText输出
-        else if (responseData instanceof TextWebSocketFrame) {
+        if (responseData instanceof TextWebSocketFrame) {
             writeHttpResponse(ctx, (TextWebSocketFrame) responseData);
             return;
         }
-        //----------其他类型,强制转化成字符串
-        else if (!(responseData instanceof String)) {
-            try {
-                // 如果对象有toString方法
-                responseData = responseData.toString();
-            } catch (Exception e) {
-                // 如果对象可以被valueOf使用
-                try {
-                    responseData = String.valueOf(responseData);
-                } catch (Exception e1) {
-                    nLogger.logInfo("输出类型不可预知!!!");
-                }
-            }
+        //----------字符串转换
+        if (!(responseData instanceof String)) {
+            responseData = StringHelper.toString(responseData);
         }
+        //----------字符串输出
         if (responseData instanceof String) {
-            //<!DOCTYPE HTML>
-            String valType = "text/plain; charset=UTF-8";
-            if (((String) responseData).length() > 14) {
-                if (((String) responseData).indexOf("<!DOCTYPE HTML>") == 0) {
-                    valType = "text/html; charset=UTF-8";
-                }
-            }
-            exHeader = new JSONObject(CONTENT_TYPE.toString(), valType);
             responseData = ((String) responseData).getBytes();
-            writeHttpResponse(ctx, (byte[]) responseData, exHeader);
+            writeHttpResponse(ctx, (byte[]) responseData, JSONObject.build(CONTENT_TYPE.toString(), "text/plain; charset=UTF-8"));
+            return;
         }
     }
 }
