@@ -1,16 +1,13 @@
 package common.java.Coordination.Server;
 
-import common.java.Config.Config;
 import common.java.Coordination.Common.GscCenterPacket;
 import common.java.Coordination.Common.payPacket;
-import common.java.String.StringHelper;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.handler.timeout.IdleState;
 import io.netty.handler.timeout.IdleStateEvent;
 import org.json.gsc.JSONObject;
 
-import java.nio.file.Paths;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static common.java.Coordination.Common.GscCenterEvent.*;
@@ -20,11 +17,7 @@ public class TCPServerHandler extends ChannelInboundHandlerAdapter {
     public static ConcurrentHashMap<String, payPacket> preload = new ConcurrentHashMap<>();    // 通讯线路id, 预存字节集
 
     public TCPServerHandler() {
-        String path = Config.config("StorePath");
-        if (StringHelper.isInvalided(path)) {
-            throw new RuntimeException("数据持久化地址未配置");
-        }
-        centerServer = GscCenterServer.getInstance(Paths.get(path));
+        centerServer = GscCenterServer.getInstance();
     }
 
     // 断开连接,自动移除对应的全部订阅
@@ -41,7 +34,8 @@ public class TCPServerHandler extends ChannelInboundHandlerAdapter {
         super.exceptionCaught(ctx, cause);
         centerServer.removeChannel(ctx);
         preload.remove(ctx.channel().id().asLongText());
-        cause.printStackTrace();
+        // System.out.println("连接异常");
+        // cause.printStackTrace();
     }
 
     @Override
@@ -49,7 +43,7 @@ public class TCPServerHandler extends ChannelInboundHandlerAdapter {
         // 拿到传过来的msg数据，开始处理
         GscCenterPacket respMsg = (GscCenterPacket) source;// 转化为GscCenterPacket
         short eventId = respMsg.getEventId();
-        System.out.println("Recv:" + eventId);
+        // System.out.println("Recv:" + eventId);
 
         // 收到数据修改请求
         switch (eventId) {

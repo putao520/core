@@ -1,5 +1,6 @@
 package common.java.Coordination.Server;
 
+import common.java.Config.Config;
 import common.java.nLogger.nLogger;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
@@ -24,6 +25,10 @@ public class TcpServer {
 
     public static TcpServer build(int port) {
         return new TcpServer(port);
+    }
+
+    public static TcpServer build() {
+        return new TcpServer(Config.masterPort);
     }
 
     private void init() throws Exception {

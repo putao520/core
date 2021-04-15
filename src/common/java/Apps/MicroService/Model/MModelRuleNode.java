@@ -18,52 +18,52 @@ public class MModelRuleNode {
         return new MModelRuleNode(new JSONObject());
     }
 
-    public String field() {
-        return this.nodeInfo.getString("fieldName");
+    public String name() {
+        return this.nodeInfo.getString("name");
     }
 
     public int type() {
-        return this.nodeInfo.getInt("fieldType");
+        return this.nodeInfo.getInt("class");
     }
 
-    public Object initValue() {
-        return this.nodeInfo.get("initValue");
+    public Object init() {
+        return this.nodeInfo.get("init");
     }
 
-    public Object failedValue() {
-        return this.nodeInfo.get("failedValue");
+    public Object failed() {
+        return this.nodeInfo.get("failed");
     }
 
-    public CheckType checkType() {
-        return new CheckType(this.nodeInfo.getString("checkType"));
+    public CheckType checkId() {
+        return new CheckType(this.nodeInfo.getString("checkId"));
     }
 
     public JSONObject node() {
         return this.nodeInfo;
     }
 
-    public MModelRuleNode field(String fieldName) {
-        this.nodeInfo.put("fieldName", fieldName);
+    public MModelRuleNode name(String fieldName) {
+        this.nodeInfo.put("name", fieldName);
         return this;
     }
 
     public MModelRuleNode type(int fieldType) {
-        this.nodeInfo.put("fieldType", fieldType);
+        this.nodeInfo.put("class", fieldType);
         return this;
     }
 
-    public MModelRuleNode initValue(Object initValue) {
-        this.nodeInfo.put("initValue", initValue);
+    public MModelRuleNode init(Object initValue) {
+        this.nodeInfo.put("init", initValue);
         return this;
     }
 
-    public MModelRuleNode failedValue(Object failedValue) {
-        this.nodeInfo.put("failedValue", failedValue);
+    public MModelRuleNode failed(Object failedValue) {
+        this.nodeInfo.put("failed", failedValue);
         return this;
     }
 
-    public MModelRuleNode checkType(int checkType) {
-        this.nodeInfo.put("checkType", checkType);
+    public MModelRuleNode checkId(int checkType) {
+        this.nodeInfo.put("checkId", checkType);
         return this;
     }
 

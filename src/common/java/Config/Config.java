@@ -17,7 +17,7 @@ public class Config {
     public static int masterPort;
     public static String bindIP;
     public static int port;
-    public static String serviceName;
+    public static final String masterId_Key = "MasterId";
     public static String nodeID;
 
     public static String masterId;
@@ -25,6 +25,9 @@ public class Config {
 
     private static String configPath = "gfw.cfg";
     private static MasterActor configs;
+    public static final String masterPass_Key = "MasterPass";
+    // public static int centerPort;
+    public static String serviceName;
 
     static {
         updateConfig();
@@ -57,14 +60,15 @@ public class Config {
         // 必选项
         port = Integer.parseInt(prop.getProperty("port", "80"));
         // 附加选项
+        // centerPort = Integer.parseInt(prop.getProperty("centerPort", "80"));
         serviceName = prop.getProperty("name", "default");
         // 可选项
         masterHost = prop.getProperty("MasterHost", "http://127.0.0.1");//read putao520system host url
-        masterPort = Integer.parseInt(prop.getProperty("MasterPort", "0"));
+        masterPort = Integer.parseInt(prop.getProperty("MasterPort", "80"));
         bindIP = prop.getProperty("BindIP", "0.0.0.0");//本地服务节点通信Ip
 
-        masterId = prop.getProperty("MasterId");
-        masterPass = prop.getProperty("MasterPass");
+        masterId = prop.getProperty(masterId_Key);
+        masterPass = prop.getProperty(masterPass_Key);
         // 自动生成
         nodeID = createNodeID(SystemDefined.ip(), port);
     }

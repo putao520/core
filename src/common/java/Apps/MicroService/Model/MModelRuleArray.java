@@ -19,7 +19,7 @@ public class MModelRuleArray extends MModelSuperField {
         hashmap = new HashMap<>();
         for (JSONObject l : rules) {
             MModelRuleNode mrn = new MModelRuleNode(l);
-            hashmap.put(mrn.field(), mrn);
+            hashmap.put(mrn.name(), mrn);
         }
         // 自动补齐模型未定义的gsc-tree模型必须字段
         hashmap = super.ruleNodeFilter(hashmap);

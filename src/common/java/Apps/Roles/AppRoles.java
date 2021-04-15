@@ -9,7 +9,16 @@ public class AppRoles {
     private final JSONObject store;
 
     private AppRoles(JSONObject info) {
-        this.store = info;
+        // 如果应用未配置角色,使用缺省角色,否则合并角色
+        JSONObject defaultRoleArr = buildDefaultRoles();
+        this.store = JSONObject.isInvalided(info) ? defaultRoleArr : info.putAlls(defaultRoleArr);
+    }
+
+    private JSONObject buildDefaultRoles() {
+        return JSONObject.build().puts("root", 10000000)
+                .puts("admin", 1000000)
+                .puts("user", 100000)
+                .puts("everyone", 0);
     }
 
     public static final AppRoles build(JSONObject info) {

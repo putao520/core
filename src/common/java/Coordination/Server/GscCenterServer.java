@@ -1,5 +1,6 @@
 package common.java.Coordination.Server;
 
+import common.java.Config.Config;
 import common.java.Coordination.Common.GscCenterPacket;
 import common.java.File.FileText;
 import common.java.String.StringHelper;
@@ -8,6 +9,7 @@ import org.json.gsc.JSONArray;
 import org.json.gsc.JSONObject;
 
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.*;
 
@@ -88,6 +90,14 @@ public class GscCenterServer {
         return handle.get(pathStr);
     }
 
+    public static GscCenterServer getInstance() {
+        String path = Config.config("StorePath");
+        if (StringHelper.isInvalided(path)) {
+            throw new RuntimeException("数据持久化地址未配置");
+        }
+        return getInstance(Paths.get(path));
+    }
+
     /**
      * @apiNote 载入初始化数据
      */
@@ -142,6 +152,14 @@ public class GscCenterServer {
      */
     public JSONObject export(String key) {
         return store.getJson(key);
+    }
+
+    public JSONArray getClassStore(String key) {
+        JSONObject info = export(key);
+        if (JSONObject.isInvalided(info)) {
+            return null;
+        }
+        return info.getJsonArray("store");
     }
 
     public GscCenterServer clear(String key) {

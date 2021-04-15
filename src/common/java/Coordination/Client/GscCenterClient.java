@@ -128,7 +128,10 @@ public class GscCenterClient {
         if (!store.containsKey(key)) {
             store.put(key, JSONArray.build());
         }
-        updateById(store.getJsonArray(key), data.getJsonArray("data"));
+        JSONArray arr = data.getJsonArray("data");
+        if (!JSONArray.isInvalided(arr)) {
+            updateById(store.getJsonArray(key), arr);
+        }
         // 刷新maps后的对应对象缓存数据
         MasterActor.updateAll(key);
     }
@@ -185,5 +188,18 @@ public class GscCenterClient {
     public void close() {
         this.setKeepLived(false);
         client.close();
+    }
+
+    public JSONObject getServiceInfo(String servName) {
+        JSONArray<JSONObject> arr = getData("services");
+        if (JSONArray.isInvalided(arr)) {
+            return null;
+        }
+        for (JSONObject item : arr) {
+            if (item.getString("name").equals(servName)) {
+                return item;
+            }
+        }
+        return null;
     }
 }

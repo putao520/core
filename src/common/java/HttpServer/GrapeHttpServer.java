@@ -1,10 +1,10 @@
 package common.java.HttpServer;
 
-import com.alibaba.druid.util.StringUtils;
 import common.java.Apps.AppContext;
 import common.java.Http.Mime;
 import common.java.HttpServer.Common.RequestSession;
 import common.java.HttpServer.SpecHeader.Db.HttpContextDb;
+import common.java.Number.NumberHelper;
 import common.java.Rpc.ExecRequest;
 import common.java.Rpc.RpcLocation;
 import common.java.Rpc.rMsg;
@@ -36,7 +36,7 @@ public class GrapeHttpServer {
     private static void fixHttpContext(HttpContext ctx) {
         String path = ctx.path();
         String[] blocks = path.split("/");
-        int appid = (blocks.length > 1 && StringUtils.isNumber(blocks[1])) ? Integer.parseInt(blocks[1]) : 0;
+        int appid = blocks.length > 1 ? NumberHelper.number2int(blocks[1]) : 0;
         if (appid > 0) {
             // 自动补充appid
             ctx.appid(appid);

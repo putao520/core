@@ -13,7 +13,7 @@ public class MicroModel {
     public MicroModel(String tableName, JSONObject modelJson) {
         if (modelJson != null) {
             this.tableName = tableName;
-            this.mmps = new MModelPerm(modelJson.getJson("permissions"));
+            this.mmps = new MModelPerm(modelJson.getJson("perm"));
             this.mmrArray = new MModelRuleArray(modelJson.getJsonArray("rule"));
         }
     }

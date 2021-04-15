@@ -3,6 +3,7 @@ package common.java.Apps;
 import common.java.Apps.MicroService.Config.ModelServiceConfig;
 import common.java.Apps.MicroService.MicroServiceContext;
 import common.java.Apps.Roles.AppRoles;
+import common.java.Config.Config;
 import common.java.HttpServer.Common.RequestSession;
 import common.java.HttpServer.HttpContext;
 import common.java.String.StringHelper;
@@ -108,13 +109,13 @@ public class AppContext {
             this.appid = this.appInfo.getInt("id");
             this.domain = this.appInfo.getString("domain");
             this.microServiceInfo = new HashMap<>();
-            String[] meta = this.appInfo.getString("meta").split(",");
-            for (String s : meta) {
-                MicroServiceContext msc = new MicroServiceContext(this.appid, s);
-                if (msc.hasData()) {
-                    this.microServiceInfo.put(s, msc);
-                }
+            // 单服务只管自己的微服务信息
+            String s = Config.serviceName;
+            MicroServiceContext msc = new MicroServiceContext(this.appid, s);
+            if (msc.hasData()) {
+                this.microServiceInfo.put(s, msc);
             }
+
             this.msc = new ModelServiceConfig(this.appInfo.getJson("configName"));
         }
         this.roles = AppRoles.build(this.appInfo.getJson("roles"));

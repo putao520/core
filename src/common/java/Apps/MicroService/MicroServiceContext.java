@@ -98,25 +98,4 @@ public class MicroServiceContext {
         return this.servInfo.getBoolean("debug");
     }
 
-    /**
-     * 更新数据模型
-     */
-    /*
-    public boolean updateMicroModel() {
-        boolean rb = false;
-        // 更新模型定义
-        JSONObject newMicroModel = this.servModelInfo.toJson();
-        if (RpcResponse.build(MasterProxy.serviceName(MasterServiceName.MicroService)
-                .updateEx(
-                        GscJson.encode(newMicroModel),
-                        DbFilter.buildDbFilter().eq("serviceName", this.servName).eq("appid", this.appId).build().toJSONString()
-                )
-        ).status()) {
-            // 更新全部因为权限模型修改,而需要修改的数据
-            this.servModelInfo.forEach((key, mModel) -> mModel.updatePermInfo());
-            rb = true;
-        }
-        return rb;
-    }
-    */
 }

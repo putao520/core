@@ -57,7 +57,7 @@ public class FormHelper {
 
     //添加字段对象
     public FormHelper addField(MModelRuleNode field) {
-        checkObject.put(field.field(), field);
+        checkObject.put(field.name(), field);
         maskCache.clear();
         return this;
     }
@@ -165,7 +165,7 @@ public class FormHelper {
         for (String key : waitCheck.keySet()) {
             resultJson.put(key, inputData.containsKey(key) ?
                     inputData.get(key) :
-                    autoValueFilter(waitCheck.get(key).initValue())
+                    autoValueFilter(waitCheck.get(key).init())
             );
         }
         return resultJson;
@@ -213,7 +213,7 @@ public class FormHelper {
             for (String key : checkObject.keySet()) {
                 tField = checkObject.get(key);
                 if (inputData.containsKey(key)) {
-                    CheckType checkType = tField.checkType();
+                    CheckType checkType = tField.checkId();
                     Object val = inputData.get(key);
                     rs = checkType.forEachOr(in -> {
                         for (int j : in) {
@@ -226,13 +226,13 @@ public class FormHelper {
                     });
                     if (!rs) {
                         if (filter) {
-                            inputData.put(key, tField.failedValue());
+                            inputData.put(key, tField.failed());
                         }
                     }
                     // 有模型定义了，但是输入字段不包含的字段，自动按默认值填充，但是状态为错误
                 } else {
                     if (filter) {
-                        inputData.put(key, tField.initValue());
+                        inputData.put(key, tField.init());
                     }
                     rs = false;
                 }

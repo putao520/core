@@ -1,5 +1,6 @@
 package common.java.Apps;
 
+import common.java.HttpServer.HttpContext;
 import common.java.MasterProxy.MasterActor;
 import org.json.gsc.JSONObject;
 
@@ -21,7 +22,7 @@ public class AppsProxy {
     public static JSONObject getAppInfo(String domain) {
         JSONObject info = appMapped.getDataByIndex("domain", domain);
         if (info == null) {
-            throw new RuntimeException("当前域名[" + domain + "]未绑定!");
+            HttpContext.current().throwOut("当前域名[" + domain + "]未绑定!");
         }
         return info;
     }
@@ -30,7 +31,7 @@ public class AppsProxy {
     public static JSONObject getServiceInfo(int appId, String serviceName) {
         JSONObject info = serviceMapped.getDataByIndex("appId", String.valueOf(appId));
         if (info == null) {
-            throw new RuntimeException("当前服务[" + serviceName + "]未部署在应用[" + appId + "]!");
+            HttpContext.current().throwOut("当前服务[" + serviceName + "]未部署在应用[" + appId + "]!");
         }
         return info;
     }
