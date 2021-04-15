@@ -7,9 +7,9 @@ import common.java.HttpServer.HttpContext;
 import common.java.Reflect._reflect;
 import common.java.String.StringHelper;
 import common.java.nLogger.nLogger;
+import org.json.gsc.JSONArray;
 import org.json.gsc.JSONObject;
 
-import java.io.File;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -176,21 +176,20 @@ public class ExecRequest {//框架内请求类
         if (o == null) {
             return rMsg.netState(false);
         }
-        if (o instanceof byte[]) {
-            return o;
-        } else if (o instanceof RpcPageInfo) {
-            return o.toString();
-        } else if (o instanceof Boolean) {
-            return rMsg.netState(o);
-        } else if (o instanceof RpcError) {
-            return o.toString();
-        } else if (o instanceof RpcLocation) {
-            return o;
-        } else if (o instanceof File) {
-            return o;
-        } else {
+        if (o instanceof String ||
+                o instanceof Integer ||
+                o instanceof JSONObject ||
+                o instanceof JSONArray ||
+                o instanceof List<?> ||
+                o instanceof HashMap<?, ?> ||
+                o instanceof Long ||
+                o instanceof Float ||
+                o instanceof Double ||
+                o instanceof Short
+        ) {
             return rMsg.netMSG(o);
         }
+        return o;
     }
 
     /**

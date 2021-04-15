@@ -29,7 +29,7 @@ import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
 public class GrapeHttpServer {
     // private final static ThreadLocal<HttpContext> requestData;
 
-    private final static int bufferLen = 8192;
+    private final static int bufferLen = 20480;
     // private final static ExecutorService es = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors() * 2 + 1);
     private final static ExecutorService es = Executors.newCachedThreadPool();
 
@@ -235,8 +235,7 @@ public class GrapeHttpServer {
                 exHeader = new JSONObject(CONTENT_TYPE.toString(), Mime.getMime((File) responseData));
                 responseData = new FileInputStream((File) responseData);
             } catch (Exception e) {
-                File f = (File) responseData;
-                responseData = rMsg.netMSG(false, "下载文件[" + f.getName() + "]失败");
+                responseData = rMsg.netMSG(false, "下载文件[" + ((File) responseData).getName() + "]失败");
             }
         }
         if (responseData instanceof InputStream) {//输入流，不管是字符集还是文件
@@ -250,8 +249,7 @@ public class GrapeHttpServer {
         }
         //----------301重定向输出
         if (responseData instanceof RpcLocation) {
-            RpcLocation loc = (RpcLocation) responseData;
-            location(ctx, loc.toString());
+            location(ctx, responseData.toString());
             return;
         }
         //----------wsText输出

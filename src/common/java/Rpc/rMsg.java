@@ -2,9 +2,11 @@ package common.java.Rpc;
 
 
 import common.java.Number.NumberHelper;
-import common.java.String.StringHelper;
 import org.json.gsc.JSONArray;
 import org.json.gsc.JSONObject;
+
+import java.util.HashMap;
+import java.util.List;
 
 public class rMsg {
     public static String netMSG(Object state, Object data) {
@@ -12,23 +14,10 @@ public class rMsg {
     }
 
     public static String netMSG(Object data) {
-        if (data instanceof JSONObject) {
-            JSONObject json = (JSONObject) data;
-            if (JSONObject.isInvalided(json)) {
-                return netState(false);
-            }
-        }
-        if (data instanceof JSONArray) {
-            JSONArray array = (JSONArray) data;
-            if (JSONArray.isInvalided(array)) {
-                return netState(false);
-            }
-        }
-        if (data instanceof String) {
-            String str = (String) data;
-            if (StringHelper.isInvalided(str)) {
-                return netState(false);
-            }
+        if (data instanceof List<?>) {
+            data = JSONArray.build().addAlls((List<?>) data);
+        } else if (data instanceof HashMap<?, ?>) {
+            data = JSONObject.build().putAlls((HashMap<String, ?>) data);
         }
         return netMSG(true, data);
     }
