@@ -38,7 +38,9 @@ public class GscCenterServer {
         }, 1, 1, TimeUnit.SECONDS);
     }
 
-    // 获得该对象时,必须确保并发安全!!!(目前不安全)
+    private final ScheduledExecutorService auto_save_worker = Executors.newSingleThreadScheduledExecutor();  // 管理命令线程
+    private final FileText file;
+    // 获得该对象时,必须确保并发安全!!!(目前已改成队列执行，确保线程安全)
     private final JSONObject store;
     /**
      * keyA:[]
@@ -47,15 +49,35 @@ public class GscCenterServer {
      */
     private final HashMap<String, ConcurrentHashMap<String, ChannelHandlerContext>> subscribeQueue = new HashMap<>();
 
-    private GscCenterServer() {
-        this.store = JSONObject.build();
-    }
-    private GscCenterServer(JSONObject data) {
-        this.store = data;
+    private GscCenterServer(String path) {
+        this.file = FileText.build(path);
+        this.store = JSONObject.build(file.readString());
     }
 
-    private GscCenterServer(String path) {
-        this.store = JSONObject.build(FileText.build(path).readString());
+    private void save() {
+        file.write(store.toJSONString());
+    }
+
+    public GscCenterServer enableSave() {
+        auto_save_worker.scheduleAtFixedRate(() -> {
+            // 定时保存数据
+            this.save();
+        }, 30, 30, TimeUnit.SECONDS);
+        return this;
+    }
+
+    public GscCenterServer disableSave() {
+        if (auto_save_worker.isTerminated()) {
+            try {
+                auto_save_worker.awaitTermination(60, TimeUnit.SECONDS);
+            } catch (InterruptedException e) {
+                // 无视终止异常，强行终止
+            }
+        }
+        if (auto_save_worker.isShutdown()) {
+            auto_save_worker.shutdown();
+        }
+        return this;
     }
 
     public static GscCenterServer getInstance(Path path) {
@@ -69,10 +91,6 @@ public class GscCenterServer {
     /**
      * @apiNote 载入初始化数据
      */
-    public static GscCenterServer load(JSONObject data) {
-        return new GscCenterServer(data);
-    }
-
     public static GscCenterServer load(String path) {
         return new GscCenterServer(path);
     }

@@ -2,6 +2,7 @@ package common.java.Config;
 
 import common.java.JGrapeSystem.SystemDefined;
 import common.java.MasterProxy.MasterActor;
+import common.java.String.StringHelper;
 import common.java.nLogger.nLogger;
 import org.json.gsc.JSONObject;
 
@@ -18,6 +19,9 @@ public class Config {
     public static int port;
     public static String serviceName;
     public static String nodeID;
+
+    public static String masterId;
+    public static String masterPass;
 
     private static String configPath = "gfw.cfg";
     private static MasterActor configs;
@@ -58,6 +62,9 @@ public class Config {
         masterHost = prop.getProperty("MasterHost", "http://127.0.0.1");//read putao520system host url
         masterPort = Integer.parseInt(prop.getProperty("MasterPort", "0"));
         bindIP = prop.getProperty("BindIP", "0.0.0.0");//本地服务节点通信Ip
+
+        masterId = prop.getProperty("MasterId");
+        masterPass = prop.getProperty("MasterPass");
         // 自动生成
         nodeID = createNodeID(SystemDefined.ip(), port);
     }
@@ -73,6 +80,12 @@ public class Config {
             throw new RuntimeException("配置[" + session + "] ->不存在!");
         }
         return rs.getJson("config").toJSONString();
+    }
+
+    public static void set(String key, Object val) {
+        Properties prop = loadProps();
+        prop.setProperty(key, StringHelper.toString(val));
+        updateConfig();
     }
 
     public static String config(String session) {
