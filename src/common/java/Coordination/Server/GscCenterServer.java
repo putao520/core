@@ -108,19 +108,16 @@ public class GscCenterServer {
     public boolean workerRunner(GscChangeMsg msg) {
         switch (msg.getAction()) {
             case "insert":
-                // return onInsert(msg.getServiceName(), msg.getData(), msg.getChannel());
-                return onInsert(msg.getServiceName(), msg.getData(), null);
+                return onInsert(msg, null);
             case "update":
-                // return onUpdate(msg.getServiceName(), msg.getData(), msg.getChannel());
-                return onUpdate(msg.getServiceName(), msg.getData(), null);
+                return onUpdate(msg, null);
             case "delete":
-                // return onDelete(msg.getServiceName(), msg.getData(), msg.getChannel());
-                return onDelete(msg.getServiceName(), msg.getData(), null);
+                return onDelete(msg, null);
             case "subscribe":
-                subscribe(msg.getServiceName(), msg.getData(), msg.getChannel());
+                subscribe(msg, msg.getChannel());
                 return true;
             case "unsubscribe":
-                unSubscribe(msg.getServiceName(), msg.getData(), msg.getChannel());
+                unSubscribe(msg, msg.getChannel());
                 return true;
             default:
                 return true;
@@ -261,7 +258,7 @@ public class GscCenterServer {
         return findApps4AppIds(appIds);
     }
 
-    private JSONArray<JSONObject> findServices4ServiceName(String serviceName) {
+    private JSONArray<JSONObject> findServices4ServiceName(String serviceName, int deployId) {
         JSONObject serviceInfo = findServiceInfoByName(serviceName);
         if (JSONObject.isInvalided(serviceInfo)) {
             return null;
@@ -271,7 +268,8 @@ public class GscCenterServer {
         JSONArray<JSONObject> result = JSONArray.build();
         JSONArray<JSONObject> deployArr = store.getJson("servicesDeploy").getJsonArray("store");
         for (JSONObject v : deployArr) {
-            if (v.getString("serviceId").equals(serviceId)) {
+            // 根据服务ID和部署ID获得聚合内容
+            if (v.getString("serviceId").equals(serviceId) && v.getInt("id") == deployId) {
                 result.add(JSONObject.build(v).putAlls(serviceInfo));
             }
         }
@@ -311,34 +309,35 @@ public class GscCenterServer {
         return JSONArray.build(configNameMaps.values());
     }
 
-    private void PushAll(String serviceName, ChannelHandlerContext ctx) {
+    private void PushAll(GscChangeMsg msg, ChannelHandlerContext ctx) {
+        String serviceName = msg.getServiceName();
         ReturnChannelMsg(serviceName, "apps", findApps4ServiceName(serviceName), ctx);
-        ReturnChannelMsg(serviceName, "services", findServices4ServiceName(serviceName), ctx);
+        ReturnChannelMsg(serviceName, "services", findServices4ServiceName(serviceName, msg.getDeployId()), ctx);
         ReturnChannelMsg(serviceName, "configs", findConfigs4ServiceName(serviceName), ctx);
     }
 
     /**
-     * @param serviceName 订阅微服务名称
-     * @param data        附带数据{ name: 服务名, node:节点id }
+     * @param msg 订阅微服务名称
      * @apiNote 订阅挂载点数据变更
      */
-    public void subscribe(String serviceName, JSONObject data, ChannelHandlerContext ctx) {
+    public void subscribe(GscChangeMsg msg, ChannelHandlerContext ctx) {
+        String serviceName = msg.getServiceName();
         // 注册计算节点
-        registerNode(serviceName, data, ctx);
+        registerNode(serviceName, msg.getData(), ctx);
         // 下发与service有关数据
-        PushAll(serviceName, ctx);
+        PushAll(msg, ctx);
         // 添加订阅到队列
         getSubscribeChannel(serviceName).put(ctx.name(), ctx);
     }
 
     /**
-     * @param serviceName 微服务名称
-     * @param ctx         网络通道
+     * @param msg 微服务名称
+     * @param ctx 网络通道
      * @apiNote 取消订阅挂载点数据变更
      */
-    public GscCenterServer unSubscribe(String serviceName, JSONObject data, ChannelHandlerContext ctx) {
-        String nodeId = data.getString("node");
-        getSubscribeChannel(serviceName).remove(ctx.name());
+    public GscCenterServer unSubscribe(GscChangeMsg msg, ChannelHandlerContext ctx) {
+        String nodeId = msg.getData().getString("node");
+        getSubscribeChannel(msg.getServiceName()).remove(ctx.name());
         store.getJson("nodes").remove(nodeId);
         return this;
     }
@@ -367,29 +366,30 @@ public class GscCenterServer {
         return nIdx;
     }
 
-    private void onChange(String serviceName, String className, ChannelHandlerContext ctx) {
+    private void onChange(GscChangeMsg msg, String className, ChannelHandlerContext ctx) {
+        String serviceName = msg.getServiceName();
         // 添加数据, 根据修改后数据触发返回
         switch (className) {
             case "apps":
                 ReturnChannelMsg(serviceName, "apps", findApps4ServiceName(serviceName), ctx);
                 break;
             case "services":
-                ReturnChannelMsg(serviceName, "services", findServices4ServiceName(serviceName), ctx);
+                ReturnChannelMsg(serviceName, "services", findServices4ServiceName(serviceName, msg.getDeployId()), ctx);
                 break;
             case "configs":
                 ReturnChannelMsg(serviceName, "configs", findConfigs4ServiceName(serviceName), ctx);
                 break;
             case "servicesDeploy":
-                PushAll(serviceName, ctx);
+                PushAll(msg, ctx);
         }
     }
 
     /**
-     * @param serviceName 微服务名称
-     * @param data        添加数据
+     * @param msg 消息
      * @apiNote 客户端新增数据时
      */
-    public boolean onInsert(String serviceName, JSONObject data, ChannelHandlerContext ctx) {
+    public boolean onInsert(GscChangeMsg msg, ChannelHandlerContext ctx) {
+        JSONObject data = msg.getData();
         // 获得分类
         String className = data.getString("name");
         if (!store.containsKey(className)) {
@@ -401,16 +401,16 @@ public class GscCenterServer {
         updateIndex(info, insertData);
         info.getJsonArray("store").add(insertData);
 
-        onChange(serviceName, className, ctx);
+        onChange(msg, className, ctx);
         return true;
     }
 
     /**
-     * @param serviceName 微服务名称
-     * @param data        添加数据
+     * @param msg        消息
      * @apiNote 客户端要求更新数据
      */
-    public boolean onUpdate(String serviceName, JSONObject data, ChannelHandlerContext ctx) {
+    public boolean onUpdate(GscChangeMsg msg, ChannelHandlerContext ctx) {
+        JSONObject data = msg.getData();
         // 获得分类
         String className = data.getString("name");
         if (!store.containsKey(className)) {
@@ -422,7 +422,7 @@ public class GscCenterServer {
         for (JSONObject v : arr) {
             if (v.getString("id").equals(updateData.getString("id"))) {
                 v.putAll(updateData);
-                onChange(serviceName, className, ctx);
+                onChange(msg, className, ctx);
                 return true;
             }
         }
@@ -430,11 +430,11 @@ public class GscCenterServer {
     }
 
     /**
-     * @param serviceName 微服务名称
-     * @param data        添加数据
+     * @param msg        添加数据
      * @apiNote 客户端要求删除数据
      */
-    public boolean onDelete(String serviceName, JSONObject data, ChannelHandlerContext ctx) {
+    public boolean onDelete(GscChangeMsg msg, ChannelHandlerContext ctx) {
+        JSONObject data = msg.getData();
         // 获得分类
         String className = data.getString("name");
         if (!store.containsKey(className)) {
@@ -448,7 +448,7 @@ public class GscCenterServer {
             JSONObject item = it.next();
             if (item.getString("id").equals(deleteData.getString("id"))) {
                 it.remove();
-                onChange(serviceName, className, ctx);
+                onChange(msg, className, ctx);
                 return true;
             }
         }

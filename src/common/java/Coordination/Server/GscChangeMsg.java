@@ -8,9 +8,12 @@ public class GscChangeMsg {
     private final JSONObject data;
     private final ChannelHandlerContext ctx;
     private final String action;
+    private final int deployId;
 
-    private GscChangeMsg(String serviceName, String action, JSONObject data, ChannelHandlerContext ctx) {
-        this.serviceName = serviceName;
+    private GscChangeMsg(String serviceInfo, String action, JSONObject data, ChannelHandlerContext ctx) {
+        String[] serviceInfoArr = serviceInfo.split("_");
+        this.serviceName = serviceInfoArr[0];
+        this.deployId = serviceInfoArr.length > 1 ? Integer.valueOf(serviceInfoArr[1]) : 0;
         this.action = action;
         this.data = data;
         this.ctx = ctx;
@@ -22,6 +25,10 @@ public class GscChangeMsg {
 
     public String getServiceName() {
         return this.serviceName;
+    }
+
+    public int getDeployId() {
+        return this.deployId;
     }
 
     public JSONObject getData() {
