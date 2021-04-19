@@ -23,6 +23,10 @@ public class GscChangeMsg {
         return new GscChangeMsg(serviceName, action, data, ctx);
     }
 
+    public static GscChangeMsg build(String serviceName, String action, JSONObject data) {
+        return new GscChangeMsg(serviceName, action, data, null);
+    }
+
     public String getServiceName() {
         return this.serviceName;
     }

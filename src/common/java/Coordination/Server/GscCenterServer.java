@@ -388,6 +388,10 @@ public class GscCenterServer {
      * @param msg 消息
      * @apiNote 客户端新增数据时
      */
+    public boolean onInsert(GscChangeMsg msg) {
+        return onInsert(msg, null);
+    }
+
     public boolean onInsert(GscChangeMsg msg, ChannelHandlerContext ctx) {
         JSONObject data = msg.getData();
         // 获得分类
@@ -406,9 +410,13 @@ public class GscCenterServer {
     }
 
     /**
-     * @param msg        消息
+     * @param msg 消息
      * @apiNote 客户端要求更新数据
      */
+    public boolean onUpdate(GscChangeMsg msg) {
+        return onUpdate(msg, null);
+    }
+
     public boolean onUpdate(GscChangeMsg msg, ChannelHandlerContext ctx) {
         JSONObject data = msg.getData();
         // 获得分类
@@ -433,6 +441,10 @@ public class GscCenterServer {
      * @param msg        添加数据
      * @apiNote 客户端要求删除数据
      */
+    public boolean onDelete(GscChangeMsg msg) {
+        return onDelete(msg, null);
+    }
+
     public boolean onDelete(GscChangeMsg msg, ChannelHandlerContext ctx) {
         JSONObject data = msg.getData();
         // 获得分类
