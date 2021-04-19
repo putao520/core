@@ -159,6 +159,13 @@ public class GscCenterServer {
         return info.getJsonArray("store");
     }
 
+    /**
+     * @apiNote 根据部署ID获得合并后的服务信息
+     */
+    public JSONObject getDeployServiceInfo(int deployId) {
+        return findServices4DeployId(deployId);
+    }
+
     public GscCenterServer clear(String key) {
         store.getJsonArray(key).clear();
         return this;
@@ -221,6 +228,11 @@ public class GscCenterServer {
         return (JSONObject) store.getJson("services").getJsonArray("store").mapsByKey("name").get(serviceName, null);
     }
 
+    private JSONObject findServiceInfoById(String id) {
+        // 根据服务id获得服务信息
+        return (JSONObject) store.getJson("services").getJsonArray("store").mapsByKey("id").get(id, null);
+    }
+
     private JSONArray<JSONObject> findApps4AppIds(Set<String> idArr) {
         JSONArray<JSONObject> result = JSONArray.build();
         JSONObject appsMap = store.getJson("apps").getJsonArray("store").mapsByKey("id");
@@ -258,6 +270,21 @@ public class GscCenterServer {
         return findApps4AppIds(appIds);
     }
 
+    private JSONObject findServices4DeployId(int deployId) {
+        JSONArray<JSONObject> deployArr = store.getJson("servicesDeploy").getJsonArray("store");
+        for (JSONObject v : deployArr) {
+            // 部署ID获得部署内容
+            if (v.getInt("id") == deployId) {
+                // 根据服务ID获得服务器内容
+                JSONObject serviceInfo = findServiceInfoById(v.getString("serviceId"));
+                if (!JSONObject.isInvalided(serviceInfo)) {
+                    return serviceInfo.putAlls(v);
+                }
+            }
+        }
+        return null;
+    }
+
     private JSONArray<JSONObject> findServices4ServiceName(String serviceName, int deployId) {
         JSONObject serviceInfo = findServiceInfoByName(serviceName);
         if (JSONObject.isInvalided(serviceInfo)) {
@@ -269,7 +296,10 @@ public class GscCenterServer {
         JSONArray<JSONObject> deployArr = store.getJson("servicesDeploy").getJsonArray("store");
         for (JSONObject v : deployArr) {
             // 根据服务ID和部署ID获得聚合内容
-            if (v.getString("serviceId").equals(serviceId) && v.getInt("id") == deployId) {
+            if (v.getString("serviceId").equals(serviceId)) {
+                if (deployId > 0 && v.getInt("id") != deployId) {
+                    continue;
+                }
                 result.add(JSONObject.build(v).putAlls(serviceInfo));
             }
         }
