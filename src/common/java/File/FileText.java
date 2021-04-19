@@ -20,6 +20,10 @@ public class FileText extends FileHelper<FileText> {
         this.charset = charset;
     }
 
+    public File file() {
+        return super.file;
+    }
+
     public static FileText build(String filePath, Charset charset) {
         return new FileText(new File(filePath), charset);
     }
