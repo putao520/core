@@ -109,7 +109,7 @@ public class DbFilter {
     }
 
     public boolean nullCondition() {
-        return condArray.size() != 0;
+        return condArray.isEmpty();
     }
 
     public List<List<Object>> buildEx() {

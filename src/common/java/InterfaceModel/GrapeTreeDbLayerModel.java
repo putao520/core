@@ -444,14 +444,13 @@ public class GrapeTreeDbLayerModel implements InterfaceDatabase<GrapeTreeDbLayer
 
     // 写方法群
     private JSONObject autoCompletePerms(JSONObject data) {
-        if (UserSession.hasSession()) {
-            UserSession us = UserSession.current();
-            if (us != null) {
-                data.puts(SuperItemField.userIdField, us.getUID())
-                        .put(SuperItemField.groupIdField, us.getGID());
-            }
+        UserSession us = UserSession.current();
+        if (us == null || !us.checkSession()) {
+            us = UserSession.buildEveryone();
         }
-        return data;
+        return data.puts(SuperItemField.userIdField, us.getUID())
+                .puts(SuperItemField.groupIdField, us.getGID())
+                .puts(SuperItemField.PVField, us.getGPV());
     }
 
     /**
@@ -536,8 +535,8 @@ public class GrapeTreeDbLayerModel implements InterfaceDatabase<GrapeTreeDbLayer
             HttpContext.current().throwDebugOut("当前用户更新数据为空!");
             return false;
         }
-        if (!checker.checkTable(info, true)) {
-            HttpContext.current().throwDebugOut("当前用户更新数据[" + checker.getlastErrorName() + "] ->不合法!");
+        if (!checker.checkTable(info, false)) {
+            HttpContext.current().throwDebugOut("当前用户更新数据[" + checker.getLastErrorName() + "] ->不合法!");
             return false;
         }
         return _updateImpl(info);

@@ -234,23 +234,24 @@ public class FormHelper {
                     if (filter) {
                         inputData.put(key, tField.init());
                     }
-                    rs = false;
+                    // 输入字段不包含定义字段，非严格模式下不算错
+                    if (strict) {
+                        rs = false;
+                    }
                 }
                 if (filter) {
                     continue;
                 }
-                if (strict) {
-                    if (!rs) {
-                        lastErrorKey = key;
-                        break;
-                    }
+                if (!rs) {
+                    lastErrorKey = key;
+                    break;
                 }
             }
         }
         return rs;
     }
 
-    public String getlastErrorName() {
+    public String getLastErrorName() {
         return lastErrorKey;
     }
 
@@ -272,7 +273,7 @@ public class FormHelper {
                 }
             }
         }
-        String[] nStringArray = null;
+        String[] nStringArray = new String[]{};
         if (maskCache.size() > 0) {
             nStringArray = new String[maskCache.size()];
             maskCache.toArray(nStringArray);

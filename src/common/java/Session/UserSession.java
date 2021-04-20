@@ -258,8 +258,7 @@ public class UserSession {
     }
 
     public boolean checkSession() {
-        Object ro = cacher.get(sid);
-        return ro != null;
+        return sid != null && (sid.equals(everyone_key) || cacher.get(sid) != null);
     }
 
     /**

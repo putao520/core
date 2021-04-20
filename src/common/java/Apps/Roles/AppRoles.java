@@ -2,9 +2,8 @@ package common.java.Apps.Roles;
 
 import org.json.gsc.JSONObject;
 
-import java.util.HashSet;
-import java.util.Set;
-import java.util.SortedSet;
+import java.util.ArrayList;
+import java.util.List;
 
 public class AppRoles {
     private final JSONObject store;
@@ -34,8 +33,8 @@ public class AppRoles {
     /**
      * 获得权值大于 roleName 的全部角色名称
      */
-    public Set<String> gt(String roleName) {
-        Set<String> arr = new HashSet<>();
+    public List<String> gt(String roleName) {
+        List<String> arr = new ArrayList<>();
         if (roleName != null) {
             int basePV = this.getPV(roleName);
             if (basePV >= 0) {
@@ -52,8 +51,8 @@ public class AppRoles {
     /**
      * 获得权值小于于 roleName 的全部角色名称
      */
-    public Set<String> lt(String roleName) {
-        Set<String> arr = new HashSet<>();
+    public List<String> lt(String roleName) {
+        List<String> arr = new ArrayList<>();
         if (roleName != null) {
             int basePV = this.getPV(roleName);
             if (basePV >= 0) {
@@ -90,11 +89,11 @@ public class AppRoles {
     }
     */
 
-    public String getMaxRole(SortedSet<String> values) {
-        return values.size() > 0 ? values.last() : null;
+    public String getMaxRole(List<String> values) {
+        return values.size() > 0 ? values.get(values.size() - 1) : null;
     }
 
-    public String getMinRole(SortedSet<String> values) {
-        return values.size() > 0 ? values.first() : null;
+    public String getMinRole(List<String> values) {
+        return values.size() > 0 ? values.get(0) : null;
     }
 }

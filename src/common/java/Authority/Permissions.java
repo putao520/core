@@ -11,9 +11,7 @@ import common.java.Session.UserSession;
 import org.json.gsc.JSONObject;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 /*
  * 权限模式使用，需要保证用户登录后，将用户个人信息，用户组信息都填充到位
@@ -25,7 +23,7 @@ public class Permissions {
         this.perms = MicroServiceContext.current().model(tableName).perms();
     }
 
-    private Set<String> groupArr(MModelPermInfo perm) {
+    private List<String> groupArr(MModelPermInfo perm) {
         AppRoles roles = AppContext.current().roles();
         switch (perm.logic()) {
             case MModelPermDef.perm_group_logic_gt:
@@ -37,7 +35,7 @@ public class Permissions {
             case MModelPermDef.perm_group_logic_eq:
                 return perm.value();
             default:
-                return new HashSet<>();
+                return new ArrayList<>();
         }
     }
 
@@ -67,20 +65,23 @@ public class Permissions {
         return true;
     }
 
-    private void _completeFilter(JSONObject data, UserSession se) {
-        /*
+    private void _completeFilter(JSONObject data, UserSession se, MModelPermInfo perm) {
+        // 替换对应值
         switch (perm.type()) {
             case MModelPermDef.perm_type_user:
                 data.put(SuperItemField.userIdField, se.getUID());
                 break;
             case MModelPermDef.perm_type_group:
-                data.put(SuperItemField.groupIdField, se.getGID());
+                data.puts(SuperItemField.groupIdField, se.getGID())
+                        .put(SuperItemField.PVField, se.getGPV());
                 break;
-        }*/
+        }
         // 无脑写入用户，用户组，用户组权限
+        /*
         data.puts(SuperItemField.userIdField, se.getUID())
                 .puts(SuperItemField.groupIdField, se.getGID())
                 .puts(SuperItemField.PVField, se.getGPV());
+         */
     }
 
     private boolean completeFilter(JSONObject data, MModelPermInfo perm) {
@@ -91,7 +92,7 @@ public class Permissions {
         if (!se.checkSession()) {  // 当前定义了权限,但是用户未登录
             se = UserSession.buildEveryone();
         }
-        _completeFilter(data, se);
+        _completeFilter(data, se, perm);
         return true;
     }
 
@@ -122,7 +123,7 @@ public class Permissions {
             return false;
         }
         for (JSONObject info : data) {
-            _completeFilter(info, se);
+            _completeFilter(info, se, perm);
         }
         return true;
     }

@@ -106,7 +106,7 @@ public class GrapeHttpServer {
         if (GrapeRequest.length >= 2) {
             // 当无有效appid时,根据域名重置Appid
             if (appid == 0) {
-                appContext = new AppContext(host);
+                appContext = AppContext.build(host);
                 if (appContext.hasData()) {    // 域名有效,重置appid
                     appid = appContext.appId();
                     ctx.appid(appid);
@@ -114,7 +114,7 @@ public class GrapeHttpServer {
             }
             //如果包含有效Appid,调用应用服务包
             if (appid > 0) {
-                appContext = new AppContext(appid);
+                appContext = AppContext.build(appid);
                 // 微服务名无效或者应用ID无效
                 if (!appContext.hasData() || !appContext.microServiceInfo().containsKey(GrapeRequest[0])) {
                     nLogger.logInfo("[应用ID:" + appid + " 无效] 或者 [微服务名称:" + GrapeRequest[0] + " 无效]");

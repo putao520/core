@@ -30,12 +30,20 @@ public class AppContext {
         init(HttpContext.current().appid());
     }
 
-    public AppContext(int appid) {
-        init(appid);
+    private AppContext(int appId) {
+        init(appId);
     }
 
-    public AppContext(String domain) {
+    private AppContext(String domain) {
         init(domain);
+    }
+
+    public static AppContext build(int appId) {
+        return (new AppContext(appId)).loadMircServiceInfo();
+    }
+
+    public static AppContext build(String domain) {
+        return (new AppContext(domain)).loadMircServiceInfo();
     }
 
     public static AppContext current() {
@@ -43,6 +51,7 @@ public class AppContext {
         if (r == null) {
             r = new AppContext();
             RequestSession.setValue(AppContext.SessionKey, r);
+            r.loadMircServiceInfo();
         }
         return r;
     }
@@ -108,17 +117,21 @@ public class AppContext {
         if (this.appInfo != null) {
             this.appid = this.appInfo.getInt("id");
             this.domain = this.appInfo.getString("domain");
-            this.microServiceInfo = new HashMap<>();
-            // 单服务只管自己的微服务信息
-            String s = Config.serviceName;
-            MicroServiceContext msc = new MicroServiceContext(this.appid, s);
-            if (msc.hasData()) {
-                this.microServiceInfo.put(s, msc);
-            }
-
+            this.roles = AppRoles.build(this.appInfo.getJson("roles"));
             this.msc = new ModelServiceConfig(this.appInfo.getJson("config"));
         }
-        this.roles = AppRoles.build(this.appInfo.getJson("roles"));
+
+    }
+
+    private AppContext loadMircServiceInfo() {
+        this.microServiceInfo = new HashMap<>();
+        // 单服务只管自己的微服务信息
+        String s = Config.serviceName;
+        MicroServiceContext msc = new MicroServiceContext(this.appid, s);
+        if (msc.hasData()) {
+            this.microServiceInfo.put(s, msc);
+        }
+        return this;
     }
 
     public boolean hasData() {

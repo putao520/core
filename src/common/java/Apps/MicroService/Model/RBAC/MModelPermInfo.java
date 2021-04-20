@@ -7,8 +7,7 @@ import common.java.String.StringHelper;
 import org.json.gsc.JSONObject;
 
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.SortedSet;
+import java.util.List;
 
 /**
  * 权限节点设计,包含权限类型和权限值
@@ -16,7 +15,7 @@ import java.util.SortedSet;
 
 public class MModelPermInfo {
     private final JSONObject info;
-    private SortedSet<String> group_values;
+    private List<String> group_values;
 
     private MModelPermInfo(JSONObject info) {
         this.info = info;
@@ -46,7 +45,7 @@ public class MModelPermInfo {
                 .map(v -> v.name)
                 .toArray(String[]::new);
         this.info.put(MModelPermDef.perm_value_caption, StringHelper.join(roleArr));
-        Collections.addAll(group_values, roleArr);
+        this.group_values = Arrays.asList(roleArr);
     }
 
     public static MModelPermInfo build(JSONObject info) {
@@ -74,7 +73,7 @@ public class MModelPermInfo {
     /**
      * 获得记录值(管理员才有用)
      */
-    public SortedSet<String> value() {
+    public List<String> value() {
         // return this.info.getString(MModelPermDef.perm_value_caption).split(",");
         return group_values;
     }
