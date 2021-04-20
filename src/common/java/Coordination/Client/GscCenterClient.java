@@ -18,8 +18,10 @@ public class GscCenterClient {
     private final AtomicInteger loadCnt;
     private boolean liveStatus;
     private boolean keepLived;
+    private final String serviceKey;
 
     private GscCenterClient() {
+        this.serviceKey = Config.getFullServiceKey();
         this.liveStatus = false;
         this.keepLived = false;
         this.loadCnt = new AtomicInteger(0);
@@ -146,7 +148,7 @@ public class GscCenterClient {
      */
     public GscCenterClient subscribe() {
         this.setResponse(3);
-        client.send(GscCenterPacket.build(Config.serviceName, JSONObject.build("node", Config.nodeID), GscCenterEvent.Subscribe, false));
+        client.send(GscCenterPacket.build(serviceKey, JSONObject.build("node", Config.nodeID), GscCenterEvent.Subscribe, false));
         this.waitResponse();
         return this;
     }
@@ -155,31 +157,31 @@ public class GscCenterClient {
      * @apiNote 取消订阅挂载(订阅除了key外, 还要带入当前微服务名和节点ID)
      */
     public GscCenterClient unSubscribe() {
-        client.send(GscCenterPacket.build(Config.serviceName, JSONObject.build("node", Config.nodeID), GscCenterEvent.UnSubscribe, false));
+        client.send(GscCenterPacket.build(serviceKey, JSONObject.build("node", Config.nodeID), GscCenterEvent.UnSubscribe, false));
         return this;
     }
 
     public GscCenterClient disconnect() {
-        client.send(GscCenterPacket.build(Config.serviceName, JSONObject.build("node", Config.nodeID), GscCenterEvent.TestDisconnect, false));
+        client.send(GscCenterPacket.build(serviceKey, JSONObject.build("node", Config.nodeID), GscCenterEvent.TestDisconnect, false));
         return this;
     }
 
     public GscCenterClient insert(String className, JSONObject data) {
-        client.send(GscCenterPacket.build(Config.serviceName,
+        client.send(GscCenterPacket.build(serviceKey,
                 JSONObject.build("data", data).puts("name", className)
                 , GscCenterEvent.Insert, false));
         return this;
     }
 
     public GscCenterClient update(String className, JSONObject data) {
-        client.send(GscCenterPacket.build(Config.serviceName,
+        client.send(GscCenterPacket.build(serviceKey,
                 JSONObject.build("data", data).puts("name", className)
                 , GscCenterEvent.Update, false));
         return this;
     }
 
     public GscCenterClient delete(String className, JSONObject data) {
-        client.send(GscCenterPacket.build(Config.serviceName,
+        client.send(GscCenterPacket.build(serviceKey,
                 JSONObject.build("data", data).puts("name", className)
                 , GscCenterEvent.Delete, false));
         return this;
