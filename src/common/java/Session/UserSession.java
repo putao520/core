@@ -2,6 +2,7 @@ package common.java.Session;
 
 import common.java.Apps.AppContext;
 import common.java.Apps.MicroService.Config.ModelServiceConfig;
+import common.java.Apps.Roles.AppRolesDef;
 import common.java.Cache.CacheHelper;
 import common.java.HttpServer.HttpContext;
 import common.java.Number.NumberHelper;
@@ -53,6 +54,14 @@ public class UserSession {
         return new UserSession(sid, expireTime);
     }
 
+    public static UserSession buildEveryone() {
+        var r = AppRolesDef.everyone;
+        var sId = r.name;
+        return (UserSession.checkSession(sId)) ?
+                UserSession.build(sId) :
+                UserSession.createSession(sId, JSONObject.build().puts(SuperItemField.fatherField, r.name).puts(SuperItemField.PVField, r.group_value));
+    }
+
     private static CacheHelper getCacher() {
         ModelServiceConfig info = AppContext.current().config();
         if (info == null) {
@@ -64,7 +73,7 @@ public class UserSession {
             nLogger.logInfo("应用[" + AppContext.current().appid() + "] 未设置缓存配置,无法使用会话系统!");
         }
         */
-        return CacheHelper.buildCache(appCache);
+        return CacheHelper.build(appCache);
     }
 
     /**
@@ -83,8 +92,15 @@ public class UserSession {
     }
 
     public static UserSession createSession(String uid, String jsonString, int expire) {
+        return createSession(uniqueUUID(uid), uid, jsonString, expire);
+    }
+
+    public static UserSession createSession(String sid, String uid, String jsonString) {
+        return createSession(sid, uid, jsonString, sessiontime);
+    }
+
+    public static UserSession createSession(String sid, String uid, String jsonString, int expire) {
         CacheHelper cacher = getCacher();
-        String sid = uniqueUUID(uid);//申请会话id
         JSONObject exJson = JSONObject.toJSON(jsonString);
         if (exJson == null) {
             exJson = new JSONObject();
@@ -240,7 +256,7 @@ public class UserSession {
 
     //更换缓存服务对象
     public UserSession switchCacher(String newConfigName) {
-        cacher = CacheHelper.buildCache(newConfigName);
+        cacher = CacheHelper.build(newConfigName);
         return this;
     }
 

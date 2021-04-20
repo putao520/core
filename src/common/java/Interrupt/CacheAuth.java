@@ -4,7 +4,7 @@ import common.java.Cache.CacheHelper;
 import common.java.String.StringHelper;
 
 public class CacheAuth {
-    private final CacheHelper cache = CacheHelper.buildCache();//使用当前服务的缓存
+    private final CacheHelper cache = CacheHelper.build();//使用当前服务的缓存
 
     public static CacheAuth build() {
         return new CacheAuth();

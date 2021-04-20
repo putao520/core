@@ -116,7 +116,7 @@ public class AppContext {
                 this.microServiceInfo.put(s, msc);
             }
 
-            this.msc = new ModelServiceConfig(this.appInfo.getJson("configName"));
+            this.msc = new ModelServiceConfig(this.appInfo.getJson("config"));
         }
         this.roles = AppRoles.build(this.appInfo.getJson("roles"));
     }

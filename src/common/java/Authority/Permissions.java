@@ -51,7 +51,7 @@ public class Permissions {
         }
         UserSession se = UserSession.current();
         if (!se.checkSession()) {  // 当前定义了权限,但是用户未登录
-            return false;
+            se = UserSession.buildEveryone();
         }
 
         switch (perm.type()) {
@@ -88,7 +88,7 @@ public class Permissions {
         }
         UserSession se = UserSession.current();
         if (!se.checkSession()) {  // 当前定义了权限,但是用户未登录
-            return false;
+            se = UserSession.buildEveryone();
         }
         _completeFilter(data, perm, se);
         return true;
@@ -110,7 +110,7 @@ public class Permissions {
         }
         UserSession se = UserSession.current();
         if (!se.checkSession()) {  // 当前定义了权限,但是用户未登录
-            return false;
+            se = UserSession.buildEveryone();
         }
         for (JSONObject info : data) {
             _completeFilter(info, perm, se);
@@ -141,7 +141,7 @@ public class Permissions {
         }
         UserSession se = UserSession.current();
         if (!se.checkSession()) {  // 当前定义了管理员,但是用户未登录
-            return false;
+            se = UserSession.buildEveryone();
         }
         switch (perm.type()) {
             case MModelPermDef.perm_type_user:

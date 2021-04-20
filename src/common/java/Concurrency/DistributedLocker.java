@@ -10,7 +10,7 @@ public class DistributedLocker {
 
     static {
         // 本地JVM第一次载入类时，清除所有未释放全局锁，防止出现死锁
-        CacheHelper ch = CacheHelper.buildCache();
+        CacheHelper ch = CacheHelper.build();
         FileText textFile = FileText.build(logFileName);
         textFile.read().forEach(lockerInfo -> {
             String[] locker = lockerInfo.split("\\|");
@@ -54,7 +54,7 @@ public class DistributedLocker {
 
     private CacheHelper getRedis() {
         if (ch == null) {
-            ch = CacheHelper.buildCache();
+            ch = CacheHelper.build();
         }
         return ch.Global(this.globalMode);
     }

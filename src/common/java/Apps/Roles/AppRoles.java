@@ -15,10 +15,7 @@ public class AppRoles {
     }
 
     private JSONObject buildDefaultRoles() {
-        return JSONObject.build().puts("root", 10000000)
-                .puts("admin", 1000000)
-                .puts("user", 100000)
-                .puts("everyone", 0);
+        return AppRolesDef.defaultRoles();
     }
 
     public static final AppRoles build(JSONObject info) {

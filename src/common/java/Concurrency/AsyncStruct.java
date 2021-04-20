@@ -5,7 +5,7 @@ import common.java.GscCommon.checkModel;
 import org.json.gsc.JSONObject;
 
 public class AsyncStruct {
-    private final CacheHelper cache = CacheHelper.buildCache();//使用当前服务的缓存
+    private final CacheHelper cache = CacheHelper.build();//使用当前服务的缓存
     private long currentNumber;
     private long totalNumber;
     private String currentText;

@@ -8,7 +8,7 @@ public class testDbAndCache extends TestCase {
     // 测试不带配置名本地缓存
     @Test
     public void testCacheLocal() {
-        CacheHelper ca = CacheHelper.buildLocalCache();
+        CacheHelper ca = CacheHelper.buildLocal();
         ca.set("TestA", "putao520");
         assertTrue(ca.get("TestA").equals("putao520"));
         ca.setExpire("TestA", 1000);    // 设置缓存过期时间1秒
