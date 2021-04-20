@@ -10,6 +10,7 @@ import common.java.ServiceTemplate.SuperItemField;
 import common.java.Session.UserSession;
 import org.json.gsc.JSONObject;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -24,20 +25,15 @@ public class Permissions {
         this.perms = MicroServiceContext.current().model(tableName).perms();
     }
 
-    private String getFirstSet(Set<String> arr) {
-        for (String key : arr) {
-            return key;
-        }
-        return null;
-    }
-
     private Set<String> groupArr(MModelPermInfo perm) {
         AppRoles roles = AppContext.current().roles();
         switch (perm.logic()) {
             case MModelPermDef.perm_group_logic_gt:
-                return roles.gt(getFirstSet(perm.value()));
+                // 获得最小的用户组
+                return roles.gt(roles.getMinRole(perm.value()));
             case MModelPermDef.perm_group_logic_lt:
-                return roles.lt(getFirstSet(perm.value()));
+                // 获得最大的用户组
+                return roles.lt(roles.getMaxRole(perm.value()));
             case MModelPermDef.perm_group_logic_eq:
                 return perm.value();
             default:
@@ -71,7 +67,8 @@ public class Permissions {
         return true;
     }
 
-    private void _completeFilter(JSONObject data, MModelPermInfo perm, UserSession se) {
+    private void _completeFilter(JSONObject data, UserSession se) {
+        /*
         switch (perm.type()) {
             case MModelPermDef.perm_type_user:
                 data.put(SuperItemField.userIdField, se.getUID());
@@ -79,7 +76,11 @@ public class Permissions {
             case MModelPermDef.perm_type_group:
                 data.put(SuperItemField.groupIdField, se.getGID());
                 break;
-        }
+        }*/
+        // 无脑写入用户，用户组，用户组权限
+        data.puts(SuperItemField.userIdField, se.getUID())
+                .puts(SuperItemField.groupIdField, se.getGID())
+                .puts(SuperItemField.PVField, se.getGPV());
     }
 
     private boolean completeFilter(JSONObject data, MModelPermInfo perm) {
@@ -90,7 +91,7 @@ public class Permissions {
         if (!se.checkSession()) {  // 当前定义了权限,但是用户未登录
             se = UserSession.buildEveryone();
         }
-        _completeFilter(data, perm, se);
+        _completeFilter(data, se);
         return true;
     }
 
@@ -112,14 +113,24 @@ public class Permissions {
         if (!se.checkSession()) {  // 当前定义了权限,但是用户未登录
             se = UserSession.buildEveryone();
         }
+        // 判断是否有新增权限
+        if (perm.type() != MModelPermDef.perm_type_group) {     // 新增类型必须是用户组
+            return false;
+        }
+        // 判断当前用户组是否在允许组内
+        if (!this.groupArr(perm).contains(se.getGID())) {
+            return false;
+        }
         for (JSONObject info : data) {
-            _completeFilter(info, perm, se);
+            _completeFilter(info, se);
         }
         return true;
     }
 
     public boolean writeFilter(JSONObject data) {
-        return isAdmin() || completeFilter(data, perms.createPerm());
+        List<JSONObject> list = new ArrayList<>();
+        list.add(data);
+        return writeFilter(list);
     }
 
     // 删操作,增加过滤条件

@@ -1,11 +1,14 @@
 package common.java.Apps.MicroService.Model.RBAC;
 
+import common.java.Apps.AppContext;
+import common.java.Apps.Roles.Role;
 import common.java.Authority.MModelPermDef;
-import org.json.gsc.JSONArray;
+import common.java.String.StringHelper;
 import org.json.gsc.JSONObject;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.SortedSet;
 
 /**
  * 权限节点设计,包含权限类型和权限值
@@ -13,9 +16,37 @@ import java.util.Set;
 
 public class MModelPermInfo {
     private final JSONObject info;
+    private SortedSet<String> group_values;
 
     private MModelPermInfo(JSONObject info) {
         this.info = info;
+        String typeStr = info.getString(MModelPermDef.perm_type_caption);
+        switch (typeStr) {
+            case "user":
+                info.put(MModelPermDef.perm_type_caption, MModelPermDef.perm_type_user);
+                break;
+            default:
+                info.put(MModelPermDef.perm_type_caption, MModelPermDef.perm_type_group);
+        }
+        // 是用户组类型权限
+        if (info.getInt(MModelPermDef.perm_type_caption) == MModelPermDef.perm_type_group) {
+            // 根据 用户组值 从小到大排序 用户组名
+            updateSortRole();
+        } else {
+            group_values = null;
+        }
+    }
+
+    private void updateSortRole() {
+        var appRoles = AppContext.current().roles();
+        String[] roleArr = Arrays.stream(this.info.getString(MModelPermDef.perm_value_caption).split(","))
+                .distinct()
+                .map(v -> Role.build(v, appRoles.getPV(v)))
+                .sorted((r1, r2) -> r1.compareTo(r2))
+                .map(v -> v.name)
+                .toArray(String[]::new);
+        this.info.put(MModelPermDef.perm_value_caption, StringHelper.join(roleArr));
+        Collections.addAll(group_values, roleArr);
     }
 
     public static MModelPermInfo build(JSONObject info) {
@@ -43,16 +74,9 @@ public class MModelPermInfo {
     /**
      * 获得记录值(管理员才有用)
      */
-    public Set<String> value() {
-        JSONArray<String> arr = this.info.getJsonArray(MModelPermDef.perm_value_caption);
-        var r = new HashSet<String>();
-        if (JSONArray.isInvalided(arr)) {
-            return r;
-        }
-        for (String key : arr) {
-            r.add(key);
-        }
-        return r;
+    public SortedSet<String> value() {
+        // return this.info.getString(MModelPermDef.perm_value_caption).split(",");
+        return group_values;
     }
 
     /**
@@ -67,7 +91,8 @@ public class MModelPermInfo {
      * 设置值
      */
     public MModelPermInfo value(String v) {
-        this.info.put(MModelPermDef.perm_type_caption, v);
+        this.info.put(MModelPermDef.perm_value_caption, v);
+        updateSortRole();
         return this;
     }
 

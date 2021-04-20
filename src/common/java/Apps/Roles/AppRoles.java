@@ -4,6 +4,7 @@ import org.json.gsc.JSONObject;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.SortedSet;
 
 public class AppRoles {
     private final JSONObject store;
@@ -12,6 +13,7 @@ public class AppRoles {
         // 如果应用未配置角色,使用缺省角色,否则合并角色
         JSONObject defaultRoleArr = buildDefaultRoles();
         this.store = JSONObject.isInvalided(info) ? defaultRoleArr : info.putAlls(defaultRoleArr);
+        // this.updateMaxAndMin();
     }
 
     private JSONObject buildDefaultRoles() {
@@ -33,14 +35,15 @@ public class AppRoles {
      * 获得权值大于 roleName 的全部角色名称
      */
     public Set<String> gt(String roleName) {
-        int basePV = this.getPV(roleName);
-        if (basePV < 0) {
-            return null;
-        }
         Set<String> arr = new HashSet<>();
-        for (String _roleName : store.keySet()) {
-            if (store.getInt(_roleName) >= basePV) {
-                arr.add(_roleName);
+        if (roleName != null) {
+            int basePV = this.getPV(roleName);
+            if (basePV >= 0) {
+                for (String _roleName : store.keySet()) {
+                    if (store.getInt(_roleName) >= basePV) {
+                        arr.add(_roleName);
+                    }
+                }
             }
         }
         return arr;
@@ -50,16 +53,48 @@ public class AppRoles {
      * 获得权值小于于 roleName 的全部角色名称
      */
     public Set<String> lt(String roleName) {
-        int basePV = this.getPV(roleName);
-        if (basePV < 0) {
-            return null;
-        }
         Set<String> arr = new HashSet<>();
-        for (String _roleName : store.keySet()) {
-            if (store.getInt(_roleName) <= basePV) {
-                arr.add(_roleName);
+        if (roleName != null) {
+            int basePV = this.getPV(roleName);
+            if (basePV >= 0) {
+                for (String _roleName : store.keySet()) {
+                    if (store.getInt(_roleName) <= basePV) {
+                        arr.add(_roleName);
+                    }
+                }
             }
         }
         return arr;
+    }
+
+    /*
+    private void updateMaxAndMin(){
+        int temp_max = Integer.MIN_VALUE;
+        String temp_max_name = null;
+        int temp_min = Integer.MAX_VALUE;
+        String temp_min_name = null;
+        int current_val = 0;
+        for (String _roleName : store.keySet()) {
+            current_val = store.getInt(_roleName);
+            if( current_val > temp_max){
+                temp_max = current_val;
+                temp_max_name = _roleName;
+            }
+            if( current_val < temp_min){
+                temp_min = current_val;
+                temp_min_name = _roleName;
+            }
+        }
+        this.maxRole = temp_max_name;
+        this.minRole = temp_min_name;
+    }
+    */
+
+    public String getMaxRole(SortedSet<String> values) {
+        return values.size() > 0 ? values.last() : null;
+    }
+
+    public String getMinRole(SortedSet<String> values) {
+        return values.size() > 0 ? values.first() : null;
     }
 }

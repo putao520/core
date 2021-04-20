@@ -26,6 +26,8 @@ public class UserSession {
     private int appid;                //当前会话所属APPID
     private int expireTime;
 
+    private static final String everyone_key = AppRolesDef.everyone.name;
+
     private UserSession() {
         cacher = getCacher();
         String sid = getRequestSID();
@@ -55,11 +57,7 @@ public class UserSession {
     }
 
     public static UserSession buildEveryone() {
-        var r = AppRolesDef.everyone;
-        var sId = r.name;
-        return (UserSession.checkSession(sId)) ?
-                UserSession.build(sId) :
-                UserSession.createSession(sId, JSONObject.build().puts(SuperItemField.fatherField, r.name).puts(SuperItemField.PVField, r.group_value));
+        return build(everyone_key);
     }
 
     private static CacheHelper getCacher() {
@@ -240,7 +238,6 @@ public class UserSession {
     }
 
     private void init(String sid, int expireTime) {
-        cacher = getCacher();
         this.expireTime = expireTime;
         if (!updateUserInfo(sid)) {
             nLogger.logInfo("sid:" + sid + " ->无效");
@@ -397,12 +394,16 @@ public class UserSession {
 
     // 延续会话维持时间(20分钟)
     public UserSession refreshSession() {
-        int need_expire_time = sessionInfo.getInt("_GrapeFW_NeedRefresh");
-        if ((TimeHelper.build().nowSecond() + expireTime) < need_expire_time) {
-            return this;
+        if (this.expireTime > 0) {
+            int need_expire_time = sessionInfo.getInt("_GrapeFW_NeedRefresh");
+            if ((TimeHelper.build().nowSecond() + expireTime) < need_expire_time) {
+                return this;
+            }
+            if (!this.sid.equals(everyone_key)) {
+                cacher.set(sid, expireTime, uid);
+                cacher.set(uid, expireTime, sessionInfo.toJSONString());
+            }
         }
-        cacher.set(sid, expireTime, uid);
-        cacher.set(uid, expireTime, sessionInfo.toJSONString());
         return this;
     }
 
@@ -411,10 +412,17 @@ public class UserSession {
         boolean rb = false;
         if (sid != null) {
             this.sid = sid;
-            String uid = cacher.get(sid);
+            String uid = sid.equals(everyone_key) ? everyone_key : cacher.get(sid);
             if (uid != null && !uid.isEmpty()) {//返回了用户名
                 this.uid = uid;
-                sessionInfo = JSONObject.toJSON(cacher.get(uid));
+                sessionInfo = sid.equals(everyone_key) ?
+                        JSONObject.build(SuperItemField.fatherField, everyone_key)
+                                .puts(SuperItemField.PVField, AppRolesDef.everyone.group_value)
+                                .puts(uid + "_GrapeFW_AppInfo_", HttpContext.current().appid())
+                                .puts("_GrapeFW_SID", sid)
+                                .puts("_GrapeFW_Expire", expireTime)
+                                .puts("_GrapeFW_NeedRefresh", (expireTime + TimeHelper.build().nowSecond()) / 2)
+                        : JSONObject.toJSON(cacher.get(uid));
                 // 补充会话数据
                 if (sessionInfo != null) {
                     this.appid = sessionInfo.getInt(uid + "_GrapeFW_AppInfo_");//获得所属appid

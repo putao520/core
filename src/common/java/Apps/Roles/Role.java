@@ -16,4 +16,12 @@ public class Role {
     public static Role build(String name) {
         return new Role(name, 0);
     }
+
+    public int compareTo(Role r) {
+        return this.group_value - r.group_value;
+    }
+
+    public String toString() {
+        return this.name;
+    }
 }
