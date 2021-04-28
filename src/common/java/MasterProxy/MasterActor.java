@@ -68,7 +68,7 @@ public class MasterActor {
         return quickMapKeys.get(key).getJson(value);
     }
 
-    public JSONArray getData() {
+    public JSONArray<JSONObject> getData() {
         return client.getData(actionName);
     }
 
