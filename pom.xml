@@ -32,11 +32,19 @@
             <scope>provided</scope>
         </dependency>
         <!-- https://mvnrepository.com/artifact/com.alibaba/druid -->
+        <!--
         <dependency>
             <groupId>com.alibaba</groupId>
             <artifactId>druid</artifactId>
             <version>1.2.5</version>
             <scope>provided</scope>
+        </dependency>
+        -->
+        <!-- https://mvnrepository.com/artifact/com.zaxxer/HikariCP -->
+        <dependency>
+            <groupId>com.zaxxer</groupId>
+            <artifactId>HikariCP</artifactId>
+            <version>4.0.3</version>
         </dependency>
         <!-- 为了兼容老版本 mysql 不可以升级 -->
         <!-- https://mvnrepository.com/artifact/mysql/mysql-connector-java -->

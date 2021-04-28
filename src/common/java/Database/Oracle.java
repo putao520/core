@@ -1,7 +1,6 @@
 package common.java.Database;
 
-import com.alibaba.druid.pool.DruidDataSource;
-import com.alibaba.druid.pool.DruidPooledConnection;
+import com.zaxxer.hikari.HikariDataSource;
 import common.java.EventWorker.Worker;
 import common.java.Number.NumberHelper;
 import common.java.String.StringHelper;
@@ -24,7 +23,7 @@ public class Oracle {
     /**
      *
      */
-    private static final HashMap<String, DruidDataSource> DataSource;
+    private static final HashMap<String, HikariDataSource> DataSource;
 
 
     static {
@@ -33,7 +32,7 @@ public class Oracle {
 
     private final String _configString;
     private final HashMap<String, Object> constantConds;
-    private DruidDataSource dataSource;//  = new DruidDataSource();
+    private HikariDataSource dataSource;//  = new DruidDataSource();
     //声明线程共享变量
     private boolean conditiobLogicAnd;
     private int skipNo;
@@ -59,8 +58,6 @@ public class Oracle {
     private List<String> tableFields;                    //表字段结构
     private boolean isDirty;
 
-    //配置说明，参考官方网址
-    //http://blog.163.com/hongwei_benbear/blog/static/1183952912013518405588/
     public Oracle(String configString) {
         isDirty = false;
         formName = "";
@@ -77,7 +74,7 @@ public class Oracle {
 
     /***获取当前线程上的连接开启事务*/
     public void startTransaction() {
-        DruidPooledConnection conn = getNewConnection();
+        Connection conn = getNewConnection();
         if (conn == null) {//如果连接为空
             //container.set(conn);//将此连接放在当前线程上
             nLogger.logInfo(Thread.currentThread().getName() + "空连接从dataSource获取连接");
@@ -97,62 +94,40 @@ public class Oracle {
         JSONObject obj;
         String user;
         String password;
-        String databaseName;
-        boolean useunicode;
-        boolean useSSL;
-        String charName;
         String sid;
-        int initSize;
         int minIdle;
         int maxWait;
         int maxActive;
-        String validAtionQuery = "select 1";
-        boolean testOnBorrow = true;
-        boolean testWhileIdle = true;
-        boolean poolpreparedStatements;
+        String className;
+
         try {
             obj = JSONObject.toJSON(_configString);
+            className = obj.getString("class");
             user = obj.getString("user");
             password = obj.getString("password");
             sid = obj.getString("sid");
-            databaseName = obj.getString("database");
-            // charName = obj.getString("characterEncoding");
-            // useunicode = obj.getBoolean("useUnicode");
-            // useSSL = obj.getBoolean("useSSL");
-            // jdbc:oracle:thin:59.203.206.51:1521
             String url = "oracle:thin:@" + obj.getString("host") + ":" + sid;
-            initSize = obj.getInt("initsize");
             minIdle = obj.getInt("minidle");
             maxWait = obj.getInt("maxwait");
             maxActive = obj.getInt("maxactive");
-            poolpreparedStatements = obj.getBoolean("poolpreparedstatements");
 
-            DruidDataSource ds = DataSource.getOrDefault(_configString, null);
-            if (ds == null || ds.isClosed() || !ds.isEnable()) {
-                ds = new DruidDataSource();
-
+            HikariDataSource ds = DataSource.getOrDefault(_configString, null);
+            if (ds == null || ds.isClosed() || !ds.isRunning()) {
+                ds = new HikariDataSource();
                 if (!user.equals("") && !password.equals("")) {
                     ds.setUsername(user);
                     ds.setPassword(password);
-                    ds.setInitialSize(initSize);
-                    ds.setMaxActive(maxActive);
-                    ds.setMinIdle(minIdle);
-                    ds.setMaxWait(maxWait);
-                    // ds.setValidationQuery(validAtionQuery);
-                    ds.setTestOnBorrow(false);
-                    ds.setTestWhileIdle(true);
-                    ds.setPoolPreparedStatements(poolpreparedStatements);
-                    ds.setUrl("jdbc:" + url);
+                    ds.setConnectionTestQuery("select 1");
+                    ds.setMaximumPoolSize(maxActive);
+                    ds.setKeepaliveTime(7200);
+                    ds.setMaxLifetime(1800000);
+                    ds.setMinimumIdle(minIdle);
+                    ds.setMaxLifetime(maxWait);
+                    ds.setJdbcUrl("jdbc:" + url);
                     ds.setLoginTimeout(5);
-                    ds.setQueryTimeout(7200);
-                    ds.setKeepAlive(true);
-                    ds.setAsyncInit(true);
-                    ds.setKillWhenSocketReadTimeout(true);
-                    ds.setRemoveAbandoned(true);
-                    ds.setRemoveAbandonedTimeout(7200);
-                    ds.setTimeBetweenEvictionRunsMillis(90000);
-                    ds.setMinEvictableIdleTimeMillis(1800000);
-
+                    if (!StringHelper.isInvalided(className)) {
+                        ds.setDriverClassName(className);
+                    }
                 }
                 DataSource.put(_configString, ds);
             }
@@ -261,9 +236,9 @@ public class Oracle {
 
 
     //public Connection getNewConnection(){
-    public DruidPooledConnection getNewConnection() {
+    public Connection getNewConnection() {
         //return pool;
-        DruidPooledConnection con = null;
+        Connection con = null;
         try {
             con = dataSource.getConnection();
         } catch (SQLException e) {
@@ -272,11 +247,11 @@ public class Oracle {
         return con;
     }
 
-    private void _Close(DruidPooledConnection conn) {
+    private void _Close(Connection conn) {
         try {
             if (conn != null) {//如果连接为空
                 //conn.close();
-                conn.recycle();
+                conn.close();
             }
         } catch (SQLException e) {
             nLogger.logInfo(e);
@@ -290,7 +265,7 @@ public class Oracle {
      */
     //提交事务
     public void commit() {
-        DruidPooledConnection conn = getNewConnection();
+        Connection conn = getNewConnection();
         try {
             if (null != conn) {
                 conn.commit();//提交事务
@@ -305,7 +280,7 @@ public class Oracle {
 
     /***回滚事务*/
     public void rollback() {
-        DruidPooledConnection conn = getNewConnection();
+        Connection conn = getNewConnection();
         try {
             if (conn != null) {
                 conn.rollback();//回滚事务
@@ -362,7 +337,7 @@ public class Oracle {
     public String getGeneratedKeys() {
         String pkName = "";
         if (tableFields.size() < 1) {
-            DruidPooledConnection conn = getNewConnection();
+            Connection conn = getNewConnection();
             try {
                 java.sql.DatabaseMetaData DBM = conn.getMetaData();
                 //ResultSet tableRet = DBM.getTables(null, "%", getform(),new String[]{"TABLE"});
@@ -649,7 +624,7 @@ public class Oracle {
         ResultSet rs;
         Statement smt;
         String sqlString = null;
-        DruidPooledConnection conn = getNewConnection();
+        Connection conn = getNewConnection();
         try {
             smt = conn.createStatement();
             String sql = "select * from " + tableName + " where rownum = 1";
@@ -670,7 +645,7 @@ public class Oracle {
         boolean rs = false;
         String sql;
         if (colString != null) {
-            DruidPooledConnection conn = getNewConnection();
+            Connection conn = getNewConnection();
             try {
                 sql = "create table if not exists " + tableName + colString + ("");
                 Statement smt = conn.createStatement();
@@ -806,7 +781,7 @@ public class Oracle {
     public List<Object> insert() {
         ResultSet rs;
         List<Object> rList = new ArrayList<>();
-        DruidPooledConnection conn = getNewConnection();
+        Connection conn = getNewConnection();
         try {
             List<String> lStrings = insertSQL();
             Statement smt = conn.createStatement();
@@ -834,7 +809,7 @@ public class Oracle {
         try {
             Worker.submit(() -> {
                 Statement smt;
-                DruidPooledConnection conn = getNewConnection();
+                Connection conn = getNewConnection();
                 try {
                     smt = conn.createStatement();
                     int i, l = lStrings.size();
@@ -862,7 +837,7 @@ public class Oracle {
         String sqlString = "";
         ResultSet rs;
         Object rObject = null;
-        DruidPooledConnection conn = getNewConnection();
+        Connection conn = getNewConnection();
         try {
             List<String> lStrings = insertSQL();
             //System.out.println(lStrings.toString());
@@ -915,7 +890,7 @@ public class Oracle {
         long rs = 0;
         List<String> lStrings = updateSQL();
         Statement smt;
-        DruidPooledConnection conn = getNewConnection();
+        Connection conn = getNewConnection();
         try {
             smt = conn.createStatement();
             for (String _sql : lStrings) {
@@ -1065,7 +1040,7 @@ public class Oracle {
         long rs = 0;
         Statement smt;
         if (conditionJSON.size() > 0 || isall) {
-            DruidPooledConnection conn = getNewConnection();
+            Connection conn = getNewConnection();
             try {
                 smt = conn.createStatement();
                 String sql = TransactSQLInjection("delete from " + getfullform() + whereSQL() + (isall ? "" : " rownum = 1"));
@@ -1135,7 +1110,7 @@ public class Oracle {
     private Object _findex(boolean isall) {
         //ResultSet rs;
         Object rs;
-        DruidPooledConnection conn = getNewConnection();
+        Connection conn = getNewConnection();
         try {
             Statement smt = conn.createStatement();
             if (!isall) {
@@ -1198,7 +1173,7 @@ public class Oracle {
         TransactSQLInjection(sql);
         JSONArray fd;
         Statement smt;
-        DruidPooledConnection conn = getNewConnection();
+        Connection conn = getNewConnection();
         try {
             smt = conn.createStatement();
             fd = col2jsonArray(smt.executeQuery(sql));
@@ -1229,7 +1204,7 @@ public class Oracle {
     public JSONArray distinct(String fieldName) {
         boolean havefield = false;
         StringBuilder fieldString = new StringBuilder();
-        DruidPooledConnection conn = getNewConnection();
+        Connection conn = getNewConnection();
         try {
             Statement smt = conn.createStatement();
             if (fieldList.size() > 0) {
@@ -1263,7 +1238,7 @@ public class Oracle {
 
     private long _count() {
         //ResultSet rd;
-        DruidPooledConnection conn = getNewConnection();
+        Connection conn = getNewConnection();
         try {
             Statement smt = conn.createStatement();
             String sql = TransactSQLInjection("select count(*) from " + getfullform());
@@ -1282,7 +1257,7 @@ public class Oracle {
     }
 
     public long count(boolean islist) {
-        DruidPooledConnection conn = getNewConnection();
+        Connection conn = getNewConnection();
         try {
             Statement smt = conn.createStatement();
             String sql = TransactSQLInjection("select count(*) from " + getfullform() + whereSQL());
@@ -1494,7 +1469,7 @@ public class Oracle {
     //获得全部表
     public List<String> getAllTables() {
         List<String> rs = null;
-        DruidPooledConnection conn = getNewConnection();
+        Connection conn = getNewConnection();
         try {
             Statement smt = conn.createStatement();
             String sql = "show tables";

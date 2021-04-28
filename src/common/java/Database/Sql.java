@@ -1,7 +1,6 @@
 package common.java.Database;
 
-import com.alibaba.druid.pool.DruidDataSource;
-import com.alibaba.druid.pool.DruidPooledConnection;
+import com.zaxxer.hikari.HikariDataSource;
 import common.java.EventWorker.Worker;
 import common.java.String.StringHelper;
 import common.java.Time.TimeHelper;
@@ -43,7 +42,7 @@ public class Sql {
     /**
      *
      */
-    private static final HashMap<String, DruidDataSource> DataSource;
+    private static final HashMap<String, HikariDataSource> DataSource;
 
 
     static {
@@ -52,7 +51,7 @@ public class Sql {
 
     private final String _configString;
     private final HashMap<String, Object> constantConds;
-    private DruidDataSource dataSource;//  = new DruidDataSource();
+    private HikariDataSource dataSource;//  = new DruidDataSource();
     //声明线程共享变量
     private boolean conditiobLogicAnd;
     private int skipNo;
@@ -95,7 +94,7 @@ public class Sql {
 
     /***获取当前线程上的连接开启事务*/
     public void startTransaction() {
-        DruidPooledConnection conn = getNewConnection();
+        Connection conn = getNewConnection();
         if (conn == null) {//如果连接为空
             //container.set(conn);//将此连接放在当前线程上
             nLogger.logInfo(Thread.currentThread().getName() + "空连接从dataSource获取连接");
@@ -116,60 +115,49 @@ public class Sql {
         String user;
         String password;
         String databaseName;
-        boolean useunicode;
+        boolean useUnicode;
         boolean useSSL;
         String charName;
-        int initSize;
         int minIdle;
         int maxWait;
         int maxActive;
-        String validAtionQuery = "select 1";
-        boolean testOnBorrow = true;
-        boolean testWhileIdle = true;
-        boolean poolpreparedStatements;
+        String className;
         try {
             obj = JSONObject.toJSON(_configString);
+            // 查看连接池驱动名
+            // https://github.com/brettwooldridge/HikariCP
+            className = obj.getString("class");
             user = obj.getString("user");
             password = obj.getString("password");
             databaseName = obj.getString("database");
             charName = obj.getString("characterEncoding");
-            useunicode = obj.getBoolean("useUnicode");
+            useUnicode = obj.getBoolean("useUnicode");
             useSSL = obj.getBoolean("useSSL");
-            String url = obj.getString("host") + "/" + databaseName + "?useUnicode=" + useunicode + "&characterEncoding=" + charName + "&useSSL=" + useSSL;
+            String url = obj.getString("host") + "/" + databaseName + "?useUnicode=" + useUnicode + "&characterEncoding=" + charName + "&useSSL=" + useSSL;
             if (obj.containsKey("timezone")) {
                 url += ("&serverTimezone=" + obj.getString("timezone"));
             }
-            initSize = obj.getInt("initsize");
             minIdle = obj.getInt("minidle");
             maxWait = obj.getInt("maxwait");
             maxActive = obj.getInt("maxactive");
-            poolpreparedStatements = obj.getBoolean("poolpreparedstatements");
 
-            DruidDataSource ds = DataSource.getOrDefault(_configString, null);
-            if (ds == null || ds.isClosed() || !ds.isEnable()) {
-                ds = new DruidDataSource();
+            HikariDataSource ds = DataSource.getOrDefault(_configString, null);
+            if (ds == null || ds.isClosed() || !ds.isRunning()) {
+                ds = new HikariDataSource();
                 if (!user.equals("") && !password.equals("")) {
                     ds.setUsername(user);
                     ds.setPassword(password);
-                    ds.setInitialSize(initSize);
-                    ds.setMaxActive(maxActive);
-                    ds.setMinIdle(minIdle);
-                    ds.setMaxWait(maxWait);
-                    // ds.setValidationQuery(validAtionQuery);
-                    ds.setTestOnBorrow(false);
-                    ds.setTestWhileIdle(true);
-                    ds.setPoolPreparedStatements(poolpreparedStatements);
-                    ds.setUrl("jdbc:" + url);
+                    ds.setConnectionTestQuery("select 1");
+                    ds.setMaximumPoolSize(maxActive);
+                    ds.setKeepaliveTime(7200);
+                    ds.setMaxLifetime(1800000);
+                    ds.setMinimumIdle(minIdle);
+                    ds.setMaxLifetime(maxWait);
+                    ds.setJdbcUrl("jdbc:" + url);
                     ds.setLoginTimeout(5);
-                    ds.setQueryTimeout(7200);
-                    ds.setKeepAlive(true);
-                    ds.setAsyncInit(true);
-                    ds.setKillWhenSocketReadTimeout(true);
-                    ds.setRemoveAbandoned(true);
-                    ds.setRemoveAbandonedTimeout(7200);
-                    ds.setTimeBetweenEvictionRunsMillis(90000);
-                    ds.setMinEvictableIdleTimeMillis(1800000);
-
+                    if (!StringHelper.isInvalided(className)) {
+                        ds.setDriverClassName(className);
+                    }
                 }
                 DataSource.put(_configString, ds);
             }
@@ -270,9 +258,9 @@ public class Sql {
 
 
     //public Connection getNewConnection(){
-    public DruidPooledConnection getNewConnection() {
+    public Connection getNewConnection() {
         //return pool;
-        DruidPooledConnection con = null;
+        Connection con = null;
         try {
             con = dataSource.getConnection();
         } catch (SQLException e) {
@@ -281,11 +269,11 @@ public class Sql {
         return con;
     }
 
-    private void _Close(DruidPooledConnection conn) {
+    private void _Close(Connection conn) {
         try {
-            if (conn != null) {//如果连接为空
+            if (conn != null) {//如果连接不为空
                 //conn.close();
-                conn.recycle();
+                conn.close();
             }
         } catch (SQLException e) {
             nLogger.logInfo(e);
@@ -299,7 +287,7 @@ public class Sql {
      */
     //提交事务
     public void commit() {
-        DruidPooledConnection conn = getNewConnection();
+        Connection conn = getNewConnection();
         try {
             if (null != conn) {
                 conn.commit();//提交事务
@@ -314,7 +302,7 @@ public class Sql {
 
     /***回滚事务*/
     public void rollback() {
-        DruidPooledConnection conn = getNewConnection();
+        Connection conn = getNewConnection();
         try {
             if (conn != null) {
                 conn.rollback();//回滚事务
@@ -370,7 +358,7 @@ public class Sql {
     public String getGeneratedKeys() {
         String pkName = "";
         if (tableFields.size() < 1) {
-            DruidPooledConnection conn = getNewConnection();
+            Connection conn = getNewConnection();
             try {
                 java.sql.DatabaseMetaData DBM = conn.getMetaData();
                 //ResultSet tableRet = DBM.getTables(null, "%", getform(),new String[]{"TABLE"});
@@ -657,7 +645,7 @@ public class Sql {
         ResultSet rs;
         Statement smt;
         String sqlString = null;
-        DruidPooledConnection conn = getNewConnection();
+        Connection conn = getNewConnection();
         try {
             smt = conn.createStatement();
             String sql = "select * from " + tableName + " limit 1";
@@ -678,7 +666,7 @@ public class Sql {
         boolean rs = false;
         String sql;
         if (colString != null) {
-            DruidPooledConnection conn = getNewConnection();
+            Connection conn = getNewConnection();
             try {
                 sql = "create table if not exists " + tableName + colString + ("");
                 Statement smt = conn.createStatement();
@@ -813,7 +801,7 @@ public class Sql {
     public List<Object> insert() {
         ResultSet rs;
         List<Object> rList = new ArrayList<>();
-        DruidPooledConnection conn = getNewConnection();
+        Connection conn = getNewConnection();
         try {
             List<String> lStrings = insertSQL();
             Statement smt = conn.createStatement();
@@ -841,7 +829,7 @@ public class Sql {
         try {
             Worker.submit(() -> {
                 Statement smt;
-                DruidPooledConnection conn = getNewConnection();
+                Connection conn = getNewConnection();
                 try {
                     smt = conn.createStatement();
                     int i, l = lStrings.size();
@@ -869,7 +857,7 @@ public class Sql {
         String sqlString = "";
         ResultSet rs;
         Object rObject = null;
-        DruidPooledConnection conn = getNewConnection();
+        Connection conn = getNewConnection();
         try {
             List<String> lStrings = insertSQL();
             //System.out.println(lStrings.toString());
@@ -922,7 +910,7 @@ public class Sql {
         long rs = 0;
         List<String> lStrings = updateSQL();
         Statement smt;
-        DruidPooledConnection conn = getNewConnection();
+        Connection conn = getNewConnection();
         try {
             smt = conn.createStatement();
             for (String _sql : lStrings) {
@@ -1056,7 +1044,7 @@ public class Sql {
         long rs = 0;
         Statement smt;
         if (conditionJSON.size() > 0 || isall) {
-            DruidPooledConnection conn = getNewConnection();
+            Connection conn = getNewConnection();
             try {
                 smt = conn.createStatement();
                 String sql = TransactSQLInjection("delete from " + getfullform() + whereSQL() + (isall ? "" : " limit 1"));
@@ -1127,7 +1115,7 @@ public class Sql {
     private Object _findex(boolean isall) {
         //ResultSet rs;
         Object rs;
-        DruidPooledConnection conn = getNewConnection();
+        Connection conn = getNewConnection();
         try {
             Statement smt = conn.createStatement();
             if (!isall) {
@@ -1194,7 +1182,7 @@ public class Sql {
         TransactSQLInjection(sql);
         JSONArray fd;
         Statement smt;
-        DruidPooledConnection conn = getNewConnection();
+        Connection conn = getNewConnection();
         try {
             smt = conn.createStatement();
             fd = col2jsonArray(smt.executeQuery(sql));
@@ -1225,7 +1213,7 @@ public class Sql {
     public JSONArray distinct(String fieldName) {
         boolean havefield = false;
         StringBuilder fieldString = new StringBuilder();
-        DruidPooledConnection conn = getNewConnection();
+        Connection conn = getNewConnection();
         try {
             Statement smt = conn.createStatement();
             if (fieldList.size() > 0) {
@@ -1259,7 +1247,7 @@ public class Sql {
 
     private long _count() {
         //ResultSet rd;
-        DruidPooledConnection conn = getNewConnection();
+        Connection conn = getNewConnection();
         try {
             Statement smt = conn.createStatement();
             String sql = TransactSQLInjection("select count(*) from " + getfullform());
@@ -1278,7 +1266,7 @@ public class Sql {
     }
 
     public long count(boolean islist) {
-        DruidPooledConnection conn = getNewConnection();
+        Connection conn = getNewConnection();
         try {
             Statement smt = conn.createStatement();
             String sql = TransactSQLInjection("select count(*) from " + getfullform() + whereSQL());
@@ -1466,7 +1454,7 @@ public class Sql {
     //获得全部表
     public List<String> getAllTables() {
         List<String> rs = null;
-        DruidPooledConnection conn = getNewConnection();
+        Connection conn = getNewConnection();
         try {
             Statement smt = conn.createStatement();
             String sql = "show tables";
