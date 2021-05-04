@@ -57,7 +57,7 @@ public class GscCenterServer {
     }
 
     private void save() {
-        file.write(store.toJSONString());
+        file.write(store.toString());
     }
 
     public GscCenterServer enableSave() {
@@ -278,7 +278,7 @@ public class GscCenterServer {
                 // 根据服务ID获得服务器内容
                 JSONObject serviceInfo = findServiceInfoById(v.getString("serviceId"));
                 if (!JSONObject.isInvalided(serviceInfo)) {
-                    return serviceInfo.putAlls(v);
+                    return serviceInfo.put(v);
                 }
             }
         }
@@ -300,7 +300,7 @@ public class GscCenterServer {
                 if (deployId > 0 && v.getInt("id") != deployId) {
                     continue;
                 }
-                result.add(JSONObject.build(v).putAlls(serviceInfo));
+                result.add(JSONObject.build(v).put(serviceInfo));
             }
         }
         return result;

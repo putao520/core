@@ -87,13 +87,13 @@ public class AsyncStruct {
     }
 
     public JSONObject toJson() {
-        return JSONObject.putx("currentNumber", this.currentNumber)
-                .puts("totalNumber", this.totalNumber)
-                .puts("currentText", this.currentText)
-                .puts("state", this.state);
+        return JSONObject.build("currentNumber", this.currentNumber)
+                .put("totalNumber", this.totalNumber)
+                .put("currentText", this.currentText)
+                .put("state", this.state);
     }
 
     public void save() {
-        cache.set(queryKey, toJson().toJSONString());
+        cache.set(queryKey, toJson().toString());
     }
 }

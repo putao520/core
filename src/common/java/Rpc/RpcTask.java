@@ -54,6 +54,6 @@ public class RpcTask {
     }
 
     public JSONObject toJson() {
-        return JSONObject.putx("rpc", this.rpcURL).puts("header", this.header).puts("parameter", this.postParameter);
+        return JSONObject.build("rpc", this.rpcURL).put("header", this.header).put("parameter", this.postParameter);
     }
 }

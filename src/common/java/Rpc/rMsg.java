@@ -15,9 +15,9 @@ public class rMsg {
 
     public static String netMSG(Object data) {
         if (data instanceof List<?>) {
-            data = JSONArray.build().addAlls((List<?>) data);
+            data = JSONArray.build().put((List<?>) data);
         } else if (data instanceof HashMap<?, ?>) {
-            data = JSONObject.build().putAlls((HashMap<String, ?>) data);
+            data = JSONObject.build().put((HashMap<String, ?>) data);
         }
         return netMSG(true, data);
     }
@@ -25,11 +25,11 @@ public class rMsg {
 
     public static String netMSG(int state, String message, Object data) {
         JSONObject newData = new JSONObject();
-        newData.puts("errorcode", state).puts("record", data);
+        newData.put("errorcode", state).put("record", data);
         if (state > 0) {
-            newData.puts("message", message);
+            newData.put("message", message);
         }
-        return newData.toJSONString();
+        return newData.toString();
     }
 
     public static String netPAGE(int idx, int max, long count, JSONArray record) {

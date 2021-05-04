@@ -92,7 +92,7 @@ public class GscCenterPacket {
     public ByteBuf toByteBuf() {
         byte[] bKey = key.getBytes(StandardCharsets.UTF_8);
         short lKey = (short) bKey.length;
-        String sVal = val.toJSONString();
+        String sVal = val.toString();
         byte[] bVal = sVal.getBytes(StandardCharsets.UTF_8);
         int lVal = bVal.length;
         // 测试打印最后4个字节值

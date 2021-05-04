@@ -43,9 +43,9 @@ public class HttpContextDb {
      * 获得header里的DB参数
      */
     public JSONObject header(JSONObject nHeader) {
-        JSONObject r = JSONObject.putx(fields, nHeader.getString(fields))
-                .puts(sorts, nHeader.getString(sorts))
-                .puts(options, nHeader.getString(options));
+        JSONObject r = JSONObject.build(fields, nHeader.getString(fields))
+                .put(sorts, nHeader.getString(sorts))
+                .put(options, nHeader.getString(options));
         nHeader.remove(fields);
         nHeader.remove(sorts);
         nHeader.remove(options);

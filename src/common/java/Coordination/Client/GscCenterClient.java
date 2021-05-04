@@ -168,21 +168,21 @@ public class GscCenterClient {
 
     public GscCenterClient insert(String className, JSONObject data) {
         client.send(GscCenterPacket.build(serviceKey,
-                JSONObject.build("data", data).puts("name", className)
+                JSONObject.build("data", data).put("name", className)
                 , GscCenterEvent.Insert, false));
         return this;
     }
 
     public GscCenterClient update(String className, JSONObject data) {
         client.send(GscCenterPacket.build(serviceKey,
-                JSONObject.build("data", data).puts("name", className)
+                JSONObject.build("data", data).put("name", className)
                 , GscCenterEvent.Update, false));
         return this;
     }
 
     public GscCenterClient delete(String className, JSONObject data) {
         client.send(GscCenterPacket.build(serviceKey,
-                JSONObject.build("data", data).puts("name", className)
+                JSONObject.build("data", data).put("name", className)
                 , GscCenterEvent.Delete, false));
         return this;
     }

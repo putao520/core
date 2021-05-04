@@ -11,7 +11,7 @@ public class AppRoles {
     private AppRoles(JSONObject info) {
         // 如果应用未配置角色,使用缺省角色,否则合并角色
         JSONObject defaultRoleArr = buildDefaultRoles();
-        this.store = JSONObject.isInvalided(info) ? defaultRoleArr : info.putAlls(defaultRoleArr);
+        this.store = JSONObject.isInvalided(info) ? defaultRoleArr : info.put(defaultRoleArr);
         // this.updateMaxAndMin();
     }
 

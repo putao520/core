@@ -483,7 +483,7 @@ public class Sql {
                         addCondition(field, value, logic, link_login.equalsIgnoreCase("and"));
                     }
                 } else {
-                    nLogger.errorInfo(condArray.toJSONString() + " ->输入的 条件对象无效");
+                    nLogger.errorInfo(condArray + " ->输入的 条件对象无效");
                 }
             }
             return this;

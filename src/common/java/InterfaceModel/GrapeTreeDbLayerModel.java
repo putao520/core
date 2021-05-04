@@ -329,7 +329,7 @@ public class GrapeTreeDbLayerModel implements InterfaceDatabase<GrapeTreeDbLayer
         JSONObject json = find();
         if (json != null) {
             // 管线方式过滤数据
-            JSONArray rArray = JSONArray.addx(json);
+            JSONArray rArray = JSONArray.build(json);
             if (pipeJSONArray_Out != null && !JSONArray.isInvalided(rArray)) {
                 for (Function<JSONArray, JSONArray> func : pipeJSONArray_Out) {
                     rArray = func.apply(rArray);
@@ -448,9 +448,9 @@ public class GrapeTreeDbLayerModel implements InterfaceDatabase<GrapeTreeDbLayer
         if (us == null || !us.checkSession()) {
             us = UserSession.buildEveryone();
         }
-        return data.puts(SuperItemField.userIdField, us.getUID())
-                .puts(SuperItemField.groupIdField, us.getGID())
-                .puts(SuperItemField.PVField, us.getGPV());
+        return data.put(SuperItemField.userIdField, us.getUID())
+                .put(SuperItemField.groupIdField, us.getGID())
+                .put(SuperItemField.PVField, us.getGPV());
     }
 
     /**

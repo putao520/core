@@ -88,7 +88,7 @@ public class DbFilter {
     }
 
     private void addCondition(String field, Object value, String logic) {
-        JSONObject j = JSONObject.putx("field", field).puts("logic", logic).puts("value", value);
+        JSONObject j = JSONObject.build("field", field).put("logic", logic).put("value", value);
         if (!conditiobLogicAnd) { // 是or
             j.put("link_logic", "or");
         }

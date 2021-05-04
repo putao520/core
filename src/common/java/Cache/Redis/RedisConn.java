@@ -27,7 +27,7 @@ public class RedisConn {
     private Object conn;
 
     private RedisConn(JSONObject config) {
-        String key = Md5.build(config.toJSONString());
+        String key = Md5.build(config.toString());
         if (Cache.CacheClient.containsKey(key)) {
             this.conn = Cache.CacheClient.get(key);
         } else {

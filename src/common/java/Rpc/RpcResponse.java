@@ -24,7 +24,7 @@ public class RpcResponse {
 
     @Override
     public String toString() {
-        return this.r.toJSONString();
+        return this.r.toString();
     }
 
     public int errCode() {
@@ -67,7 +67,7 @@ public class RpcResponse {
         if (t0 == null) {
             JSONObject t1 = r.getJson("record");
             if (!JSONObject.isInvalided(t1)) {
-                t0 = JSONArray.addx(t1);
+                t0 = JSONArray.build(t1);
             }
         }
         return t0;

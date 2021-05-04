@@ -113,7 +113,7 @@ public class MicroServiceTemplate implements MicroServiceTemplateInterface {
 
     protected JSONArray toJsonArray(Object o) {
         if (o instanceof JSONObject) {
-            return JSONArray.addx(o);
+            return JSONArray.build(o);
         }
         return (JSONArray) o;
     }
@@ -159,7 +159,7 @@ public class MicroServiceTemplate implements MicroServiceTemplateInterface {
     }
 
     protected JSONObject joinOn(String localKey, JSONObject localObject, String foreignKey, Function<String, JSONArray> func) {
-        JSONArray newArray = joinOn(localKey, JSONArray.addx(localObject), foreignKey, func);
+        JSONArray newArray = joinOn(localKey, JSONArray.build(localObject), foreignKey, func);
         return JSONArray.isInvalided(newArray) ? localObject : (JSONObject) newArray.get(0);
     }
 

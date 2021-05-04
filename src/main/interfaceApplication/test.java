@@ -27,6 +27,6 @@ public class test {
     }
 
     public JSONObject test(String a, int b) {
-        return (new JSONObject()).puts("测试信息", a).puts("测试参数", b);
+        return (new JSONObject()).put("测试信息", a).put("测试参数", b);
     }
 }

@@ -146,7 +146,7 @@ public class _reflect {
                 if (method.getModifiers() == Modifier.PUBLIC) {
                     String api = AnnotationMethod(method);
                     String param = ParameterMethod(method);
-                    funcs.add(new JSONObject("name", method.getName()).puts("level", api).puts("param", StringHelper.build(param).trimFrom(',').toString()));
+                    funcs.add(new JSONObject("name", method.getName()).put("level", api).put("param", StringHelper.build(param).trimFrom(',').toString()));
                 }
             }
             cls = cls.getSuperclass();

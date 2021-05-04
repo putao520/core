@@ -32,7 +32,7 @@ public class MModelRuleArray extends MModelSuperField {
     public JSONArray toJsonArray() {
         JSONArray newRuleArray = new JSONArray();
         for (String key : hashmap.keySet()) {
-            newRuleArray.adds(hashmap.get(key).toJson());
+            newRuleArray.put(hashmap.get(key).toJson());
         }
         return newRuleArray;
     }

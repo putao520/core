@@ -72,15 +72,15 @@ public class Permissions {
                 data.put(SuperItemField.userIdField, se.getUID());
                 break;
             case MModelPermDef.perm_type_group:
-                data.puts(SuperItemField.groupIdField, se.getGID())
+                data.put(SuperItemField.groupIdField, se.getGID())
                         .put(SuperItemField.PVField, se.getGPV());
                 break;
         }
         // 无脑写入用户，用户组，用户组权限
         /*
-        data.puts(SuperItemField.userIdField, se.getUID())
-                .puts(SuperItemField.groupIdField, se.getGID())
-                .puts(SuperItemField.PVField, se.getGPV());
+        data.put(SuperItemField.userIdField, se.getUID())
+                .put(SuperItemField.groupIdField, se.getGID())
+                .put(SuperItemField.PVField, se.getGPV());
          */
     }
 

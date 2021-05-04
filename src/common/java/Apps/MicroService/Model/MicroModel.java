@@ -51,7 +51,7 @@ public class MicroModel {
      */
     public JSONObject toJson() {
         return JSONObject.build("rule", this.mmrArray.toJsonArray())
-                .puts("permissions", this.mmps.toJson());
+                .put("permissions", this.mmps.toJson());
     }
 
 }

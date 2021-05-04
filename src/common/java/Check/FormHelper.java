@@ -150,7 +150,7 @@ public class FormHelper {
 
     //自己补齐字段
     public String autoComplete(String inputData) {
-        return autoComplete(JSONObject.toJSON(inputData)).toJSONString();
+        return autoComplete(JSONObject.toJSON(inputData)).toString();
     }
 
     /**

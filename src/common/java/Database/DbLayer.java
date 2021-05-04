@@ -219,7 +219,7 @@ public class DbLayer implements InterfaceDatabase<DbLayer> {
             rs = select();
             if (rs != null && c != null) {
                 if (rs.size() > 0) {
-                    c.set(key, second, rs.toJSONString());
+                    c.set(key, second, rs.toString());
                 }
             }
         }
@@ -245,7 +245,7 @@ public class DbLayer implements InterfaceDatabase<DbLayer> {
             rs = this.find();
             if (rs != null && c != null) {
                 if (rs.size() > 0) {
-                    c.set(key, second, rs.toJSONString());
+                    c.set(key, second, rs.toString());
                 }
             }
         }

@@ -9,9 +9,9 @@ public class AppRolesDef {
     public final static Role everyone = Role.build("everyone", 0);
 
     public static JSONObject defaultRoles() {
-        return JSONObject.build().puts(root.name, root.group_value)
-                .puts(admin.name, admin.group_value)
-                .puts(user.name, user.group_value)
-                .puts(everyone.name, everyone.group_value);
+        return JSONObject.build().put(root.name, root.group_value)
+                .put(admin.name, admin.group_value)
+                .put(user.name, user.group_value)
+                .put(everyone.name, everyone.group_value);
     }
 }

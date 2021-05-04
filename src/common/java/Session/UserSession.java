@@ -104,10 +104,10 @@ public class UserSession {
             exJson = new JSONObject();
         }
         exJson
-                .puts("_GrapeFW_SID", sid)
-                .puts("_GrapeFW_Expire", expire)
-                .puts("_GrapeFW_NeedRefresh", (expire + TimeHelper.build().nowSecond()) / 2)
-                .puts(uid + "_GrapeFW_AppInfo_", HttpContext.current().appid()).toJSONString();//补充appid参数
+                .put("_GrapeFW_SID", sid)
+                .put("_GrapeFW_Expire", expire)
+                .put("_GrapeFW_NeedRefresh", (expire + TimeHelper.build().nowSecond()) / 2)
+                .put(uid + "_GrapeFW_AppInfo_", HttpContext.current().appid()).toString();//补充appid参数
         // 先获得上次的会话实体ID并删除
         JSONObject lastInfo = JSONObject.toJSON(Objects.requireNonNull(cacher).get(uid));
         if (lastInfo != null) {
@@ -123,7 +123,7 @@ public class UserSession {
         }
         exJson.put(SuperItemField.PVField, AppContext.current().roles().getPV(grpName));
         // 更新本次会话
-        cacher.set(uid, expire, exJson.toJSONString());//更新用户数据集
+        cacher.set(uid, expire, exJson.toString());//更新用户数据集
         cacher.set(sid, expire, uid);
         return new UserSession(sid, expire);
     }
@@ -151,7 +151,7 @@ public class UserSession {
      * @return
      */
     public static UserSession createSession(String uid, JSONObject json) {
-        return createSession(uid, json.toJSONString(), sessiontime);
+        return createSession(uid, json.toString(), sessiontime);
     }
 
     private static String uuidkey(String uid, String fixed) {
@@ -200,11 +200,11 @@ public class UserSession {
      * @return
      */
     public static String createGuessSession(String code, JSONObject data, int expire) {
-        return createGuessSession(code, data.toJSONString(), expire);
+        return createGuessSession(code, data.toString(), expire);
     }
 
     public static UserSession createSession(String uid, JSONObject json, int expireTime) {
-        return createSession(uid, json.toJSONString(), expireTime);
+        return createSession(uid, json.toString(), expireTime);
     }
 
     private static String uniqueUUID(String uid) {
@@ -269,7 +269,7 @@ public class UserSession {
     public JSONObject setDatas(JSONObject newData) {
         sessionInfo = newData;
         String userName = getUID();
-        return JSONObject.toJSON(cacher.getSet(userName, this.expireTime, newData.toJSONString()));
+        return JSONObject.toJSON(cacher.getSet(userName, this.expireTime, newData.toString()));
     }
 
     /**
@@ -400,7 +400,7 @@ public class UserSession {
             }
             if (!this.sid.equals(everyone_key)) {
                 cacher.set(sid, expireTime, uid);
-                cacher.set(uid, expireTime, sessionInfo.toJSONString());
+                cacher.set(uid, expireTime, sessionInfo.toString());
             }
         }
         return this;
@@ -416,11 +416,11 @@ public class UserSession {
                 this.uid = uid;
                 sessionInfo = sid.equals(everyone_key) ?
                         JSONObject.build(SuperItemField.fatherField, everyone_key)
-                                .puts(SuperItemField.PVField, AppRolesDef.everyone.group_value)
-                                .puts(uid + "_GrapeFW_AppInfo_", HttpContext.current().appid())
-                                .puts("_GrapeFW_SID", sid)
-                                .puts("_GrapeFW_Expire", expireTime)
-                                .puts("_GrapeFW_NeedRefresh", (expireTime + TimeHelper.build().nowSecond()) / 2)
+                                .put(SuperItemField.PVField, AppRolesDef.everyone.group_value)
+                                .put(uid + "_GrapeFW_AppInfo_", HttpContext.current().appid())
+                                .put("_GrapeFW_SID", sid)
+                                .put("_GrapeFW_Expire", expireTime)
+                                .put("_GrapeFW_NeedRefresh", (expireTime + TimeHelper.build().nowSecond()) / 2)
                         : JSONObject.toJSON(cacher.get(uid));
                 // 补充会话数据
                 if (sessionInfo != null) {

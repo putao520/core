@@ -89,7 +89,7 @@ public class Config {
         if (JSONObject.isInvalided(rs)) {
             throw new RuntimeException("配置[" + session + "] ->不存在!");
         }
-        return rs.getJson("config").toJSONString();
+        return rs.getJson("config").toString();
     }
 
     public static void set(String key, Object val) {
