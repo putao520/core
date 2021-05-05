@@ -3,8 +3,8 @@ package common.java.Apps;
 import common.java.HttpServer.HttpContext;
 
 public class AppThreadContext {
-    public String MicroServiceName;
-    public int AppID;
+    public final String MicroServiceName;
+    public final int AppID;
 
     private AppThreadContext(int AppID, String MicroServiceName) {
         this.AppID = AppID;

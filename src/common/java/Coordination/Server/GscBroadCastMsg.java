@@ -14,7 +14,7 @@ public class GscBroadCastMsg {
         this.queue = queue;
     }
 
-    public static final GscBroadCastMsg build(GscCenterPacket content, ConcurrentHashMap<String, ChannelHandlerContext> queue) {
+    public static GscBroadCastMsg build(GscCenterPacket content, ConcurrentHashMap<String, ChannelHandlerContext> queue) {
         return new GscBroadCastMsg(content, queue);
     }
 

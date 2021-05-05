@@ -1337,7 +1337,7 @@ public class Oracle {
             Reader is = clob.getCharacterStream();
             BufferedReader br = new BufferedReader(is);
             String s = br.readLine();
-            StringBuffer sb = new StringBuffer();
+            StringBuilder sb = new StringBuilder();
             while (s != null) {// 执行循环将字符串全部取出付值给StringBuffer由StringBuffer转成STRING
                 sb.append(s);
                 s = br.readLine();

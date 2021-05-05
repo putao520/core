@@ -1,6 +1,7 @@
 package common.java.HttpServer;
 
 import common.java.Apps.AppContext;
+import common.java.Config.Config;
 import common.java.Http.Mime;
 import common.java.HttpServer.Common.RequestSession;
 import common.java.HttpServer.SpecHeader.Db.HttpContextDb;
@@ -116,7 +117,7 @@ public class GrapeHttpServer {
             if (appid > 0) {
                 appContext = AppContext.build(appid);
                 // 微服务名无效或者应用ID无效
-                if (!appContext.hasData() || !appContext.microServiceInfo().containsKey(GrapeRequest[0])) {
+                if (!appContext.hasData() || !Config.serviceName.equals(GrapeRequest[0])) {
                     nLogger.logInfo("[应用ID:" + appid + " 无效] 或者 [微服务名称:" + GrapeRequest[0] + " 无效]");
                     return "";
                 }
@@ -213,7 +214,7 @@ public class GrapeHttpServer {
         response.content().writeBytes(responseData);
         if (response.headers().get(CONTENT_TYPE) == null) {
             if (responseData.length > 0) {
-                response.headers().set(CONTENT_TYPE, (new Mime()).getMime(responseData) + "; charset=UTF-8");
+                response.headers().set(CONTENT_TYPE, Mime.getMime(responseData) + "; charset=UTF-8");
             } else {
                 response.headers().set(CONTENT_TYPE, "text/html; charset=UTF-8");
             }
@@ -265,7 +266,6 @@ public class GrapeHttpServer {
         if (responseData instanceof String) {
             responseData = ((String) responseData).getBytes();
             writeHttpResponse(ctx, (byte[]) responseData, JSONObject.build(CONTENT_TYPE.toString(), "text/plain; charset=UTF-8"));
-            return;
         }
     }
 }

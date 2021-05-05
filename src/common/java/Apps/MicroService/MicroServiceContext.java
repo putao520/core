@@ -11,8 +11,6 @@ import java.util.HashMap;
 
 public class MicroServiceContext {
     private static int currentno = 0;
-    private String servName;
-    private int appId;
     private JSONObject servInfo;
     private ModelServiceConfig servConfig;
     private MicroModelArray servModelInfo;
@@ -36,10 +34,8 @@ public class MicroServiceContext {
     }
 
     private void init(int appId, String servName) {
-        this.appId = appId;
-        this.servName = servName;
         // 获得对应微服务信息
-        this.servInfo = AppsProxy.getServiceInfo(this.appId, this.servName);
+        this.servInfo = AppsProxy.getServiceInfo(appId, servName);
         if (this.servInfo != null) {
             this.servModelInfo = new MicroModelArray(this.servInfo.getJson("dataModel"));
             this.servConfig = new ModelServiceConfig(this.servInfo.getJson("config"));

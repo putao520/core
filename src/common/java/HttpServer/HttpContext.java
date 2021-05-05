@@ -39,7 +39,6 @@ public class HttpContext {
     private ChannelHandlerContext ctx;
     private JSONObject values = new JSONObject();
     private HttpContextDb db_ctx;
-    private JSONObject db_values = new JSONObject();
 
     private HttpContext() {
     }
@@ -71,7 +70,7 @@ public class HttpContext {
 
     private void init_grape_dbCtx() {
         db_ctx = new HttpContextDb(values);
-        db_values = db_ctx.header(values);
+        JSONObject db_values = db_ctx.header(values);
     }
 
     public static HttpContext newHttpContext() {
@@ -448,7 +447,7 @@ public class HttpContext {
      */
     public void throwOut(String msg) {
         HttpContext.showMessage(this.channelContext(), msg);
-        new RuntimeException(msg);
+        throw new RuntimeException(msg);
     }
 
     /**
@@ -457,7 +456,7 @@ public class HttpContext {
     public void throwDebugOut(String msg) {
         if (MicroServiceContext.current().isDebug()) {
             HttpContext.showMessage(this.channelContext(), msg);
-            new RuntimeException(msg);
+            throw new RuntimeException(msg);
         }
     }
 

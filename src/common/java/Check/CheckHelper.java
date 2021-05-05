@@ -242,11 +242,10 @@ public class CheckHelper {
         timeFormatHMS.add("HH时mm分ss秒");
         timeFormatHMS.add("HH时mm分");
         timeFormatHMS.add(null);
-        String _format = "";
+        String _format;
         for (String _formatYMD : timeFormatYMD) {
             for (String _formatHMS : timeFormatHMS) {
                 try {
-                    _format = _formatHMS == null ? _formatYMD : _formatYMD + " " + _formatHMS;
                     _format = _formatYMD == null ? _formatHMS : _formatYMD + " " + _formatHMS;
                     if (_formatYMD == null && _formatHMS == null) {
                         break;

@@ -3,7 +3,6 @@ package common.java.Coordination.Server.Store;
 import org.json.gsc.JSONObject;
 
 public class Nodes extends StoreBase {
-    private Store $;
 
     private Nodes(JSONObject block) {
         super(block);
@@ -13,8 +12,4 @@ public class Nodes extends StoreBase {
         return new Nodes(block);
     }
 
-    public Nodes bind(Store parent) {
-        $ = parent;
-        return this;
-    }
 }

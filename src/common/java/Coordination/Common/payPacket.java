@@ -32,6 +32,6 @@ public class payPacket {
     // 是否满了
     public boolean append(ByteBuf buffer) {
         int read_length = buffer.readableBytes();
-        return _append(buffer, (need_length < read_length) ? need_length : read_length);
+        return _append(buffer, Math.min(need_length, read_length));
     }
 }

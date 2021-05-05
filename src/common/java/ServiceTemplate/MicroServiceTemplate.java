@@ -328,9 +328,7 @@ public class MicroServiceTemplate implements MicroServiceTemplateInterface {
                 rJson.put(id, "");
             }
             List<String> idArray = new ArrayList<>();
-            for (String key : rJson.keySet()) {
-                idArray.add(key);
-            }
+            idArray.addAll(rJson.keySet());
 
             for (String id : idArray) {
                 dbf.or().eq(fieldName, id);

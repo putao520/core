@@ -10,17 +10,17 @@ import common.java.String.StringHelper;
 import io.netty.channel.ChannelId;
 import org.json.gsc.JSONObject;
 
-import java.util.HashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+// 应用上下文
 public class AppContext {
     public static final String SessionKey = "AppContext";
-    private int appid;
+    private int appId;
     private String domain;
     private JSONObject appInfo;
     private ModelServiceConfig msc;
-    private HashMap<String, MicroServiceContext> microServiceInfo;
+    private MicroServiceContext microServiceInfo;
     private AppRoles roles;
 
     private static final ExecutorService globalService = Executors.newCachedThreadPool();
@@ -115,7 +115,7 @@ public class AppContext {
     private void init(JSONObject appInfo) {
         this.appInfo = appInfo;
         if (this.appInfo != null) {
-            this.appid = this.appInfo.getInt("id");
+            this.appId = this.appInfo.getInt("id");
             this.domain = this.appInfo.getString("domain");
             this.roles = AppRoles.build(this.appInfo.getJson("roles"));
             this.msc = new ModelServiceConfig(this.appInfo.getJson("config"));
@@ -123,13 +123,13 @@ public class AppContext {
 
     }
 
+    // 获得
     private AppContext loadMircServiceInfo() {
-        this.microServiceInfo = new HashMap<>();
         // 单服务只管自己的微服务信息
-        String s = Config.serviceName;
-        MicroServiceContext msc = new MicroServiceContext(this.appid, s);
+        String serviceName = Config.serviceName;
+        MicroServiceContext msc = new MicroServiceContext(this.appId, serviceName);
         if (msc.hasData()) {
-            this.microServiceInfo.put(s, msc);
+            this.microServiceInfo = msc;
         }
         return this;
     }
@@ -163,7 +163,7 @@ public class AppContext {
      * 获得当前应用id
      */
     public int appId() {
-        return this.appid;
+        return this.appId;
     }
 
     /**
@@ -176,7 +176,7 @@ public class AppContext {
     /**
      * 获得应用包含的微服务的信息
      */
-    public HashMap<String, MicroServiceContext> microServiceInfo() {
+    public MicroServiceContext microServiceInfo() {
         return this.microServiceInfo;
     }
 

@@ -31,7 +31,7 @@ public class FormHelper {
         store = new JSONObject();
     }
 
-    public static final FormHelper build() {
+    public static FormHelper build() {
         return new FormHelper();
     }
 
@@ -157,9 +157,8 @@ public class FormHelper {
      * 根据gsc-model( 包含 db-model )自动补充入库前的数据
      */
     public JSONObject autoComplete(JSONObject inputData) {
-        HashMap<String, MModelRuleNode> waitCheck = new HashMap<>();
         // 填充db-model定义
-        waitCheck.putAll(checkObject);
+        HashMap<String, MModelRuleNode> waitCheck = new HashMap<>(checkObject);
         // 过滤未定义字段
         JSONObject resultJson = new JSONObject();
         for (String key : waitCheck.keySet()) {

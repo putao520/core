@@ -14,7 +14,7 @@ import java.util.concurrent.TimeUnit;
 public class ServerChannelInitializer extends ChannelInitializer<SocketChannel> {
     // static final EventExecutorGroup group = new DefaultEventExecutorGroup(2);
 
-    public ServerChannelInitializer() throws InterruptedException {
+    public ServerChannelInitializer() {
     }
 
     @Override

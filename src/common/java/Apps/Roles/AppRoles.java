@@ -19,7 +19,7 @@ public class AppRoles {
         return AppRolesDef.defaultRoles();
     }
 
-    public static final AppRoles build(JSONObject info) {
+    public static AppRoles build(JSONObject info) {
         return new AppRoles(info);
     }
 

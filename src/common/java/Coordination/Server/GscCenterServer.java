@@ -2,6 +2,7 @@ package common.java.Coordination.Server;
 
 import common.java.Config.Config;
 import common.java.Coordination.Common.GscCenterPacket;
+import common.java.Coordination.Server.Store.Store;
 import common.java.File.FileText;
 import common.java.String.StringHelper;
 import io.netty.channel.ChannelHandlerContext;
@@ -27,9 +28,8 @@ public class GscCenterServer {
         // 定时广播数据
         broadcast_worker.scheduleAtFixedRate(() -> {
             if (!broadcast_queue.isEmpty()) {
-                var iter = broadcast_queue.keySet().iterator();
-                while (iter.hasNext()) {
-                    var arr = broadcast_queue.get(iter.next());
+                for (String s : broadcast_queue.keySet()) {
+                    var arr = broadcast_queue.get(s);
                     var it = arr.iterator();
                     while (it.hasNext()) {
                         it.next().broadCast();
@@ -43,7 +43,7 @@ public class GscCenterServer {
     private final ScheduledExecutorService auto_save_worker = Executors.newSingleThreadScheduledExecutor();  // 管理命令线程
     private final FileText file;
     // 获得该对象时,必须确保并发安全!!!(目前已改成队列执行，确保线程安全)
-    private final JSONObject store;
+    private final Store store;
     /**
      * keyA:[]
      * keyB:[]
@@ -53,7 +53,7 @@ public class GscCenterServer {
 
     private GscCenterServer(String path) {
         this.file = FileText.build(path);
-        this.store = JSONObject.build(file.readString());
+        this.store = Store.build(JSONObject.build(file.readString()));
     }
 
     private void save() {
@@ -61,10 +61,8 @@ public class GscCenterServer {
     }
 
     public GscCenterServer enableSave() {
-        auto_save_worker.scheduleAtFixedRate(() -> {
-            // 定时保存数据
-            this.save();
-        }, 30, 30, TimeUnit.SECONDS);
+        // 定时保存数据
+        auto_save_worker.scheduleAtFixedRate(this::save, 30, 30, TimeUnit.SECONDS);
         return this;
     }
 
@@ -141,14 +139,14 @@ public class GscCenterServer {
      * @apiNote 导出全部内容
      */
     public JSONObject export() {
-        return this.store;
+        return store.export();
     }
 
     /**
      * @apiNote 按挂载点导出内容
      */
     public JSONObject export(String key) {
-        return store.getJson(key);
+        return store.export(key);
     }
 
     public JSONArray getClassStore(String key) {
@@ -167,7 +165,7 @@ public class GscCenterServer {
     }
 
     public GscCenterServer clear(String key) {
-        store.getJsonArray(key).clear();
+        store.clear(key);
         return this;
     }
 
@@ -225,29 +223,29 @@ public class GscCenterServer {
 
     private JSONObject findServiceInfoByName(String serviceName) {
         // 根据服务名获得服务信息
-        return (JSONObject) store.getJson("services").getJsonArray("store").mapsByKey("name").get(serviceName, null);
+        return store.services.getDataMap("name").getJson(serviceName);
     }
 
-    private JSONObject findServiceInfoById(String id) {
+    private JSONObject findServiceInfoById(int id) {
         // 根据服务id获得服务信息
-        return (JSONObject) store.getJson("services").getJsonArray("store").mapsByKey("id").get(id, null);
+        return store.services.find(id);
     }
 
-    private JSONArray<JSONObject> findApps4AppIds(Set<String> idArr) {
+    private JSONArray<JSONObject> findApps4AppIds(Set<Integer> idArr) {
         JSONArray<JSONObject> result = JSONArray.build();
-        JSONObject appsMap = store.getJson("apps").getJsonArray("store").mapsByKey("id");
-        for (String id : idArr) {
-            result.add(appsMap.getJson(id));
+        JSONObject appsMap = store.apps.getDataMap();
+        for (int id : idArr) {
+            result.add(appsMap.getJson(String.valueOf(id)));
         }
         return result;
     }
 
-    private String getServiceIdByName(String serviceName) {
+    private int getServiceIdByName(String serviceName) {
         JSONObject serviceInfo = findServiceInfoByName(serviceName);
         if (JSONObject.isInvalided(serviceInfo)) {
-            return null;
+            return -1;
         }
-        return serviceInfo.getString("id");
+        return serviceInfo.getInt("id");
     }
 
     /**
@@ -255,28 +253,28 @@ public class GscCenterServer {
      * @apiNote 查找与service有关的应用上下文
      */
     private JSONArray<JSONObject> findApps4ServiceName(String serviceName) {
-        String serviceId = getServiceIdByName(serviceName);
-        if (StringHelper.isInvalided(serviceId)) {
+        int serviceId = getServiceIdByName(serviceName);
+        if (serviceId < 0) {
             return null;
         }
-        Set<String> appIds = new HashSet<>();
+        Set<Integer> appIds = new HashSet<>();
         // 根据部署表获得
-        JSONArray<JSONObject> deployArr = store.getJson("servicesDeploy").getJsonArray("store");
+        JSONArray<JSONObject> deployArr = store.servicesDeploy.getDataArr();
         for (JSONObject v : deployArr) {
-            if (v.getString("serviceId").equals(serviceId)) {
-                appIds.add(v.getString("appId"));
+            if (v.getInt("serviceId") == serviceId) {
+                appIds.add(v.getInt("appId"));
             }
         }
         return findApps4AppIds(appIds);
     }
 
     private JSONObject findServices4DeployId(int deployId) {
-        JSONArray<JSONObject> deployArr = store.getJson("servicesDeploy").getJsonArray("store");
+        JSONArray<JSONObject> deployArr = store.servicesDeploy.getDataArr();
         for (JSONObject v : deployArr) {
             // 部署ID获得部署内容
             if (v.getInt("id") == deployId) {
                 // 根据服务ID获得服务器内容
-                JSONObject serviceInfo = findServiceInfoById(v.getString("serviceId"));
+                JSONObject serviceInfo = findServiceInfoById(v.getInt("serviceId"));
                 if (!JSONObject.isInvalided(serviceInfo)) {
                     return serviceInfo.put(v);
                 }
@@ -285,18 +283,19 @@ public class GscCenterServer {
         return null;
     }
 
+    // 下发->微服务信息是 微服务信息+部署信息聚合
     private JSONArray<JSONObject> findServices4ServiceName(String serviceName, int deployId) {
         JSONObject serviceInfo = findServiceInfoByName(serviceName);
         if (JSONObject.isInvalided(serviceInfo)) {
             return null;
         }
-        String serviceId = serviceInfo.getString("id");
+        int serviceId = serviceInfo.getInt("id");
         // 根据部署表获得聚合微服务信息
         JSONArray<JSONObject> result = JSONArray.build();
-        JSONArray<JSONObject> deployArr = store.getJson("servicesDeploy").getJsonArray("store");
+        JSONArray<JSONObject> deployArr = store.servicesDeploy.getDataArr();
         for (JSONObject v : deployArr) {
             // 根据服务ID和部署ID获得聚合内容
-            if (v.getString("serviceId").equals(serviceId)) {
+            if (v.getInt("serviceId") == serviceId) {
                 if (deployId > 0 && v.getInt("id") != deployId) {
                     continue;
                 }
@@ -307,17 +306,17 @@ public class GscCenterServer {
     }
 
     private JSONArray<JSONObject> findConfigs4ServiceName(String serviceName) {
-        String serviceId = getServiceIdByName(serviceName);
-        if (StringHelper.isInvalided(serviceId)) {
+        int serviceId = getServiceIdByName(serviceName);
+        if (serviceId < 0) {
             return null;
         }
         // 根据部署表获得配置聚合信息
-        JSONObject configMaps = store.getJson("configs").getJsonArray("store").mapsByKey("name");
+        JSONObject configMaps = store.configs.getDataMap("name");
         HashMap<String, JSONObject> configNameMaps = new HashMap<>();
         // 根据部署表获得
-        JSONArray<JSONObject> deployArr = store.getJson("servicesDeploy").getJsonArray("store");
+        JSONArray<JSONObject> deployArr = store.configs.getDataArr();
         for (JSONObject v : deployArr) {
-            if (v.getString("serviceId").equals(serviceId)) {
+            if (v.getInt("serviceId") == serviceId) {
                 JSONObject config = v.getJson("config");
                 if (JSONObject.isInvalided(config)) {
                     continue;
@@ -366,9 +365,9 @@ public class GscCenterServer {
      * @apiNote 取消订阅挂载点数据变更
      */
     public GscCenterServer unSubscribe(GscChangeMsg msg, ChannelHandlerContext ctx) {
-        String nodeId = msg.getData().getString("node");
+        int nodeId = msg.getData().getInt("node");
         getSubscribeChannel(msg.getServiceName()).remove(ctx.name());
-        store.getJson("nodes").remove(nodeId);
+        store.nodes.remove(nodeId);
         return this;
     }
 
@@ -387,13 +386,6 @@ public class GscCenterServer {
             subscribeQueue.put(serviceName, new ConcurrentHashMap<>());
         }
         return subscribeQueue.get(serviceName);
-    }
-
-    private String updateIndex(JSONObject info, JSONObject data) {
-        String nIdx = String.valueOf(Integer.valueOf(info.getString("idx")) + 1);
-        data.put("id", nIdx);
-        info.put("idx", nIdx);
-        return nIdx;
     }
 
     private void onChange(GscChangeMsg msg, String className, ChannelHandlerContext ctx) {
@@ -426,15 +418,11 @@ public class GscCenterServer {
         JSONObject data = msg.getData();
         // 获得分类
         String className = data.getString("name");
-        if (!store.containsKey(className)) {
+        if (store.has(className)) {
             return false;
         }
         JSONObject insertData = data.getJson("data");
-        JSONObject info = store.getJson(className);
-        // 更新idx更新数据
-        updateIndex(info, insertData);
-        info.getJsonArray("store").add(insertData);
-
+        store.insert(className, insertData);
         onChange(msg, className, ctx);
         return true;
     }
@@ -447,24 +435,77 @@ public class GscCenterServer {
         return onUpdate(msg, null);
     }
 
+    /**
+     * @apiNote 讲全微服务信息，提取成 部署信息 和 服务信息
+     */
+    private JSONArray<JSONObject> spiltServiceAndDeploy(JSONObject fullServiceInfo) {
+        JSONArray<JSONObject> r = JSONArray.build();
+        if (!fullServiceInfo.has("appId")
+                || !fullServiceInfo.has("serviceId")
+        ) {
+            return r;
+        }
+
+        JSONObject serviceInfo = JSONObject.build()
+                .putIfNotNull("name", fullServiceInfo.getString("name"))
+                .putIfNotNull("peerAddr", fullServiceInfo.getString("peerAddr"))
+                .putIfNotNull("id", fullServiceInfo.getString("id"))
+                .putIfNotNull("desc", fullServiceInfo.getString("desc"));
+        JSONObject deployInfo = JSONObject.build()
+                .putIfNotNull("debug", fullServiceInfo.getInt("debug"))
+                .putIfNotNull("appId", fullServiceInfo.getInt("appId"))
+                .putIfNotNull("serviceId", fullServiceInfo.getInt("serviceId"))
+                .putIfNotNull("state", fullServiceInfo.getInt("state"))
+                .putIfNotNull("updateAt", fullServiceInfo.getString("updateAt"))
+                .putIfNotNull("createAt", fullServiceInfo.getString("createAt"))
+                .putIfNotNull("dataModel", fullServiceInfo.getJson("dataModel"))
+                .putIfNotNull("config", fullServiceInfo.getJson("config"));
+        // 根据 fullServiceInfo 查找部署id
+        var resultArr = store.servicesDeploy
+                .find("serviceId", fullServiceInfo.getInt("serviceId"))
+                .<Integer>filter("appId", v -> v == fullServiceInfo.getInt("appId"));
+        if (JSONArray.isInvalided(resultArr)) {
+            return r;
+        }
+        deployInfo.put("id", r.get(0).getInt("id"));
+
+        return r.put(serviceInfo).put(deployInfo);
+    }
+
+    /**
+     * @apiNote 更新对象是微服务信息时，尝试拆分成 部署对象 和 服务对象
+     */
     public boolean onUpdate(GscChangeMsg msg, ChannelHandlerContext ctx) {
         JSONObject data = msg.getData();
         // 获得分类
         String className = data.getString("name");
-        if (!store.containsKey(className)) {
+        if (store.has(className)) {
             return false;
         }
         JSONObject updateData = data.getJson("data");
-        JSONArray<JSONObject> arr = store.getJson(className).getJsonArray("store");
-        // 找到对应id的json,覆盖
-        for (JSONObject v : arr) {
-            if (v.getString("id").equals(updateData.getString("id"))) {
-                v.putAll(updateData);
-                onChange(msg, className, ctx);
-                return true;
+        // 如果是微服务
+        if (className.equals("services")) {
+            JSONArray<JSONObject> dataArr = spiltServiceAndDeploy(updateData);
+            if (dataArr.size() != 2) {
+                return false;
+            }
+            try {
+                store.update(className, dataArr.get(0));
+                // 切换类型到部署
+                className = "servicesDeploy";
+                store.update(className, dataArr.get(1));
+            } catch (Exception e) {
+                return false;
+            }
+        } else {
+            try {
+                store.update(className, updateData);
+            } catch (Exception e) {
+                return false;
             }
         }
-        return false;
+        onChange(msg, className, ctx);
+        return true;
     }
 
     /**
@@ -479,21 +520,16 @@ public class GscCenterServer {
         JSONObject data = msg.getData();
         // 获得分类
         String className = data.getString("name");
-        if (!store.containsKey(className)) {
+        if (store.has(className)) {
             return false;
         }
         JSONObject deleteData = data.getJson("data");
-        JSONArray<JSONObject> arr = store.getJson(className).getJsonArray("store");
-        // 找到对应id的json,覆盖
-        Iterator<JSONObject> it = arr.iterator();
-        while (it.hasNext()) {
-            JSONObject item = it.next();
-            if (item.getString("id").equals(deleteData.getString("id"))) {
-                it.remove();
-                onChange(msg, className, ctx);
-                return true;
-            }
+        try {
+            store.delete(className, deleteData.getInt("id"));
+        } catch (Exception e) {
+            return false;
         }
-        return false;
+        onChange(msg, className, ctx);
+        return true;
     }
 }

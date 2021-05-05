@@ -2,22 +2,17 @@ package common.java.JGrapeSystem;
 
 import common.java.Apps.MicroService.MicroServiceContext;
 import common.java.Config.Config;
-import common.java.Coordination.Client.GscCenterClient;
 import common.java.HttpServer.GscServer;
 import common.java.HttpServer.HttpContext;
 import common.java.MasterProxy.MasterActor;
 import common.java.Time.TimeHelper;
 import common.java.nLogger.nLogger;
 import io.netty.channel.ChannelHandlerContext;
-import org.json.gsc.JSONObject;
 
 public class GscBooster {
-    private static void _before(GscCenterClient client, String serverName) {
-        // 获得当前服务状态
-        JSONObject servInfo = client.getServiceInfo(serverName);
-        boolean debugStatus = JSONObject.isInvalided(servInfo) || servInfo.getBoolean("debug");
+    private static void _before(String serverName) {
         // 设置日志回调
-        nLogger.setDebug(debugStatus);
+        nLogger.setDebug(Config.debug);
         nLogger.clientFunc = (info, type) -> {
             HttpContext context = HttpContext.current();
             if (context == null) {
@@ -42,7 +37,7 @@ public class GscBooster {
         System.out.println("监听:" + Config.bindIP + ":" + Config.port + " ...成功");
         // 设置本地服务名
         System.setProperty("AppName", serverName);
-        if (debugStatus) {
+        if (Config.debug) {
             System.out.println("调试模式:开启");
         }
     }
@@ -54,15 +49,15 @@ public class GscBooster {
     public static void start(String serverName) {
         try {
             // 此时订阅全部用到的数据
-            var actor = MasterActor.getClient().subscribe();
+            MasterActor.getClient().subscribe();
             // 设置日志过滤器
-            _before(actor, serverName);
+            _before(serverName);
             // 启动http服务
             GscServer.start(Config.bindIP, Config.port);
         } catch (Exception e) {
             nLogger.errorInfo(e);
         } finally {
-
+            nLogger.logInfo("服务器关闭");
         }
     }
 }

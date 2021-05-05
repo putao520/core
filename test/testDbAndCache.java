@@ -10,9 +10,9 @@ public class testDbAndCache extends TestCase {
     public void testCacheLocal() {
         CacheHelper ca = CacheHelper.buildLocal();
         ca.set("TestA", "putao520");
-        assertTrue(ca.get("TestA").equals("putao520"));
+        assertEquals("putao520", ca.get("TestA"));
         ca.setExpire("TestA", 1000);    // 设置缓存过期时间1秒
         ThreadHelper.sleep(3000);
-        assertTrue(ca.get("TestA") == null);
+        assertNull(ca.get("TestA"));
     }
 }

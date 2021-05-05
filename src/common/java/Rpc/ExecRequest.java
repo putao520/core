@@ -7,7 +7,6 @@ import common.java.HttpServer.HttpContext;
 import common.java.Reflect._reflect;
 import common.java.String.StringHelper;
 import common.java.nLogger.nLogger;
-import org.json.gsc.JSONArray;
 import org.json.gsc.JSONObject;
 
 import java.lang.reflect.Constructor;
@@ -49,7 +48,7 @@ public class ExecRequest {//框架内请求类
         if (aCtx == null) {
             return RpcError.Instant(false, "无效应用");
         }
-        var mServInfo = aCtx.microServiceInfo().get(ctx.serviceName());
+        var mServInfo = aCtx.microServiceInfo();
         if (mServInfo == null) {
             return RpcError.Instant(false, "无效服务");
         }
@@ -178,8 +177,6 @@ public class ExecRequest {//框架内请求类
         }
         if (o instanceof String ||
                 o instanceof Integer ||
-                o instanceof JSONObject ||
-                o instanceof JSONArray ||
                 o instanceof List<?> ||
                 o instanceof HashMap<?, ?> ||
                 o instanceof Long ||

@@ -10,7 +10,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class MessagePacketDecoder extends ByteToMessageDecoder {
     private final ConcurrentHashMap<String, payPacket> ctxMap;
 
-    public MessagePacketDecoder(ConcurrentHashMap<String, payPacket> ctxMap) throws Exception {
+    public MessagePacketDecoder(ConcurrentHashMap<String, payPacket> ctxMap) {
         this.ctxMap = ctxMap;
     }
 

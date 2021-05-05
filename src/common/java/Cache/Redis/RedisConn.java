@@ -12,7 +12,7 @@ import io.lettuce.core.cluster.ClusterClientOptions;
 import io.lettuce.core.cluster.ClusterTopologyRefreshOptions;
 import io.lettuce.core.cluster.RedisClusterClient;
 import io.lettuce.core.cluster.api.StatefulRedisClusterConnection;
-import io.lettuce.core.codec.Utf8StringCodec;
+import io.lettuce.core.codec.StringCodec;
 import io.lettuce.core.masterreplica.MasterReplica;
 import io.lettuce.core.masterreplica.StatefulRedisMasterReplicaConnection;
 import org.json.gsc.JSONObject;
@@ -147,7 +147,8 @@ public class RedisConn {
             redisBuilder.withSsl(configs.getBoolean("ssl"));
         }
         RedisURI rURI = redisBuilder.build();
-        StatefulRedisMasterReplicaConnection<String, String> conn = MasterReplica.connect(redisClient, new Utf8StringCodec(), rURI);
+
+        StatefulRedisMasterReplicaConnection<String, String> conn = MasterReplica.connect(redisClient, StringCodec.UTF8, rURI);
         conn.setReadFrom(ReadFrom.MASTER_PREFERRED);
         return conn;
     }

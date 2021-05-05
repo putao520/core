@@ -68,7 +68,7 @@ public class Cache implements InterfaceCache {
      */
     public Cache secondCache(boolean flag) {
         if (_cache == null) {
-            if (flag == true) {
+            if (flag) {
                 this.local_mem_cache = true;
             }
         } else {

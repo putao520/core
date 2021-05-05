@@ -18,7 +18,7 @@ import java.util.concurrent.TimeUnit;
 public class TCPClientHandler extends ChannelInboundHandlerAdapter {
     private ChannelHandlerContext ctx;
     private final GscCenterClient cli;
-    public static ConcurrentHashMap<String, payPacket> preload = new ConcurrentHashMap<>();    // 通讯线路id, 预存字节集
+    public static final ConcurrentHashMap<String, payPacket> preload = new ConcurrentHashMap<>();    // 通讯线路id, 预存字节集
 
     public TCPClientHandler(GscCenterClient cli) {
         this.cli = cli;
@@ -37,9 +37,7 @@ public class TCPClientHandler extends ChannelInboundHandlerAdapter {
         Channel ch = ctx.channel();
         preload.remove(ch.id().asLongText());
         //使用过程中断线重连
-        ch.eventLoop().schedule(() -> {
-            this.cli.reConnect();
-        }, 2, TimeUnit.SECONDS);
+        ch.eventLoop().schedule((Runnable) this.cli::reConnect, 2, TimeUnit.SECONDS);
         ctx.close();
         this.cli.setLiveStatus(false);
     }
@@ -51,7 +49,7 @@ public class TCPClientHandler extends ChannelInboundHandlerAdapter {
     }
 
     @Override
-    public void channelRead(ChannelHandlerContext ctx, Object source) throws Exception {
+    public void channelRead(ChannelHandlerContext ctx, Object source) {
         // 拿到传过来的msg数据，开始处理
         GscCenterPacket respMsg = (GscCenterPacket) source;// 转化为GscCenterPacket
         // 挂载点更新,挂载点内容更新(收到服务端推送过来的数据)

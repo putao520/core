@@ -13,7 +13,7 @@ public class GscChangeMsg {
     private GscChangeMsg(String serviceInfo, String action, JSONObject data, ChannelHandlerContext ctx) {
         String[] serviceInfoArr = serviceInfo.split("_");
         this.serviceName = serviceInfoArr[0];
-        this.deployId = serviceInfoArr.length > 1 ? Integer.valueOf(serviceInfoArr[1]) : 0;
+        this.deployId = serviceInfoArr.length > 1 ? Integer.parseInt(serviceInfoArr[1]) : 0;
         this.action = action;
         this.data = data;
         this.ctx = ctx;

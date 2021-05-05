@@ -1,12 +1,12 @@
 package common.java.Coordination.Server.Store;
 
 import common.java.Apps.MicroService.Config.ModelServiceConfig;
+import common.java.nLogger.nLogger;
 import org.json.gsc.JSONObject;
 
 public class Apps extends StoreBase {
-    private Store $;
 
-    private Apps(JSONObject block) {
+    Apps(JSONObject block) {
         super(block);
     }
 
@@ -14,23 +14,31 @@ public class Apps extends StoreBase {
         return new Apps(block);
     }
 
-    public Apps bind(Store parent) {
-        $ = parent;
-        return this;
-    }
-
+    @Override
     public int insert(JSONObject data) {
+        if (onChangeCheck(data, false)) {
+            return -1;
+        }
         return super.insert(data);
     }
 
-    // 新增，更新时，检查 配置
-    private boolean onChangeCheck(int idx) {
-        // 检查配置组成
-        JSONObject appInfo = super.find(idx);
-        if (JSONObject.isInvalided(appInfo)) {
-            return false;
+    @Override
+    public void update(JSONObject json) {
+        if (onChangeCheck(json, true)) {
+            throw new RuntimeException("更新数据不合法");
         }
-        ModelServiceConfig msc = ModelServiceConfig.build(appInfo.getJson("config"));
+        super.update(json);
+    }
 
+    // 新增，更新时，检查 配置
+    private boolean onChangeCheck(JSONObject appInfo, boolean update) {
+        if (JSONObject.isInvalided(appInfo)) {
+            nLogger.errorInfo("应用信息无效");
+            return true;
+        }
+        if (!appInfo.has("config")) {
+            return !update;
+        }
+        return super.checkConfigs(ModelServiceConfig.build(appInfo.getJson("config")).getSafeConfig().values());
     }
 }

@@ -14,7 +14,7 @@ import static common.java.Coordination.Common.GscCenterEvent.*;
 
 public class TCPServerHandler extends ChannelInboundHandlerAdapter {
     private final GscCenterServer centerServer;
-    public static ConcurrentHashMap<String, payPacket> preload = new ConcurrentHashMap<>();    // 通讯线路id, 预存字节集
+    public static final ConcurrentHashMap<String, payPacket> preload = new ConcurrentHashMap<>();    // 通讯线路id, 预存字节集
 
     public TCPServerHandler() {
         centerServer = GscCenterServer.getInstance();
@@ -39,7 +39,7 @@ public class TCPServerHandler extends ChannelInboundHandlerAdapter {
     }
 
     @Override
-    public void channelRead(ChannelHandlerContext ctx, Object source) throws Exception {
+    public void channelRead(ChannelHandlerContext ctx, Object source) {
         // 拿到传过来的msg数据，开始处理
         GscCenterPacket respMsg = (GscCenterPacket) source;// 转化为GscCenterPacket
         short eventId = respMsg.getEventId();

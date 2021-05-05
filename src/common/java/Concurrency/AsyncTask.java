@@ -14,12 +14,10 @@ import java.util.concurrent.Executors;
 public class AsyncTask {
     private static final ExecutorService service = Executors.newCachedThreadPool();
 
-    private final long timeOut;
     private final AsyncTaskRunnable task;
 
     private AsyncTask(AsyncTaskRunnable task, long time_out) {
         this.task = task;
-        this.timeOut = time_out;
     }
 
     public static AsyncTask build(AsyncTaskRunnable task) {

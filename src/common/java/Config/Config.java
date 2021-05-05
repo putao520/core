@@ -20,6 +20,7 @@ public class Config {
     public static int serviceDeployId;
     public static final String masterId_Key = "MasterId";
     public static String nodeID;
+    public static boolean debug;
 
     public static String masterId;
     public static String masterPass;
@@ -72,6 +73,7 @@ public class Config {
         masterHost = prop.getProperty("MasterHost", "http://127.0.0.1");//read putao520system host url
         masterPort = Integer.parseInt(prop.getProperty("MasterPort", "80"));
         bindIP = prop.getProperty("BindIP", "0.0.0.0");//本地服务节点通信Ip
+        debug = Boolean.parseBoolean(prop.getProperty("Debug", "true"));
 
         masterId = prop.getProperty(masterId_Key);
         masterPass = prop.getProperty(masterPass_Key);

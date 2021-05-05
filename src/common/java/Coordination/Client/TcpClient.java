@@ -75,9 +75,7 @@ public class TcpClient {
                 //如果连接失败，尝试重新连接
                 else {
                     nLogger.errorInfo("客户端[" + channelFuture.channel().localAddress().toString() + "]连接失败，重新连接中...");
-                    future.channel().close().channel().eventLoop().schedule(() -> {
-                        this.cli.reConnect();
-                    }, 3, TimeUnit.SECONDS);
+                    future.channel().close().channel().eventLoop().schedule((Runnable) this.cli::reConnect, 3, TimeUnit.SECONDS);
                     this.cli.setLiveStatus(false);
                 }
                 waitFlag.set(true);

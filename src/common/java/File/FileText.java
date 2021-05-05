@@ -141,9 +141,7 @@ public class FileText extends FileHelper<FileText> {
         try (FileReader read = new FileReader(this.file)) {
             try (BufferedReader bw = new BufferedReader(read)) {
                 Stream<String> rArray = bw.lines();
-                rArray.forEach(str -> {
-                    sb.append(str);
-                });
+                rArray.forEach(sb::append);
             } catch (Exception e) {
                 error_handle();
             }

@@ -136,7 +136,9 @@ public class rpc {
         return "http://" + msc.bestServer() + "/" + this.servName + this.servPath;
     }
 
+    /*
     public void broadCast(Object... args) {
         broadCast(this.servPath, this.ctx, args);
     }
+    */
 }

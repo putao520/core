@@ -1,19 +1,16 @@
 package common.java.Coordination.Client;
 
 import common.java.Config.Config;
+import common.java.Coordination.Client.Store.Store;
 import common.java.Coordination.Common.GscCenterEvent;
 import common.java.Coordination.Common.GscCenterPacket;
-import common.java.MasterProxy.MasterActor;
 import common.java.Thread.ThreadHelper;
-import org.json.gsc.JSONArray;
 import org.json.gsc.JSONObject;
 
-import java.util.HashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class GscCenterClient {
-    private final HashMap<String, JSONObject> indexMap;
-    private final JSONObject store;
+    private final Store store;
     private TcpClient client;
     private final AtomicInteger loadCnt;
     private boolean liveStatus;
@@ -25,15 +22,13 @@ public class GscCenterClient {
         this.liveStatus = false;
         this.keepLived = false;
         this.loadCnt = new AtomicInteger(0);
-        this.store = JSONObject.build();
-        this.indexMap = new HashMap<>();
+        this.store = Store.build();
         this.client = TcpClient.build(this).run();
     }
 
     public static GscCenterClient build() {
         // 建立连接
-        GscCenterClient cls = new GscCenterClient();
-        return cls;
+        return new GscCenterClient();
     }
 
     public GscCenterClient reConnect() {
@@ -69,22 +64,11 @@ public class GscCenterClient {
         }
     }
 
-    // 增加索引字段
-    public GscCenterClient addIndex(String indexKey) {
-        indexMap.put(indexKey, store.mapsByKey(indexKey));
-        return this;
+    // 根据不同className获得对应数据
+    public JSONObject getData(String className, String key, String value) {
+        return store.find(className, key, value);
     }
 
-    // 数据变化后重新建立索引
-    private void rebuildIndex() {
-        for (String indexKey : indexMap.keySet()) {
-            indexMap.put(indexKey, store.mapsByKey(indexKey));
-        }
-    }
-
-    public JSONArray getData(String className) {
-        return store.getJsonArray(className);
-    }
 
     private void setClient(TcpClient handle) {
         this.client = handle;
@@ -110,37 +94,15 @@ public class GscCenterClient {
         }
     }
 
-    private void updateById(JSONArray<JSONObject> local_arr, JSONArray<JSONObject> arr) {
-        JSONObject maps = local_arr.mapsByKey("id");
-        for (JSONObject v : arr) {
-            String nId = v.getString("id");
-            // 如果当前存储包含输入项目,更新当前项目
-            if (maps.containsKey(nId)) {
-                maps.getJson(nId).putAll(v);
-            }
-            // 如果当前存储不包含输入项目,直接新增数据
-            else {
-                local_arr.add(v);
-            }
-        }
-    }
 
     // 初始化数据
     public void onChange(String key, JSONObject data) {
-        if (!store.containsKey(key)) {
-            store.put(key, JSONArray.build());
+        if (store.put(key, data)) {
         }
-        JSONArray arr = data.getJsonArray("data");
-        if (!JSONArray.isInvalided(arr)) {
-            updateById(store.getJsonArray(key), arr);
-        }
-        // 刷新maps后的对应对象缓存数据
-        MasterActor.updateAll(key);
     }
 
     public void onClear() {
         store.clear();
-        indexMap.clear();
     }
 
     /**
@@ -192,16 +154,4 @@ public class GscCenterClient {
         client.close();
     }
 
-    public JSONObject getServiceInfo(String servName) {
-        JSONArray<JSONObject> arr = getData("services");
-        if (JSONArray.isInvalided(arr)) {
-            return null;
-        }
-        for (JSONObject item : arr) {
-            if (item.getString("name").equals(servName)) {
-                return item;
-            }
-        }
-        return null;
-    }
 }

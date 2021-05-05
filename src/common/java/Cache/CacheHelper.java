@@ -14,19 +14,19 @@ public class CacheHelper implements InterfaceCache {
         Global(false);
     }
 
-    public static final CacheHelper build() {
+    public static CacheHelper build() {
         return new CacheHelper(null, true);
     }
 
-    public static final CacheHelper build(String configName, boolean globalShare) {
+    public static CacheHelper build(String configName, boolean globalShare) {
         return new CacheHelper(configName, globalShare);
     }
 
-    public static final CacheHelper buildLocal() {
+    public static CacheHelper buildLocal() {
         return new CacheHelper(null, false);
     }
 
-    public static final CacheHelper build(boolean globalShare) {
+    public static CacheHelper build(boolean globalShare) {
         return new CacheHelper(null, globalShare);
     }
 
@@ -35,7 +35,7 @@ public class CacheHelper implements InterfaceCache {
         return this;
     }
 
-    public static final CacheHelper build(String configName) {
+    public static CacheHelper build(String configName) {
         return new CacheHelper(configName, true);
     }
 

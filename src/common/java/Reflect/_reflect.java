@@ -258,7 +258,7 @@ public class _reflect {
                 }
                 rList.add(_oClass);
             }
-            rs = rList.toArray(new Class<?>[rList.size()]);
+            rs = rList.toArray(new Class<?>[0]);
         } catch (Exception e) {
             rs = null;
         }

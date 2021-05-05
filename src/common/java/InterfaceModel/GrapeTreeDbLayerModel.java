@@ -28,7 +28,6 @@ public class GrapeTreeDbLayerModel implements InterfaceDatabase<GrapeTreeDbLayer
     private boolean hardMode = false;
     private boolean SuperMode = false;
     private DbLayer db;
-    private MicroModel mModel = null;
     private String pkField = null;
     private FormHelper checker = null;
     private Permissions permissions = null;
@@ -103,12 +102,12 @@ public class GrapeTreeDbLayerModel implements InterfaceDatabase<GrapeTreeDbLayer
      * 填充模型和权限模型
      */
     private GrapeTreeDbLayerModel descriptionModel(String modelName) {
-        this.mModel = MicroServiceContext.current().model(modelName);
-        String tableName = this.mModel.tableName();
+        MicroModel mModel = MicroServiceContext.current().model(modelName);
+        String tableName = mModel.tableName();
         if (!StringHelper.isInvalided(tableName)) {
             pkField = this.db.form(tableName).bind().getGeneratedKeys();
-            checker = FormHelper.build().importField(this.mModel.rules());
-            permissions = new Permissions(this.mModel.tableName());
+            checker = FormHelper.build().importField(mModel.rules());
+            permissions = new Permissions(mModel.tableName());
         }
         return this;
     }
@@ -145,7 +144,7 @@ public class GrapeTreeDbLayerModel implements InterfaceDatabase<GrapeTreeDbLayer
 
     // map-reduce执行
     private JSONArray<JSONObject> runOutPipe(JSONArray<JSONObject> input) {
-        JSONArray r = input;
+        JSONArray<JSONObject> r = input;
         if (input != null) {
             if (aggregationJSONArray_Out != null) {
                 Vector<JSONArray> resultArray = new Vector<>();
@@ -329,13 +328,13 @@ public class GrapeTreeDbLayerModel implements InterfaceDatabase<GrapeTreeDbLayer
         JSONObject json = find();
         if (json != null) {
             // 管线方式过滤数据
-            JSONArray rArray = JSONArray.build(json);
+            JSONArray<JSONObject> rArray = JSONArray.build(json);
             if (pipeJSONArray_Out != null && !JSONArray.isInvalided(rArray)) {
                 for (Function<JSONArray, JSONArray> func : pipeJSONArray_Out) {
                     rArray = func.apply(rArray);
                 }
             }
-            json = JSONArray.isInvalided(rArray) ? null : (JSONObject) rArray.get(0);
+            json = JSONArray.isInvalided(rArray) ? null : rArray.get(0);
             if (json != null) {
                 if ((count() > 10)) {
                     getAllChildren0(json);
@@ -579,19 +578,19 @@ public class GrapeTreeDbLayerModel implements InterfaceDatabase<GrapeTreeDbLayer
         DbFilter q = DbFilter.buildDbFilter();
         if (!permissions.deleteFilter(q)) {
             HttpContext.current().throwDebugOut("当前用户无权删除数据!");
-            return false;
+            return true;
         }
         if (!q.nullCondition()) {
             db.and().groupCondition(q.buildEx());
         }
-        return true;
+        return false;
     }
 
     /**
      * 直接删除
      */
     public JSONObject delete() {
-        if (!_deleteFilter()) {
+        if (_deleteFilter()) {
             return null;
         }
         if (hardMode) {
@@ -605,7 +604,7 @@ public class GrapeTreeDbLayerModel implements InterfaceDatabase<GrapeTreeDbLayer
      * 直接删除全部
      */
     public long deleteAll() {
-        if (!_deleteFilter()) {
+        if (_deleteFilter()) {
             return -1;
         }
         if (hardMode) {

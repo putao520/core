@@ -61,11 +61,11 @@ public class HttpContextDb {
     }
 
     public String fields() {
-        String r = "";
+        StringBuilder r = new StringBuilder();
         for (String _o : field_array) {
-            r += (_o + ",");
+            r.append(_o).append(",");
         }
-        return StringHelper.build(r).trimFrom(',').toString();
+        return StringHelper.build(r.toString()).trimFrom(',').toString();
     }
 
     public JSONObject sort() {

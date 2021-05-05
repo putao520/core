@@ -20,12 +20,10 @@ public class MModelPermInfo {
     private MModelPermInfo(JSONObject info) {
         this.info = info;
         String typeStr = info.getString(MModelPermDef.perm_type_caption);
-        switch (typeStr) {
-            case "user":
-                info.put(MModelPermDef.perm_type_caption, MModelPermDef.perm_type_user);
-                break;
-            default:
-                info.put(MModelPermDef.perm_type_caption, MModelPermDef.perm_type_group);
+        if ("user".equals(typeStr)) {
+            info.put(MModelPermDef.perm_type_caption, MModelPermDef.perm_type_user);
+        } else {
+            info.put(MModelPermDef.perm_type_caption, MModelPermDef.perm_type_group);
         }
         // 是用户组类型权限
         if (info.getInt(MModelPermDef.perm_type_caption) == MModelPermDef.perm_type_group) {
@@ -41,7 +39,7 @@ public class MModelPermInfo {
         String[] roleArr = Arrays.stream(this.info.getString(MModelPermDef.perm_value_caption).split(","))
                 .distinct()
                 .map(v -> Role.build(v, appRoles.getPV(v)))
-                .sorted((r1, r2) -> r1.compareTo(r2))
+                .sorted(Role::compareTo)
                 .map(v -> v.name)
                 .toArray(String[]::new);
         this.info.put(MModelPermDef.perm_value_caption, StringHelper.join(roleArr));
