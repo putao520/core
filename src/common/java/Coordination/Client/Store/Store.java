@@ -98,4 +98,28 @@ public class Store {
         }
         return null;
     }
+
+    public JSONArray<JSONObject> find(String className) {
+        var r = JSONArray.<JSONObject>build();
+        switch (className) {
+            case "apps":
+                for (App app : apps.values()) {
+                    r.put(app.getStore());
+                }
+                break;
+            case "services":
+                for (App app : apps.values()) {
+                    var serviceInfo = app.getServiceInfo();
+                    r.put(serviceInfo);
+                }
+                break;
+            case "configs":
+                for (String k : configs.keySet()) {
+                    var configInfo = configs.getJson(k);
+                    r.put(configInfo);
+                }
+                break;
+        }
+        return r;
+    }
 }

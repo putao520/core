@@ -5,6 +5,7 @@ import common.java.Coordination.Client.Store.Store;
 import common.java.Coordination.Common.GscCenterEvent;
 import common.java.Coordination.Common.GscCenterPacket;
 import common.java.Thread.ThreadHelper;
+import org.json.gsc.JSONArray;
 import org.json.gsc.JSONObject;
 
 import java.util.concurrent.atomic.AtomicInteger;
@@ -69,6 +70,9 @@ public class GscCenterClient {
         return store.find(className, key, value);
     }
 
+    public JSONArray<JSONObject> getData(String className) {
+        return store.find(className);
+    }
 
     private void setClient(TcpClient handle) {
         this.client = handle;

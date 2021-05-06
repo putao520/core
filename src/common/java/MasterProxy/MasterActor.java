@@ -1,6 +1,7 @@
 package common.java.MasterProxy;
 
 import common.java.Coordination.Client.GscCenterClient;
+import org.json.gsc.JSONArray;
 import org.json.gsc.JSONObject;
 
 import java.util.concurrent.ConcurrentHashMap;
@@ -31,6 +32,10 @@ public class MasterActor {
             master_actors.put(actionName, new MasterActor(actionName));
         }
         return master_actors.get(actionName);
+    }
+
+    public JSONArray<JSONObject> getData() {
+        return client.getData(actionName);
     }
 
     public String getActionName() {

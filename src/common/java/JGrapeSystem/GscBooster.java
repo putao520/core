@@ -9,6 +9,8 @@ import common.java.Time.TimeHelper;
 import common.java.nLogger.nLogger;
 import io.netty.channel.ChannelHandlerContext;
 
+import java.util.Locale;
+
 public class GscBooster {
     private static void _before(String serverName) {
         // 设置日志回调
@@ -35,8 +37,7 @@ public class GscBooster {
         System.out.println("节点号:[" + Config.nodeID + "]");
         System.out.println("微服务:[" + serverName + "] ...启动完毕");
         System.out.println("监听:" + Config.bindIP + ":" + Config.port + " ...成功");
-        // 设置本地服务名
-        System.setProperty("AppName", serverName);
+
         if (Config.debug) {
             System.out.println("调试模式:开启");
         }
@@ -49,7 +50,9 @@ public class GscBooster {
     public static void start(String serverName) {
         try {
             // 此时订阅全部用到的数据
-            MasterActor.getClient().subscribe();
+            if (!Config.serviceName.toLowerCase(Locale.ROOT).equals("system")) {
+                MasterActor.getClient().subscribe();
+            }
             // 设置日志过滤器
             _before(serverName);
             // 启动http服务

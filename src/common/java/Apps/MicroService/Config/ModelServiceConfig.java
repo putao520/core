@@ -17,6 +17,10 @@ public class ModelServiceConfig {
         cfgKey.add(ConfigKeyName.BlockComputer);
     }
 
+    public static Set<String> getCfgKey() {
+        return cfgKey;
+    }
+
     /**
      * 获得数据库配置
      */

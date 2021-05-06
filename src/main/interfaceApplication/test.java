@@ -11,7 +11,6 @@ public class test {
         String[] packs = test.class.getPackage().getName().split("\\.");
         //System.setProperty("-Dco.paralleluniverse.fibers.detectRunawayFibers", String.valueOf(false));
         System.out.println("启动服务...");
-        System.setProperty("AppName", packs[packs.length - 1]);
         try {
             GscBooster.start("测试服务");
         } catch (Exception e) {
