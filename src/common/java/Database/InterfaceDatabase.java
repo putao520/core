@@ -73,25 +73,35 @@ public interface InterfaceDatabase<T> {
 
     T desc(String field);
 
-    T findOne();
-
     List<Object> insert();
 
-    JSONObject update();
+    boolean update();
+
+    JSONObject getAndUpdate();
 
     long updateAll();
 
-    JSONObject delete();
+    boolean delete();
+
+    JSONObject getAndDelete();
 
     long deleteAll();
 
-    JSONObject inc(String fieldName);
+    boolean inc(String fieldName);
 
-    JSONObject dec(String fieldName);
+    JSONObject getAndInc(String fieldName);
 
-    JSONObject add(String fieldName, long num);
+    boolean dec(String fieldName);
 
-    JSONObject sub(String fieldName, long num);
+    JSONObject getAndDec(String fieldName);
+
+    boolean add(String fieldName, long num);
+
+    JSONObject getAndAdd(String fieldName, long num);
+
+    boolean sub(String fieldName, long num);
+
+    JSONObject getAndSub(String fieldName, long num);
 
     JSONObject find();
 

@@ -1,6 +1,5 @@
 package common.java.ServiceTemplate;
 
-import common.java.Cache.Mem.MemCache;
 import common.java.Database.DbLayer;
 import common.java.Encrypt.GscJson;
 import common.java.HttpServer.HttpContext;
@@ -10,34 +9,20 @@ import common.java.String.StringHelper;
 import org.json.gsc.JSONArray;
 import org.json.gsc.JSONObject;
 
-import java.util.HashMap;
-import java.util.concurrent.TimeUnit;
-
 public class MasterServiceTemplate implements MicroServiceTemplateInterface {
-    private static final HashMap<String, MemCache<String, String>> caches;
-
-    static {
-        caches = new HashMap<>();
-    }
-
-    // private DbLayerHelper db;
     private DbLayer fdb;
-    private MemCache<String, String> _cache;
-    private String commomKey;
 
     public MasterServiceTemplate() {
-
     }
 
     public MasterServiceTemplate(String tableName) {
         init(tableName);
     }
 
-
     /**
      * 获得fastDB 设置各类操作回调
      */
-    public DbLayer getFastDB() {
+    public DbLayer getPureDB() {
         fdb.clear();
         return fdb;
     }
@@ -46,17 +31,6 @@ public class MasterServiceTemplate implements MicroServiceTemplateInterface {
     public void init(String tableName) {
         fdb = new DbLayer();
         fdb.form(tableName);
-        if (caches.containsKey(tableName)) {
-            _cache = caches.get(tableName);
-        }
-        if (_cache == null) {
-            _cache = MemCache.<String, String>buildMemCache().setRefreshDuration(120)
-                    .setRefreshTimeUnit(TimeUnit.SECONDS)
-                    .setMaxSize(4096)
-                    .setGetValueWhenExpired(key -> fdb.eq(commomKey, key).find().toString());
-            caches.put(tableName, _cache);
-        }
-
     }
 
     @ApiType(ApiType.type.SessionApi)

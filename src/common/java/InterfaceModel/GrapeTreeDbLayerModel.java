@@ -292,12 +292,12 @@ public class GrapeTreeDbLayerModel implements InterfaceDatabase<GrapeTreeDbLayer
 
     //显示数据
     public boolean show() {
-        return data(new JSONObject(SuperItemField.visibleField, 0)).update() != null;
+        return data(new JSONObject(SuperItemField.visibleField, 0)).update();
     }
 
     //隐藏数据
     public boolean hide() {
-        return data(new JSONObject(SuperItemField.visibleField, 1)).update() != null;
+        return data(new JSONObject(SuperItemField.visibleField, 1)).update();
     }
 
     //判断是否包含子节点，返回包含的子节点数量
@@ -541,8 +541,12 @@ public class GrapeTreeDbLayerModel implements InterfaceDatabase<GrapeTreeDbLayer
         return _updateImpl(info);
     }
 
-    public JSONObject update() {
-        return _update() ? this.db.update() : null;
+    public JSONObject getAndUpdate() {
+        return _update() ? this.db.getAndUpdate() : null;
+    }
+
+    public boolean update() {
+        return _update() && this.db.update();
     }
 
     public long updateAll() {
@@ -557,20 +561,36 @@ public class GrapeTreeDbLayerModel implements InterfaceDatabase<GrapeTreeDbLayer
         return vArr.size() != 0 && !JSONObject.isInvalided(vArr.get(0));
     }
 
-    public JSONObject inc(String fieldName) {
-        return _computerOperator(fieldName) ? this.db.inc(fieldName) : null;
+    public JSONObject getAndInc(String fieldName) {
+        return _computerOperator(fieldName) ? this.db.getAndInc(fieldName) : null;
     }
 
-    public JSONObject dec(String fieldName) {
-        return _computerOperator(fieldName) ? this.db.dec(fieldName) : null;
+    public boolean inc(String fieldName) {
+        return _computerOperator(fieldName) && this.db.inc(fieldName);
     }
 
-    public JSONObject add(String fieldName, long num) {
-        return _computerOperator(fieldName) ? this.db.add(fieldName, num) : null;
+    public JSONObject getAndDec(String fieldName) {
+        return _computerOperator(fieldName) ? this.db.getAndDec(fieldName) : null;
     }
 
-    public JSONObject sub(String fieldName, long num) {
-        return _computerOperator(fieldName) ? this.db.sub(fieldName, num) : null;
+    public boolean dec(String fieldName) {
+        return _computerOperator(fieldName) && this.db.dec(fieldName);
+    }
+
+    public JSONObject getAndAdd(String fieldName, long num) {
+        return _computerOperator(fieldName) ? this.db.getAndAdd(fieldName, num) : null;
+    }
+
+    public boolean add(String fieldName, long num) {
+        return _computerOperator(fieldName) && this.db.add(fieldName, num);
+    }
+
+    public JSONObject getAndSub(String fieldName, long num) {
+        return _computerOperator(fieldName) ? this.db.getAndSub(fieldName, num) : null;
+    }
+
+    public boolean sub(String fieldName, long num) {
+        return _computerOperator(fieldName) && this.db.sub(fieldName, num);
     }
 
     // 删操作集群
@@ -589,14 +609,25 @@ public class GrapeTreeDbLayerModel implements InterfaceDatabase<GrapeTreeDbLayer
     /**
      * 直接删除
      */
-    public JSONObject delete() {
+    public boolean delete() {
         if (_deleteFilter()) {
-            return null;
+            return false;
         }
         if (hardMode) {
             return this.db.delete();
         } else {
             return data(new JSONObject(SuperItemField.deleteField, 1)).update();
+        }
+    }
+
+    public JSONObject getAndDelete() {
+        if (_deleteFilter()) {
+            return null;
+        }
+        if (hardMode) {
+            return this.db.getAndDelete();
+        } else {
+            return data(new JSONObject(SuperItemField.deleteField, 1)).getAndUpdate();
         }
     }
 
@@ -727,17 +758,17 @@ public class GrapeTreeDbLayerModel implements InterfaceDatabase<GrapeTreeDbLayer
 
     //设置数据权重级别
     public boolean setItemLevel(int newLevel) {
-        return data(new JSONObject(SuperItemField.levelField, newLevel)).update() != null;
+        return data(new JSONObject(SuperItemField.levelField, newLevel)).update();
     }
 
     //设置数据排序权重级别
     public boolean setSort(int newSort) {
-        return data(new JSONObject(SuperItemField.sortField, newSort)).update() != null;
+        return data(new JSONObject(SuperItemField.sortField, newSort)).update();
     }
 
     //设置父节点
     public boolean setFather(Object newFatherId) {
-        return data(new JSONObject(SuperItemField.fatherField, newFatherId)).update() != null;
+        return data(new JSONObject(SuperItemField.fatherField, newFatherId)).update();
     }
 
     public GrapeTreeDbLayerModel and() {

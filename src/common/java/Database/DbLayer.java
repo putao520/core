@@ -412,9 +412,14 @@ public class DbLayer implements InterfaceDatabase<DbLayer> {
         return (List<Object>) _db._call(Thread.currentThread().getStackTrace()[1].getMethodName());
     }
 
-    public JSONObject update() {
+    public JSONObject getAndUpdate() {
         updatefix();
         return (JSONObject) _db._call(Thread.currentThread().getStackTrace()[1].getMethodName());
+    }
+
+    public boolean update() {
+        updatefix();
+        return (boolean) _db._call(Thread.currentThread().getStackTrace()[1].getMethodName());
     }
 
     public long updateAll() {
@@ -422,9 +427,14 @@ public class DbLayer implements InterfaceDatabase<DbLayer> {
         return (long) _db._call(Thread.currentThread().getStackTrace()[1].getMethodName());
     }
 
-    public JSONObject delete() {
+    public JSONObject getAndDelete() {
         updatefix();
         return (JSONObject) _db._call(Thread.currentThread().getStackTrace()[1].getMethodName());
+    }
+
+    public boolean delete() {
+        updatefix();
+        return (boolean) _db._call(Thread.currentThread().getStackTrace()[1].getMethodName());
     }
 
     public long deleteAll() {
@@ -432,24 +442,42 @@ public class DbLayer implements InterfaceDatabase<DbLayer> {
         return (long) _db._call(Thread.currentThread().getStackTrace()[1].getMethodName());
     }
 
-    public JSONObject inc(String fieldName) {
+    public JSONObject getAndInc(String fieldName) {
         updatefix();
         return (JSONObject) _db._call(Thread.currentThread().getStackTrace()[1].getMethodName(), fieldName);
     }
 
-    public JSONObject dec(String fieldName) {
+    public boolean inc(String fieldName) {
+        updatefix();
+        return (boolean) _db._call(Thread.currentThread().getStackTrace()[1].getMethodName(), fieldName);
+    }
+
+    public JSONObject getAndDec(String fieldName) {
         updatefix();
         return (JSONObject) _db._call(Thread.currentThread().getStackTrace()[1].getMethodName(), fieldName);
     }
 
-    public JSONObject add(String fieldName, long num) {
+    public boolean dec(String fieldName) {
+        updatefix();
+        return (boolean) _db._call(Thread.currentThread().getStackTrace()[1].getMethodName(), fieldName);
+    }
+
+    public JSONObject getAndAdd(String fieldName, long num) {
         updatefix();
         return (JSONObject) _db._call(Thread.currentThread().getStackTrace()[1].getMethodName(), fieldName, num);
     }
 
-    public JSONObject sub(String fieldName, long num) {
+    public boolean add(String fieldName, long num) {
         updatefix();
-        return (JSONObject) _db._call(Thread.currentThread().getStackTrace()[1].getMethodName(), fieldName, num);
+        return (boolean) _db._call(Thread.currentThread().getStackTrace()[1].getMethodName(), fieldName, num);
+    }
+
+    public JSONObject getAndSub(String fieldName, long num) {
+        return getAndAdd(fieldName, -1 * num);
+    }
+
+    public boolean sub(String fieldName, long num) {
+        return add(fieldName, -1 * num);
     }
 
     public JSONObject find() {

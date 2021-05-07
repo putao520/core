@@ -53,7 +53,6 @@ public class Mongodb {
         java.util.logging.Logger.getLogger("org.Mongodb.driver").setLevel(Level.SEVERE);
     }
 
-    private final boolean _clearRes = false;
     private MongoDatabase mongoDatabase;
     private String _configString;
     //private static Mongodb Mongodb;
@@ -87,7 +86,7 @@ public class Mongodb {
     private boolean _sum;
     private boolean _avg;
     private boolean _distinct;
-    private boolean _atom;
+    // private boolean _atom;
     private String ownid;
     private boolean isDirty;
     private HashMap<String, Object> constantConds;
@@ -188,7 +187,6 @@ public class Mongodb {
         _avg = false;
 
         _distinct = false;
-        _atom = false;
 
         groupbyfield = "";
 
@@ -245,7 +243,7 @@ public class Mongodb {
         return this;
     }
     //逻辑变化的时候
-    //@SuppressWarnings("unchecked")
+    //
 
     /**
      * 条件组 field,logic,value
@@ -253,7 +251,7 @@ public class Mongodb {
      * @param condArray
      * @return
      */
-    public Mongodb where(JSONArray condArray) {
+    public Mongodb where(JSONArray<JSONObject> condArray) {
         JSONObject tmpJSON;
         String field, logic, link_login;
         Object value;
@@ -474,11 +472,6 @@ public class Mongodb {
         return this;
     }
 
-    public Mongodb findOne() {
-        _atom = true;
-        return this;
-    }
-
     public List<Document> clearDocument(List<Document> imp) {
         for (Document doc : imp) {
             doc.remove("_id");
@@ -526,29 +519,36 @@ public class Mongodb {
         return rString;
     }
 
-    public JSONObject update() {
-        JSONObject rs = null;
+    public JSONObject getAndUpdate() {
         Bson updateData;
         Bson filterData = translate2bsonAndRun();
         updateData = document2updateBSON(false);
         try {
             if (filterData != null && updateData != null) {
-                if (_atom) {
-                    rs = bson2json(Objects.requireNonNull(collection.findOneAndUpdate(filterData, updateData)));
-                } else {
-                    //filterData = Filters.and( Filters.eq("_id", new ObjectId("58c11cb21a4769cbf5e7eda2") ) );
-                    UpdateResult result = collection.updateOne(filterData, updateData);
-
-                    rs = (result.getModifiedCount() > 0) ? new JSONObject() : null;
-                }
+                return bson2json(collection.findOneAndUpdate(filterData, updateData));
             }
         } catch (Exception e) {
-            //errout();
             nLogger.logInfo(e);
         } finally {
             reinit();
         }
-        return rs;
+        return null;
+    }
+
+    public boolean update() {
+        Bson updateData;
+        Bson filterData = translate2bsonAndRun();
+        updateData = document2updateBSON(false);
+        try {
+            if (filterData != null && updateData != null) {
+                return collection.updateOne(filterData, updateData).getModifiedCount() > 0;
+            }
+        } catch (Exception e) {
+            nLogger.logInfo(e);
+        } finally {
+            reinit();
+        }
+        return false;
     }
 
     public long updateAll() {
@@ -573,25 +573,32 @@ public class Mongodb {
         return result != null ? result.getModifiedCount() : 0;
     }
 
-    public JSONObject delete() {
-        JSONObject rs = null;
+    public JSONObject getAndDelete() {
         try {
             Bson filterData = translate2bsonAndRun();
             if (filterData != null) {
-                if (_atom) {
-                    rs = bson2json(Objects.requireNonNull(collection.findOneAndDelete(filterData)));
-                } else {
-                    DeleteResult result = collection.deleteOne(filterData);
-                    rs = (result.getDeletedCount() > 0) ? new JSONObject() : null;
-                }
+                return bson2json(collection.findOneAndDelete(filterData));
             }
         } catch (Exception e) {
-            // errout();
             nLogger.logInfo(e);
         } finally {
             reinit();
         }
-        return rs;
+        return null;
+    }
+
+    public boolean delete() {
+        try {
+            Bson filterData = translate2bsonAndRun();
+            if (filterData != null) {
+                return collection.deleteOne(filterData).getDeletedCount() > 0;
+            }
+        } catch (Exception e) {
+            nLogger.logInfo(e);
+        } finally {
+            reinit();
+        }
+        return false;
     }
 
     public long deleteAll() {
@@ -611,17 +618,29 @@ public class Mongodb {
         return result != null ? result.getDeletedCount() : 0;
     }
 
-    public JSONObject inc(String fieldName) {
+    public boolean inc(String fieldName) {
         return add(fieldName, 1);
     }
 
-    public JSONObject dec(String fieldName) {
+    public JSONObject getAndInc(String fieldName) {
+        return getAndAdd(fieldName, 1);
+    }
+
+    public boolean dec(String fieldName) {
         return add(fieldName, -1);
     }
 
-    public JSONObject add(String fieldName, long num) {
+    public JSONObject getAndDec(String fieldName) {
+        return getAndAdd(fieldName, -1);
+    }
+
+    public JSONObject getAndAdd(String fieldName, long num) {
         updateBSON.add(Updates.inc(fieldName, num));
-        findOne();//open atom mode
+        return getAndUpdate();
+    }
+
+    public boolean add(String fieldName, long num) {
+        updateBSON.add(Updates.inc(fieldName, num));
         return update();
     }
 
@@ -635,11 +654,10 @@ public class Mongodb {
         return null;
     }
 
-    @SuppressWarnings("unchecked")
-    public JSONArray select() {
+    public JSONArray<JSONObject> select() {
         Document doc;
         JSONObject json;
-        JSONArray rs = new JSONArray();
+        JSONArray<JSONObject> rs = new JSONArray<>();
         //解析内容，执行之
         try {
             FindIterable<Document> fd = _find();
@@ -694,7 +712,7 @@ public class Mongodb {
         return this;
     }
 
-    public JSONArray group() {
+    public JSONArray<JSONObject> group() {
         return group(null);
     }
 
@@ -702,9 +720,8 @@ public class Mongodb {
      * @param groupName //groupby fieldName
      * @return
      */
-    @SuppressWarnings("unchecked")
-    public JSONArray group(String groupName) {
-        JSONArray rs = new JSONArray();
+    public JSONArray<JSONObject> group(String groupName) {
+        JSONArray<JSONObject> rs = new JSONArray<JSONObject>();
         List<Bson> ntemp = new ArrayList<>();
         List<BsonField> groupParamts = new ArrayList<>();
         Bson filterData = translate2bsonAndRun();
@@ -771,9 +788,9 @@ public class Mongodb {
         return conditionJSON.toString();
     }
 
-    @SuppressWarnings("unchecked")
-    public JSONArray distinct(String fieldName) {
-        JSONArray rTs = new JSONArray();
+
+    public JSONArray<String> distinct(String fieldName) {
+        JSONArray<String> rTs = new JSONArray<>();
         Bson filterData = translate2bsonAndRun();
         DistinctIterable<String> fd;
         try {
@@ -782,7 +799,6 @@ public class Mongodb {
                 rTs.add(item);
             }
         } catch (Exception e) {
-            // errout();
             nLogger.logInfo(e);
             rTs = null;
         } finally {
@@ -794,7 +810,7 @@ public class Mongodb {
 
     //！！！权限分到一个新模块里面
 
-    public JSONArray page(int pageidx, int pagemax) {//普通分页
+    public JSONArray<JSONObject> page(int pageidx, int pagemax) {//普通分页
         return skip((pageidx - 1) * pagemax).limit(pagemax).select();
     }
 
@@ -840,8 +856,8 @@ public class Mongodb {
      * @param synNo
      * @return
      */
-    @SuppressWarnings("unchecked")
-    public JSONArray scan(Function<JSONArray, JSONArray> func, int max, int synNo) {
+
+    public JSONArray<JSONObject> scan(Function<JSONArray<JSONObject>, JSONArray<JSONObject>> func, int max, int synNo) {
         if (func == null) {
             nLogger.logInfo("scan 过滤函数不存在");
         }
@@ -856,7 +872,7 @@ public class Mongodb {
         long rl = dirty().count();
         int maxCount = (int) rl;
         int pageNO = maxCount % max > 0 ? (maxCount / max) + 1 : maxCount / max;
-        ConcurrentHashMap<Integer, JSONArray> tempResult;
+        ConcurrentHashMap<Integer, JSONArray<JSONObject>> tempResult;
         tempResult = new ConcurrentHashMap<>();
         // ExecutorService es = Executors.newVirtualThreadExecutor();
         ExecutorService es = Executors.newCachedThreadPool();
@@ -868,12 +884,11 @@ public class Mongodb {
                 final int _max = max;
                 es.execute(() -> {
                     try {
-                        JSONArray jsonArray;
                         Mongodb db = new Mongodb(_configString);
                         db.form(_formName);
                         db.setCond(condJSON);
-                        jsonArray = db.page(_index, _max);
-                        tempResult.put(_index, Objects.requireNonNull(func).apply(jsonArray));
+                        var jsonArr = db.page(_index, _max);
+                        tempResult.put(_index, Objects.requireNonNull(func).apply(jsonArr));
                     } catch (Exception e) {
                     }
                 });
@@ -885,15 +900,15 @@ public class Mongodb {
             } catch (InterruptedException e) {
             }
         }
-        JSONArray rArray = new JSONArray();
+        JSONArray<JSONObject> rArray = new JSONArray<JSONObject>();
         for (int key : tempResult.keySet()) {
             rArray.addAll(tempResult.get(key));
         }
         return rArray;
     }
 
-    @SuppressWarnings("unchecked")
-    public JSONArray scan(Function<JSONArray, JSONArray> func, int max) {
+
+    public JSONArray<JSONObject> scan(Function<JSONArray<JSONObject>, JSONArray<JSONObject>> func, int max) {
         if (func == null) {
             nLogger.logInfo("scan 过滤函数不存在");
         }
@@ -903,11 +918,11 @@ public class Mongodb {
         long rl = dirty().count();
         int maxCount = (int) rl;
         int pageNO = maxCount % max > 0 ? (maxCount / max) + 1 : maxCount / max;
-        JSONArray jsonArray, tempResult;
-        tempResult = new JSONArray();
+        JSONArray<JSONObject> jsonArr, tempResult;
+        tempResult = new JSONArray<>();
         for (int index = 1; index <= pageNO; index++) {
-            jsonArray = dirty().page(index, max);
-            tempResult.addAll(Objects.requireNonNull(func).apply(jsonArray));
+            jsonArr = dirty().page(index, max);
+            tempResult.addAll(Objects.requireNonNull(func).apply(jsonArr));
         }
         return tempResult;
     }
@@ -921,7 +936,7 @@ public class Mongodb {
         return this;
     }
 
-    public Mongodb groupWhere(JSONArray condArray) {
+    public Mongodb groupWhere(JSONArray<JSONObject> condArray) {
         return groupCondition(DbFilter.buildDbFilter(condArray).buildEx());
     }
 
@@ -1157,7 +1172,6 @@ public class Mongodb {
             StringBuilder nodeString = new StringBuilder();
             String authString;
             String repsetName;
-            String sslString = "";
             int maxPoolSize;
 
             JSONObject obj = JSONObject.toJSON(jsonConfig);
@@ -1165,7 +1179,7 @@ public class Mongodb {
             password = obj.getString("password");
             database = obj.getString("database");
             repsetName = obj.getString("replicaSet");
-            JSONArray nodes = obj.getJsonArray("nodeAddresses");
+            JSONArray<JSONObject> nodes = obj.getJsonArray("nodeAddresses");
             maxPoolSize = obj.getInt("maxTotal");
             if (maxPoolSize <= 0) {
                 maxPoolSize = 150;

@@ -46,19 +46,4 @@ public class MasterActor {
         return client.getData(actionName, key, value);
     }
 
-    public MasterActor insert(JSONObject data) {
-        client.insert(actionName, data);
-        return this;
-    }
-
-    public MasterActor update(JSONObject data) {
-        client.update(actionName, data);
-        return this;
-    }
-
-    public MasterActor delete(JSONObject data) {
-        client.delete(actionName, data);
-        return this;
-    }
-
 }

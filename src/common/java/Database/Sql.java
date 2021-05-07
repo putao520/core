@@ -63,7 +63,6 @@ public class Sql {
     private boolean _sum;
     private boolean _avg;
     private boolean _distinct;
-    private boolean _atom;
     private List<List<Object>> conditionJSON;    //条件
     private List<JSONObject> dataJSON;
     private List<String> fieldList;
@@ -336,7 +335,6 @@ public class Sql {
         _avg = false;
 
         _distinct = false;
-        _atom = false;
 
         ownid = null;
 
@@ -793,11 +791,6 @@ public class Sql {
         return this;
     }
 
-    public Sql findOne() {
-        _atom = true;
-        return this;
-    }
-
     public List<Object> insert() {
         ResultSet rs;
         List<Object> rList = new ArrayList<>();
@@ -885,21 +878,20 @@ public class Sql {
         return rObject;
     }
 
-    public JSONObject update() {//atom后返回当前值再修改
-        JSONObject rs;
-        if (_atom) {
-            try {
-                rs = (JSONObject) (((JSONArray) _findex(false)).get(0));
-                _update(false);
-            } catch (Exception e) {
-                rs = null;
-            } finally {
-                reinit();
-            }
-        } else {
-            rs = _update(false) > 0 ? new JSONObject() : null;
+    public JSONObject getAndUpdate() {
+        try {
+            var rs = (JSONObject) (((JSONArray) _findex(false)).get(0));
+            _update(false);
+            return rs;
+        } catch (Exception e) {
+            return null;
+        } finally {
+            reinit();
         }
-        return rs;
+    }
+
+    public boolean update() {//atom后返回当前值再修改
+        return _update(false) > 0;
     }
 
     public long updateAll() {
@@ -1018,22 +1010,20 @@ public class Sql {
         return sqlList;
     }
 
-    public JSONObject delete() {
-        //ResultSet fd;
-        JSONObject rs;
-        if (_atom) {
-            try {
-                rs = (JSONObject) (((JSONArray) _findex(false)).get(0));
-                _delete(false);
-            } catch (Exception e) {
-                rs = null;
-            } finally {
-                reinit();
-            }
-        } else {
-            rs = _delete(false) > 0 ? new JSONObject() : null;
+    public JSONObject getAndDelete() {
+        try {
+            var rs = (JSONObject) (((JSONArray) _findex(false)).get(0));
+            _delete(false);
+            return rs;
+        } catch (Exception e) {
+            return null;
+        } finally {
+            reinit();
         }
-        return rs;
+    }
+
+    public boolean delete() {
+        return _delete(false) > 0;
     }
 
     public long deleteAll() {
@@ -1060,23 +1050,29 @@ public class Sql {
         return rs;
     }
 
-    public JSONObject inc(String fieldName) {
+    public JSONObject getAndInc(String fieldName) {
+        return getAndAdd(fieldName, 1);
+    }
+
+    public boolean inc(String fieldName) {
         return add(fieldName, 1);
     }
 
-    public JSONObject dec(String fieldName) {
+    public JSONObject getAndDec(String fieldName) {
+        return getAndAdd(fieldName, -1);
+    }
+
+    public boolean dec(String fieldName) {
         return add(fieldName, -1);
     }
 
-    public JSONObject add(String fieldName, long num) {
+    public JSONObject getAndAdd(String fieldName, long num) {
         data("{\"" + fieldName + "\":\"" + fieldName + (num > 0 ? "+" : "-") + Math.abs(num) + "\"}");
-        findOne();//open atom mode
-        return update();
+        return getAndUpdate();
     }
 
-    public JSONObject sub(String fieldName, long num) {
-        data("{\"" + fieldName + "\":\"" + fieldName + "-" + Math.abs(num) + "\"}");
-        findOne();//open atom mode
+    public boolean add(String fieldName, long num) {
+        data("{\"" + fieldName + "\":\"" + fieldName + (num > 0 ? "+" : "-") + Math.abs(num) + "\"}");
         return update();
     }
 

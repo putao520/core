@@ -101,8 +101,7 @@ public class GscCenterClient {
 
     // 初始化数据
     public void onChange(String key, JSONObject data) {
-        if (store.put(key, data)) {
-        }
+        store.put(key, data);
     }
 
     public void onClear() {
@@ -129,27 +128,6 @@ public class GscCenterClient {
 
     public GscCenterClient disconnect() {
         client.send(GscCenterPacket.build(serviceKey, JSONObject.build("node", Config.nodeID), GscCenterEvent.TestDisconnect, false));
-        return this;
-    }
-
-    public GscCenterClient insert(String className, JSONObject data) {
-        client.send(GscCenterPacket.build(serviceKey,
-                JSONObject.build("data", data).put("name", className)
-                , GscCenterEvent.Insert, false));
-        return this;
-    }
-
-    public GscCenterClient update(String className, JSONObject data) {
-        client.send(GscCenterPacket.build(serviceKey,
-                JSONObject.build("data", data).put("name", className)
-                , GscCenterEvent.Update, false));
-        return this;
-    }
-
-    public GscCenterClient delete(String className, JSONObject data) {
-        client.send(GscCenterPacket.build(serviceKey,
-                JSONObject.build("data", data).put("name", className)
-                , GscCenterEvent.Delete, false));
         return this;
     }
 
