@@ -544,7 +544,6 @@ public class GrapeTreeDbLayerModel implements InterfaceDatabase<GrapeTreeDbLayer
     public JSONObject getAndUpdate() {
         return _update() ? this.db.getAndUpdate() : null;
     }
-
     public boolean update() {
         return _update() && this.db.update();
     }
@@ -564,7 +563,6 @@ public class GrapeTreeDbLayerModel implements InterfaceDatabase<GrapeTreeDbLayer
     public JSONObject getAndInc(String fieldName) {
         return _computerOperator(fieldName) ? this.db.getAndInc(fieldName) : null;
     }
-
     public boolean inc(String fieldName) {
         return _computerOperator(fieldName) && this.db.inc(fieldName);
     }
@@ -572,7 +570,6 @@ public class GrapeTreeDbLayerModel implements InterfaceDatabase<GrapeTreeDbLayer
     public JSONObject getAndDec(String fieldName) {
         return _computerOperator(fieldName) ? this.db.getAndDec(fieldName) : null;
     }
-
     public boolean dec(String fieldName) {
         return _computerOperator(fieldName) && this.db.dec(fieldName);
     }
@@ -580,7 +577,6 @@ public class GrapeTreeDbLayerModel implements InterfaceDatabase<GrapeTreeDbLayer
     public JSONObject getAndAdd(String fieldName, long num) {
         return _computerOperator(fieldName) ? this.db.getAndAdd(fieldName, num) : null;
     }
-
     public boolean add(String fieldName, long num) {
         return _computerOperator(fieldName) && this.db.add(fieldName, num);
     }
@@ -588,7 +584,6 @@ public class GrapeTreeDbLayerModel implements InterfaceDatabase<GrapeTreeDbLayer
     public JSONObject getAndSub(String fieldName, long num) {
         return _computerOperator(fieldName) ? this.db.getAndSub(fieldName, num) : null;
     }
-
     public boolean sub(String fieldName, long num) {
         return _computerOperator(fieldName) && this.db.sub(fieldName, num);
     }

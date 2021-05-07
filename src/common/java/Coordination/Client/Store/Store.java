@@ -17,8 +17,10 @@ import java.util.HashMap;
  */
 
 public class Store {
-    public static final HashMap<Integer, App> apps;   // 当前微服务所涉及到的所有应用的上下文
-    public static JSONObject configs;           // 当前微服务所涉及到的所有配置的上下文 配置名：配置内容
+    // 应用id, 应用上下文
+    public static final HashMap<Integer, App> apps;
+    // 配置名, 配置上下文
+    public static JSONObject configs;
 
     static {
         apps = new HashMap<>();
@@ -50,7 +52,7 @@ public class Store {
                 if (!apps.containsKey(appId)) {
                     throw new RuntimeException("错误微服务配置信息 ->应用Id[" + appId + "]! ->当前上下文不存在");
                 }
-                apps.get(appId).setService(info);
+                apps.get(appId).putService(info);
                 return false;
             case "configs":
                 if (!info.containsKey("name")) {
@@ -71,28 +73,32 @@ public class Store {
         return true;
     }
 
-    public JSONObject find(String className, String key, String val) {
+    public JSONArray<JSONObject> find(String className, String key, String val) {
+        var r = JSONArray.<JSONObject>build();
         switch (className) {
             case "apps":
                 for (App app : apps.values()) {
                     if (app.check(key, val)) {
-                        return app.getStore();
+                        r.put(app.getStore());
                     }
                 }
                 break;
             case "services":
                 for (App app : apps.values()) {
                     var serviceInfo = app.getServiceInfo();
-                    if (serviceInfo.check(key, val)) {
-                        return serviceInfo;
+                    for (var service : serviceInfo.values()) {
+                        if (service.check(key, val)) {
+                            r.put(service);
+                        }
                     }
+
                 }
                 break;
             case "configs":
                 for (String k : configs.keySet()) {
                     var configInfo = configs.getJson(k);
                     if (configInfo.check(key, val)) {
-                        return configInfo;
+                        r.put(configInfo);
                     }
                 }
                 break;
@@ -111,7 +117,9 @@ public class Store {
             case "services":
                 for (App app : apps.values()) {
                     var serviceInfo = app.getServiceInfo();
-                    r.put(serviceInfo);
+                    for (var service : serviceInfo.values()) {
+                        r.put(service);
+                    }
                 }
                 break;
             case "configs":

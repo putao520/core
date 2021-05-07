@@ -889,7 +889,6 @@ public class Sql {
             reinit();
         }
     }
-
     public boolean update() {//atom后返回当前值再修改
         return _update(false) > 0;
     }
@@ -1021,7 +1020,6 @@ public class Sql {
             reinit();
         }
     }
-
     public boolean delete() {
         return _delete(false) > 0;
     }
@@ -1053,7 +1051,6 @@ public class Sql {
     public JSONObject getAndInc(String fieldName) {
         return getAndAdd(fieldName, 1);
     }
-
     public boolean inc(String fieldName) {
         return add(fieldName, 1);
     }
@@ -1061,7 +1058,6 @@ public class Sql {
     public JSONObject getAndDec(String fieldName) {
         return getAndAdd(fieldName, -1);
     }
-
     public boolean dec(String fieldName) {
         return add(fieldName, -1);
     }
@@ -1070,7 +1066,6 @@ public class Sql {
         data("{\"" + fieldName + "\":\"" + fieldName + (num > 0 ? "+" : "-") + Math.abs(num) + "\"}");
         return getAndUpdate();
     }
-
     public boolean add(String fieldName, long num) {
         data("{\"" + fieldName + "\":\"" + fieldName + (num > 0 ? "+" : "-") + Math.abs(num) + "\"}");
         return update();

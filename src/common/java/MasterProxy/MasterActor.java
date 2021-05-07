@@ -42,7 +42,7 @@ public class MasterActor {
         return actionName;
     }
 
-    public JSONObject getDataByIndex(String key, String value) {
+    public JSONArray<JSONObject> getDataByIndex(String key, String value) {
         return client.getData(actionName, key, value);
     }
 

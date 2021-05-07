@@ -4,6 +4,7 @@ import common.java.JGrapeSystem.SystemDefined;
 import common.java.MasterProxy.MasterActor;
 import common.java.String.StringHelper;
 import common.java.nLogger.nLogger;
+import org.json.gsc.JSONArray;
 import org.json.gsc.JSONObject;
 
 import java.io.FileInputStream;
@@ -87,11 +88,11 @@ public class Config {
 
     // 通过masterProxy从数据库获得配置信息
     public static String netConfig(String session) {
-        JSONObject rs = getNetConfigHandle().getDataByIndex("name", session);
-        if (JSONObject.isInvalided(rs)) {
+        JSONArray<JSONObject> rs = getNetConfigHandle().getDataByIndex("name", session);
+        if (JSONArray.isInvalided(rs)) {
             throw new RuntimeException("配置[" + session + "] ->不存在!");
         }
-        return rs.getJson("config").toString();
+        return rs.get(0).getJson("config").toString();
     }
 
     public static void set(String key, Object val) {

@@ -1049,7 +1049,6 @@ public class Oracle {
     public JSONObject getAndInc(String fieldName) {
         return getAndAdd(fieldName, 1);
     }
-
     public boolean inc(String fieldName) {
         return add(fieldName, 1);
     }
@@ -1057,7 +1056,6 @@ public class Oracle {
     public JSONObject getAndDec(String fieldName) {
         return getAndAdd(fieldName, -1);
     }
-
     public boolean dec(String fieldName) {
         return add(fieldName, -1);
     }
@@ -1066,7 +1064,6 @@ public class Oracle {
         data("{\"" + fieldName + "\":\"" + fieldName + (num > 0 ? "+" : "-") + Math.abs(num) + "\"}");
         return getAndUpdate();
     }
-
     public boolean add(String fieldName, long num) {
         data("{\"" + fieldName + "\":\"" + fieldName + (num > 0 ? "+" : "-") + Math.abs(num) + "\"}");
         return update();

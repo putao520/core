@@ -66,7 +66,7 @@ public class GscCenterClient {
     }
 
     // 根据不同className获得对应数据
-    public JSONObject getData(String className, String key, String value) {
+    public JSONArray<JSONObject> getData(String className, String key, String value) {
         return store.find(className, key, value);
     }
 

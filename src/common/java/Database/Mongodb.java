@@ -586,7 +586,6 @@ public class Mongodb {
         }
         return null;
     }
-
     public boolean delete() {
         try {
             Bson filterData = translate2bsonAndRun();
