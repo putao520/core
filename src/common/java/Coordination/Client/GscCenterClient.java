@@ -19,7 +19,7 @@ public class GscCenterClient {
     private final String serviceKey;
 
     private GscCenterClient() {
-        this.serviceKey = Config.getFullServiceKey();
+        this.serviceKey = Config.getServiceName();
         this.liveStatus = false;
         this.keepLived = false;
         this.loadCnt = new AtomicInteger(0);

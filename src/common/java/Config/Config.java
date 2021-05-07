@@ -18,7 +18,6 @@ public class Config {
     public static int masterPort;
     public static String bindIP;
     public static int port;
-    public static int serviceDeployId;
     public static final String masterId_Key = "MasterId";
     public static String nodeID;
     public static boolean debug;
@@ -58,8 +57,8 @@ public class Config {
         return prop;
     }
 
-    public static String getFullServiceKey() {
-        return serviceName + "_" + serviceDeployId;
+    public static String getServiceName() {
+        return serviceName;
     }
 
     public static void updateConfig() {
@@ -69,7 +68,6 @@ public class Config {
         // 附加选项
         // centerPort = Integer.parseInt(prop.getProperty("centerPort", "80"));
         serviceName = prop.getProperty("name", "default");
-        serviceDeployId = Integer.parseInt(prop.getProperty("deployId", "0"));
         // 可选项
         masterHost = prop.getProperty("MasterHost", "http://127.0.0.1");//read putao520system host url
         masterPort = Integer.parseInt(prop.getProperty("MasterPort", "80"));
