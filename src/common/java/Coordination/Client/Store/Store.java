@@ -22,6 +22,7 @@ public class Store {
 
     static {
         apps = new HashMap<>();
+        configs = JSONObject.build();
     }
 
     private Store() {

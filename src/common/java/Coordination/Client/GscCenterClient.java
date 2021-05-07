@@ -101,7 +101,9 @@ public class GscCenterClient {
 
     // 初始化数据
     public void onChange(String key, JSONObject data) {
-        store.put(key, data);
+        if (data.containsKey("data")) {
+            store.put(key, data.getJsonArray("data"));
+        }
     }
 
     public void onClear() {
