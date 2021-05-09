@@ -8,7 +8,10 @@ import org.json.gsc.JSONArray;
 import org.json.gsc.JSONObject;
 
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.nio.charset.StandardCharsets;
 import java.util.Properties;
 
 
@@ -21,6 +24,7 @@ public class Config {
     public static final String masterId_Key = "MasterId";
     public static String nodeID;
     public static boolean debug;
+    public static String publicKey;
 
     public static String masterId;
     public static String masterPass;
@@ -57,6 +61,18 @@ public class Config {
         return prop;
     }
 
+    private static void WriteProps(Properties prop) {
+        try (FileOutputStream fos = new FileOutputStream(configPath)) {
+            try (OutputStreamWriter opw = new OutputStreamWriter(fos, StandardCharsets.UTF_8)) {
+                prop.store(opw, "update");
+            } catch (IOException e) {
+                nLogger.logInfo(e, "配置文件[" + configPath + "] 写入异常");
+            }
+        } catch (IOException e) {
+            nLogger.logInfo(e, "配置文件[" + configPath + "]不存在");
+        }
+    }
+
     public static String getServiceName() {
         return serviceName;
     }
@@ -73,6 +89,7 @@ public class Config {
         masterPort = Integer.parseInt(prop.getProperty("MasterPort", "80"));
         bindIP = prop.getProperty("BindIP", "0.0.0.0");//本地服务节点通信Ip
         debug = Boolean.parseBoolean(prop.getProperty("Debug", "true"));
+        publicKey = prop.getProperty("publicKey", "grapeSoft@");
 
         masterId = prop.getProperty(masterId_Key);
         masterPass = prop.getProperty(masterPass_Key);
@@ -96,6 +113,7 @@ public class Config {
     public static void set(String key, Object val) {
         Properties prop = loadProps();
         prop.setProperty(key, StringHelper.toString(val));
+        WriteProps(prop);
         updateConfig();
     }
 

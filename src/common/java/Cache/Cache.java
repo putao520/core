@@ -94,7 +94,7 @@ public class Cache implements InterfaceCache {
     }
 
     private CaffeineCache getMemCacheObject() {
-        return new CaffeineCache();
+        return CaffeineCache.getInstance();
     }
 
     private _reflect getCacheObject(String cN) {
@@ -142,32 +142,32 @@ public class Cache implements InterfaceCache {
         return _cache;
     }
 
-    private String local_get(String objectName) {
+    private Object local_get(String objectName) {
         return this.local_mem_cache ? _mem_cache.get(objectName) : null;
     }
 
-    public String get(String objectName) {
-        String r = local_get(objectName);
+    public Object get(String objectName) {
+        Object r = local_get(objectName);
         if (_cache != null && r == null) {
-            r = (String) _cache._call(Thread.currentThread().getStackTrace()[1].getMethodName(), objectName);
+            r = _cache._call(Thread.currentThread().getStackTrace()[1].getMethodName(), objectName);
         }
         return r;
     }
 
     public JSONObject getJson(String objectName) {
-        String r = local_get(objectName);
+        Object r = local_get(objectName);
         if (_cache != null && r == null) {
             return (JSONObject) _cache._call(Thread.currentThread().getStackTrace()[1].getMethodName(), objectName);
         }
-        return JSONObject.toJSON(r);
+        return JSONObject.toJSON(r.toString());
     }
 
     public JSONArray getJsonArray(String objectName) {
-        String r = local_get(objectName);
+        Object r = local_get(objectName);
         if (_cache != null && r == null) {
             return (JSONArray) _cache._call(Thread.currentThread().getStackTrace()[1].getMethodName(), objectName);
         }
-        return JSONArray.toJSONArray(r);
+        return JSONArray.toJSONArray(r.toString());
     }
 
     public long inc(String objectName) {
@@ -266,13 +266,13 @@ public class Cache implements InterfaceCache {
         return r;
     }
 
-    public String getSet(String objectName, int expire, Object objectValue) {
-        String r = null;
+    public Object getSet(String objectName, int expire, Object objectValue) {
+        Object r = null;
         if (local_mem_cache) {
             r = _mem_cache.getSet(objectName, expire, objectValue);
         }
         if (_cache != null) {
-            r = (String) _cache._call(Thread.currentThread().getStackTrace()[1].getMethodName(), objectName, expire, objectValue);
+            r = _cache._call(Thread.currentThread().getStackTrace()[1].getMethodName(), objectName, expire, objectValue);
         }
         return r;
     }
@@ -288,13 +288,13 @@ public class Cache implements InterfaceCache {
         return r;
     }
 
-    public String getSet(String objectName, Object objectValue) {
-        String r = null;
+    public Object getSet(String objectName, Object objectValue) {
+        Object r = null;
         if (local_mem_cache) {
             r = _mem_cache.getSet(objectName, objectValue);
         }
         if (_cache != null) {
-            r = (String) _cache._call(Thread.currentThread().getStackTrace()[1].getMethodName(), objectName, objectValue);
+            r = _cache._call(Thread.currentThread().getStackTrace()[1].getMethodName(), objectName, objectValue);
         }
         return r;
     }

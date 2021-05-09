@@ -4,7 +4,7 @@ import org.json.gsc.JSONArray;
 import org.json.gsc.JSONObject;
 
 public interface InterfaceCache {
-    String get(String objectName);
+    Object get(String objectName);
 
     JSONObject getJson(String objectName);
 
@@ -18,9 +18,9 @@ public interface InterfaceCache {
 
     boolean setNX(String objectName, Object objectValue);
 
-    String getSet(String objectName, Object objectValue);
+    Object getSet(String objectName, Object objectValue);
 
-    String getSet(String objectName, int expire, Object objectValue);
+    Object getSet(String objectName, int expire, Object objectValue);
 
     long inc(String objectName);
 

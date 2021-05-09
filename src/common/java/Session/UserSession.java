@@ -77,7 +77,6 @@ public class UserSession {
     /**
      * 获得当前会话id，如果不存在返回空
      *
-     * @return
      */
     public static String getRequestSID() {
         Object temp;
@@ -107,9 +106,9 @@ public class UserSession {
                 .put("_GrapeFW_SID", sid)
                 .put("_GrapeFW_Expire", expire)
                 .put("_GrapeFW_NeedRefresh", (expire + TimeHelper.build().nowSecond()) / 2)
-                .put(uid + "_GrapeFW_AppInfo_", HttpContext.current().appid()).toString();//补充appid参数
+                .put(uid + "_GrapeFW_AppInfo_", HttpContext.current().appId()).toString();//补充appid参数
         // 先获得上次的会话实体ID并删除
-        JSONObject lastInfo = JSONObject.toJSON(Objects.requireNonNull(cacher).get(uid));
+        JSONObject lastInfo = cacher.getJson(uid);
         if (lastInfo != null) {
             String lastSID = lastInfo.getString("_GrapeFW_SID");
             if (lastSID != null) {
@@ -165,7 +164,7 @@ public class UserSession {
 
     public static boolean checkSession(String sid) {
         CacheHelper ch = getCacher();
-        return ch != null && !StringHelper.isInvalided(ch.get(sid));
+        return ch != null && !StringHelper.isInvalided((String) ch.get(sid));
     }
 
     /**
@@ -269,7 +268,7 @@ public class UserSession {
     public JSONObject setDatas(JSONObject newData) {
         sessionInfo = newData;
         String userName = getUID();
-        return JSONObject.toJSON(cacher.getSet(userName, this.expireTime, newData.toString()));
+        return JSONObject.toJSON(cacher.getSet(userName, this.expireTime, newData.toString()).toString());
     }
 
     /**
@@ -411,17 +410,17 @@ public class UserSession {
         boolean rb = false;
         if (sid != null) {
             this.sid = sid;
-            String uid = sid.equals(everyone_key) ? everyone_key : cacher.get(sid);
+            String uid = sid.equals(everyone_key) ? everyone_key : (String) cacher.get(sid);
             if (uid != null && !uid.isEmpty()) {//返回了用户名
                 this.uid = uid;
                 sessionInfo = sid.equals(everyone_key) ?
                         JSONObject.build(SuperItemField.fatherField, everyone_key)
                                 .put(SuperItemField.PVField, AppRolesDef.everyone.group_value)
-                                .put(uid + "_GrapeFW_AppInfo_", HttpContext.current().appid())
+                                .put(uid + "_GrapeFW_AppInfo_", HttpContext.current().appId())
                                 .put("_GrapeFW_SID", sid)
                                 .put("_GrapeFW_Expire", expireTime)
                                 .put("_GrapeFW_NeedRefresh", (expireTime + TimeHelper.build().nowSecond()) / 2)
-                        : JSONObject.toJSON(cacher.get(uid));
+                        : cacher.getJson(uid);
                 // 补充会话数据
                 if (sessionInfo != null) {
                     this.appid = sessionInfo.getInt(uid + "_GrapeFW_AppInfo_");//获得所属appid

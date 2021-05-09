@@ -44,7 +44,7 @@ public class CacheHelper implements InterfaceCache {
         if (!flag) {
             HttpContext hCtx = HttpContext.current();
             if (hCtx != null) {
-                int appID = hCtx.appid();
+                int appID = hCtx.appId();
                 appPrefix = appID > 0 ? "_" + appID : "";
             }
         }
@@ -61,16 +61,16 @@ public class CacheHelper implements InterfaceCache {
      * @param key 缓存键值
      * @return 缓存数据的类型（需转换类型）
      */
-    public String get(String key) {
+    public Object get(String key) {
         return cache.get(prefixHook(key));
     }
 
     public JSONObject getJson(String key) {
-        return JSONObject.toJSON(cache.get(prefixHook(key)));
+        return cache.getJson(prefixHook(key));
     }
 
     public JSONArray getJsonArray(String key) {
-        return JSONArray.toJSONArray(cache.get(prefixHook(key)));
+        return cache.getJsonArray(prefixHook(key));
     }
 
     /**
@@ -120,9 +120,8 @@ public class CacheHelper implements InterfaceCache {
      *
      * @param key   缓存键值
      * @param value 缓存数据
-     * @return
      */
-    public String getSet(String key, Object value) {
+    public Object getSet(String key, Object value) {
         return cache.getSet(prefixHook(key), value);
     }
 
@@ -131,9 +130,8 @@ public class CacheHelper implements InterfaceCache {
      *
      * @param key   缓存键值
      * @param value 缓存数据
-     * @return
      */
-    public String getSet(String key, int expire, Object value) {
+    public Object getSet(String key, int expire, Object value) {
         return cache.getSet(prefixHook(key), expire, value);
     }
 
@@ -142,7 +140,6 @@ public class CacheHelper implements InterfaceCache {
      *
      * @param key   缓存键值
      * @param value 缓存数据
-     * @return
      */
     public boolean setNX(String key, Object value) {
         return cache.setNX(prefixHook(key), value);

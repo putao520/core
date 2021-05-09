@@ -23,7 +23,7 @@ public class MModelRuleNode {
     }
 
     public int type() {
-        return this.nodeInfo.getInt("class");
+        return this.nodeInfo.getInt("type");
     }
 
     public Object init() {
@@ -48,7 +48,7 @@ public class MModelRuleNode {
     }
 
     public MModelRuleNode type(int fieldType) {
-        this.nodeInfo.put("class", fieldType);
+        this.nodeInfo.put("type", fieldType);
         return this;
     }
 

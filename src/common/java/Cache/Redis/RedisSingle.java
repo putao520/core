@@ -23,8 +23,7 @@ import org.json.gsc.JSONObject;
  * }
  */
 public class RedisSingle implements InterfaceCache {
-    // private RedisConn<StatefulRedisConnection<String, String>> conn = null;
-    private RedisAsyncCommands<String, String> command;
+    private RedisAsyncCommands<String, Object> command;
 
     public RedisSingle(String configString) {
         init(configString);
@@ -35,12 +34,12 @@ public class RedisSingle implements InterfaceCache {
     }
 
     private void init(String config) {
-        this.command = ((StatefulRedisConnection<String, String>) RedisConn.build(config).getConnect()).async();
+        this.command = ((StatefulRedisConnection<String, Object>) RedisConn.build(config).getConnect()).async();
     }
     // 关闭连接
 
     @Override
-    public String get(String objectName) {
+    public Object get(String objectName) {
         try {
             return command.get(objectName).get();
         } catch (Exception e) {
@@ -50,7 +49,7 @@ public class RedisSingle implements InterfaceCache {
 
     public JSONObject getJson(String objectName) {
         try {
-            return JSONObject.toJSON(command.get(objectName).get());
+            return JSONObject.toJSON(command.get(objectName).get().toString());
         } catch (Exception e) {
             return null;
         }
@@ -58,7 +57,7 @@ public class RedisSingle implements InterfaceCache {
 
     public JSONArray getJsonArray(String objectName) {
         try {
-            return JSONArray.toJSONArray(command.get(objectName).get());
+            return JSONArray.toJSONArray(command.get(objectName).get().toString());
         } catch (Exception e) {
             return null;
         }
@@ -107,7 +106,7 @@ public class RedisSingle implements InterfaceCache {
     }
 
     @Override
-    public String getSet(String objectName, Object objectValue) {
+    public Object getSet(String objectName, Object objectValue) {
         try {
             return command.getset(objectName, objectValue.toString()).get();
         } catch (Exception e) {
@@ -116,9 +115,9 @@ public class RedisSingle implements InterfaceCache {
     }
 
     @Override
-    public String getSet(String objectName, int expire, Object objectValue) {
+    public Object getSet(String objectName, int expire, Object objectValue) {
         try {
-            String r = command.getset(objectName, objectValue.toString()).get();
+            Object r = command.getset(objectName, objectValue.toString()).get();
             setExpire(objectName, expire);
             return r;
         } catch (Exception e) {

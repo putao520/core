@@ -24,7 +24,7 @@ public class DbLayer implements InterfaceDatabase<DbLayer> {
     public String formName;
     private _reflect _db;            //数据库抽象对象
     private Cache cache;        //缓存抽象对象
-    private String ownid;
+    private String ownId;
     private boolean out_piper_flag = true;
 
     public DbLayer() {
@@ -197,7 +197,6 @@ public class DbLayer implements InterfaceDatabase<DbLayer> {
     /**
      * 从缓存取数据，如果缓存不存在数据，那么从数据库取并填充
      *
-     * @return
      */
     public JSONArray selectByCache() {
         return selectByCache(3);
@@ -206,14 +205,13 @@ public class DbLayer implements InterfaceDatabase<DbLayer> {
     /**
      * 从缓存取数据，如果缓存不存在数据，那么从数据库取并填充
      *
-     * @return
      */
     public JSONArray selectByCache(int second) {
         JSONArray rs = null;
         String key = getFormName() + getConditionString();
         Cache c = getCache();
         if (c != null) {
-            rs = JSONArray.toJSONArray(c.get(key));
+            rs = c.getJsonArray(key);
         }
         if (rs == null) {//不存在
             rs = select();
@@ -239,7 +237,7 @@ public class DbLayer implements InterfaceDatabase<DbLayer> {
         String key = getFormName() + getConditionString();
         Cache c = getCache();
         if (c != null) {
-            rs = JSONObject.toJSON(c.get(key));
+            rs = c.getJson(key);
         }
         if (rs == null) {//不存在
             rs = this.find();
@@ -256,9 +254,9 @@ public class DbLayer implements InterfaceDatabase<DbLayer> {
         return findByCache(3);
     }
 
-    private void updatefix() {
+    private void updateFix() {
         form(formName);
-        bind(ownid);
+        bind(ownId);
     }
 
     //---------------------------db接口引用
@@ -408,67 +406,67 @@ public class DbLayer implements InterfaceDatabase<DbLayer> {
     }
 
     public List<Object> insert() {
-        updatefix();
+        updateFix();
         return (List<Object>) _db._call(Thread.currentThread().getStackTrace()[1].getMethodName());
     }
 
     public JSONObject getAndUpdate() {
-        updatefix();
+        updateFix();
         return (JSONObject) _db._call(Thread.currentThread().getStackTrace()[1].getMethodName());
     }
 
     public boolean update() {
-        updatefix();
+        updateFix();
         return (boolean) _db._call(Thread.currentThread().getStackTrace()[1].getMethodName());
     }
 
     public long updateAll() {
-        updatefix();
+        updateFix();
         return (long) _db._call(Thread.currentThread().getStackTrace()[1].getMethodName());
     }
 
     public JSONObject getAndDelete() {
-        updatefix();
+        updateFix();
         return (JSONObject) _db._call(Thread.currentThread().getStackTrace()[1].getMethodName());
     }
 
     public boolean delete() {
-        updatefix();
+        updateFix();
         return (boolean) _db._call(Thread.currentThread().getStackTrace()[1].getMethodName());
     }
 
     public long deleteAll() {
-        updatefix();
+        updateFix();
         return (long) _db._call(Thread.currentThread().getStackTrace()[1].getMethodName());
     }
 
     public JSONObject getAndInc(String fieldName) {
-        updatefix();
+        updateFix();
         return (JSONObject) _db._call(Thread.currentThread().getStackTrace()[1].getMethodName(), fieldName);
     }
 
     public boolean inc(String fieldName) {
-        updatefix();
+        updateFix();
         return (boolean) _db._call(Thread.currentThread().getStackTrace()[1].getMethodName(), fieldName);
     }
 
     public JSONObject getAndDec(String fieldName) {
-        updatefix();
+        updateFix();
         return (JSONObject) _db._call(Thread.currentThread().getStackTrace()[1].getMethodName(), fieldName);
     }
 
     public boolean dec(String fieldName) {
-        updatefix();
+        updateFix();
         return (boolean) _db._call(Thread.currentThread().getStackTrace()[1].getMethodName(), fieldName);
     }
 
     public JSONObject getAndAdd(String fieldName, long num) {
-        updatefix();
+        updateFix();
         return (JSONObject) _db._call(Thread.currentThread().getStackTrace()[1].getMethodName(), fieldName, num);
     }
 
     public boolean add(String fieldName, long num) {
-        updatefix();
+        updateFix();
         return (boolean) _db._call(Thread.currentThread().getStackTrace()[1].getMethodName(), fieldName, num);
     }
 
@@ -481,42 +479,42 @@ public class DbLayer implements InterfaceDatabase<DbLayer> {
     }
 
     public JSONObject find() {
-        updatefix();
+        updateFix();
         return (JSONObject) fieldOutPiper(_db._call(Thread.currentThread().getStackTrace()[1].getMethodName()));
     }
 
     public JSONArray select() {
-        updatefix();
+        updateFix();
         return (JSONArray) fieldOutPiper(_db._call(Thread.currentThread().getStackTrace()[1].getMethodName()));
     }
 
     public String getConditionString() {
-        updatefix();
+        updateFix();
         return (String) _db._call(Thread.currentThread().getStackTrace()[1].getMethodName());
     }
 
     public JSONArray group() {
-        updatefix();
+        updateFix();
         return (JSONArray) _db._call(Thread.currentThread().getStackTrace()[1].getMethodName());
     }
 
     public JSONArray group(String groupName) {
-        updatefix();
+        updateFix();
         return (JSONArray) _db._call(Thread.currentThread().getStackTrace()[1].getMethodName(), groupName);
     }
 
     public JSONArray distinct(String fieldName) {
-        updatefix();
+        updateFix();
         return (JSONArray) _db._call(Thread.currentThread().getStackTrace()[1].getMethodName(), fieldName);
     }
 
     public JSONArray page(int pageidx, int pagemax) {
-        updatefix();
+        updateFix();
         return (JSONArray) fieldOutPiper(_db._call(Thread.currentThread().getStackTrace()[1].getMethodName(), pageidx, pagemax));
     }
 
     public final JSONArray page(int pageidx, int pagemax, int lastid, String fastfield) {
-        updatefix();
+        updateFix();
         return (JSONArray) fieldOutPiper(_db._call(Thread.currentThread().getStackTrace()[1].getMethodName(), pageidx, pagemax, lastid, fastfield));
     }
 
@@ -563,27 +561,27 @@ public class DbLayer implements InterfaceDatabase<DbLayer> {
     }
 
     public void asyncInsert() {
-        updatefix();
+        updateFix();
         _db._call(Thread.currentThread().getStackTrace()[1].getMethodName());
     }
 
     public Object insertOnce() {
-        updatefix();
+        updateFix();
         return _db._call(Thread.currentThread().getStackTrace()[1].getMethodName());
     }
 
     public DbLayer bind(String ownerID) {
-        ownid = ownerID == null || ownerID.equals("0") ? "" : ownerID;
-        _db._call(Thread.currentThread().getStackTrace()[1].getMethodName(), ownid);
+        ownId = ownerID == null || ownerID.equals("0") ? "" : ownerID;
+        _db._call(Thread.currentThread().getStackTrace()[1].getMethodName(), ownId);
         return this;
     }
 
     public DbLayer bind() {
-        int appId = HttpContext.current().appid();
+        int appId = HttpContext.current().appId();
         if (appId != 0) {
             try {
-                ownid = StringHelper.toString(appId);
-                bind(ownid);
+                ownId = StringHelper.toString(appId);
+                bind(ownId);
             } catch (Exception e) {
                 nLogger.logInfo(e, "应用ID不合法");
             }

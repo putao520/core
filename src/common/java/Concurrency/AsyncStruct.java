@@ -61,7 +61,7 @@ public class AsyncStruct {
 
     private AsyncStruct bindQueryKey(String queryKey) {
         this.queryKey = queryKey;
-        JSONObject info = JSONObject.toJSON(cache.get(queryKey));
+        JSONObject info = cache.getJson(queryKey);
         if (JSONObject.isInvalided(info)) {
             this.currentNumber = 0;
             this.totalNumber = 100;

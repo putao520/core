@@ -1,6 +1,7 @@
 package common.java.HttpServer;
 
 import common.java.Apps.MicroService.MicroServiceContext;
+import common.java.Config.Config;
 import common.java.HttpServer.Common.RequestSession;
 import common.java.HttpServer.SpecHeader.Db.HttpContextDb;
 import common.java.Number.NumberHelper;
@@ -39,6 +40,7 @@ public class HttpContext {
     private ChannelHandlerContext ctx;
     private JSONObject values = new JSONObject();
     private HttpContextDb db_ctx;
+    private String public_key;      // 访问中央服务器需要的公钥
 
     private HttpContext() {
     }
@@ -88,6 +90,9 @@ public class HttpContext {
             GrapeHttpServer.writeHttpResponse(ctx, rMsg.netMSG(false, msg));
             ctx.close();
             ctx.deregister();
+        }
+        if (Config.debug) {
+            nLogger.errorInfo(msg);
         }
     }
 
@@ -286,33 +291,37 @@ public class HttpContext {
      * 获得表单数据
      */
     public String form() {
-        return values.getString(GrapeHttpHeader.formdata);
+        return values.getString(GrapeHttpHeader.postPayload);
     }
 
     /**
      * 获得请求所在APPID
      */
 
-    public int appid() {
+    public int appId() {
         try {
-            return NumberHelper.number2int(values.get(GrapeHttpHeader.appid, 0));
+            return NumberHelper.number2int(values.get(GrapeHttpHeader.appId, 0));
         } catch (Exception e) {
         }
         return 0;
     }
 
-    public HttpContext appid(int appid) {
-        if (appid > 0) {
-            values.put(GrapeHttpHeader.appid, appid);
+    public HttpContext appId(int appId) {
+        if (appId > 0) {
+            values.put(GrapeHttpHeader.appId, appId);
         }
         return this;
+    }
+
+    public String publicKey() {
+        return StringHelper.toString(values.get(GrapeHttpHeader.publicKey, null));
     }
 
     /**
      * 是不是gsc-core该响应的请求
      */
     public boolean isGscRequest() {
-        return values.containsKey(GrapeHttpHeader.appid);
+        return values.containsKey(GrapeHttpHeader.appId);
     }
 
     /**
@@ -424,7 +433,7 @@ public class HttpContext {
         JSONObject nHeader = new JSONObject();
         getValueSafe(GrapeHttpHeader.sid, nHeader);
         getValueSafe(GrapeHttpHeader.token, nHeader);
-        getValueSafe(GrapeHttpHeader.appid, nHeader);
+        getValueSafe(GrapeHttpHeader.appId, nHeader);
         return nHeader;
     }
 
@@ -434,7 +443,7 @@ public class HttpContext {
     public HttpContext header(JSONObject nHeader) {
         setValueSafe(GrapeHttpHeader.sid, nHeader);
         setValueSafe(GrapeHttpHeader.token, nHeader);
-        setValueSafe(GrapeHttpHeader.appid, nHeader);
+        setValueSafe(GrapeHttpHeader.appId, nHeader);
         return this;
     }
 
@@ -485,8 +494,9 @@ public class HttpContext {
         public final static String token = "GrapeOauth2";
         public final static String host = "host";
         public final static String agent = "agent";
-        public final static String formdata = "exData";
-        public final static String appid = "appID";
+        public final static String postPayload = "exData";
+        public final static String appId = "appID";
+        public final static String publicKey = "appKey";        // 请求公钥
 
         public final static String ChannelContext = "socket";
         public final static List<String> keys = new ArrayList<>();
@@ -500,36 +510,37 @@ public class HttpContext {
             keys.add(GrapeHttpHeader.token);
             keys.add(GrapeHttpHeader.host);
             keys.add(GrapeHttpHeader.agent);
-            keys.add(GrapeHttpHeader.formdata);
-            keys.add(GrapeHttpHeader.appid);
+            keys.add(GrapeHttpHeader.postPayload);
+            keys.add(GrapeHttpHeader.appId);
             keys.add(GrapeHttpHeader.ChannelContext);
+            keys.add(GrapeHttpHeader.publicKey);
 
             //app
-            apps.add(App.fullurl);
+            apps.add(App.fullUrl);
 
             //WebSocket
             websocket.add(WebSocket.url);
             websocket.add(WebSocket.header);
             websocket.add(WebSocket.param);
-            websocket.add(WebSocket.wsid);
+            websocket.add(WebSocket.wsId);
 
             //Xml
-            xmls.add(xml.xmldata);
+            xmls.add(xml.xmlPayload);
         }
 
         public static class WebSocket {
             public final static String url = "path";
             public final static String header = "header";
             public final static String param = "param";
-            public final static String wsid = "wsID";
+            public final static String wsId = "wsID";
         }
 
         public static class xml {
-            public final static String xmldata = "xmldata";
+            public final static String xmlPayload = "xmldata";
         }
 
         public static class App {
-            public final static String fullurl = "requrl";
+            public final static String fullUrl = "requrl";
         }
     }
 

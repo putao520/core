@@ -27,7 +27,7 @@ public class AppContext {
 
     private AppContext() {
         // 默认使用当前上下文 或者 0
-        init(HttpContext.current().appid());
+        init(HttpContext.current().appId());
     }
 
     private AppContext(int appId) {
@@ -72,9 +72,9 @@ public class AppContext {
     }
 
     /**
-     * 根据指定的appid创建虚拟上下文
+     * 根据指定的appId创建虚拟上下文
      */
-    public static AppContext virtualAppContext(int appid, String serviceName) {
+    public static AppContext virtualAppContext(int appId, String serviceName) {
         ChannelId cid = new ChannelId() {
             private final String shortText = StringHelper.createRandomCode(6);
             private final String longText = shortText + "_" + StringHelper.createRandomCode(6);
@@ -96,16 +96,16 @@ public class AppContext {
         };
         RequestSession.setChannelID(cid);
         RequestSession.create(cid);
-        AppContext r = new AppContext(appid);
+        AppContext r = new AppContext(appId);
         RequestSession.setValue(AppContext.SessionKey, r);
         HttpContext.setNewHttpContext()
                 .serviceName(serviceName)
-                .appid(appid);
+                .appId(appId);
         return r;
     }
 
-    private void init(int appid) {
-        init(AppsProxy.getAppInfo(appid));
+    private void init(int appId) {
+        init(AppsProxy.getAppInfo(appId));
     }
 
     private void init(String domain) {

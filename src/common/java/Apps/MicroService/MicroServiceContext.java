@@ -10,7 +10,7 @@ import org.json.gsc.JSONObject;
 import java.util.HashMap;
 
 public class MicroServiceContext {
-    private static int currentno = 0;
+    private static int currentNo = 0;
     private JSONObject servInfo;
     private ModelServiceConfig servConfig;
     private MicroModelArray servModelInfo;
@@ -18,7 +18,7 @@ public class MicroServiceContext {
     private MicroServiceContext() {
         // 获得当前微服务名
         HttpContext ctx = HttpContext.current();
-        init(ctx.appid(), ctx.serviceName());
+        init(ctx.appId(), ctx.serviceName());
     }
 
     public MicroServiceContext(int appId, String servName) {
@@ -26,7 +26,7 @@ public class MicroServiceContext {
     }
 
     public MicroServiceContext(String servName) {
-        init(HttpContext.current().appid(), servName);
+        init(HttpContext.current().appId(), servName);
     }
 
     public static MicroServiceContext current() {
@@ -54,18 +54,9 @@ public class MicroServiceContext {
      */
     public String bestServer() {
         String[] servers = servInfo.getString("peerAddr").split(",");
-        currentno++;
-        return servers[currentno % servers.length];
+        currentNo++;
+        return servers[currentNo % servers.length];
     }
-
-    /**
-     * 获得微服务对应的JAR名称
-     */
-    /*
-    public String serviceFileName() {
-        return servInfo.getString("serviceTarget");
-    }
-    */
 
     /**
      * 获得微服务的配置

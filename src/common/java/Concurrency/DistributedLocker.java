@@ -65,7 +65,7 @@ public class DistributedLocker {
      * @return
      */
     public boolean lock() {
-        String val = getRedis().getSet(lockerName, true);
+        String val = getRedis().getSet(lockerName, true).toString();
         boolean rb = Boolean.parseBoolean(val);
         return !rb;
     }
@@ -76,7 +76,7 @@ public class DistributedLocker {
      * @return
      */
     public boolean islocked() {
-        String val = getRedis().get(lockerName);
+        String val = getRedis().get(lockerName).toString();
         return Boolean.parseBoolean(val);
     }
 
@@ -95,7 +95,7 @@ public class DistributedLocker {
      * @return
      */
     public boolean unlock() {
-        String val = getRedis().getSet(lockerName, false);
+        String val = getRedis().getSet(lockerName, false).toString();
         return Boolean.parseBoolean(val);
     }
 

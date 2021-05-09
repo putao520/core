@@ -68,13 +68,13 @@ public class GrapeTreeDbLayerModel implements InterfaceDatabase<GrapeTreeDbLayer
         return this.db.nullCondition();
     }
 
-    public GrapeTreeDbLayerModel groupCondition(List<List<Object>> conds) {
-        this.db.groupCondition(conds);
+    public GrapeTreeDbLayerModel groupCondition(List<List<Object>> conditionArr) {
+        this.db.groupCondition(conditionArr);
         return this;
     }
 
-    public GrapeTreeDbLayerModel groupWhere(JSONArray conds) {
-        this.db.groupWhere(conds);
+    public GrapeTreeDbLayerModel groupWhere(JSONArray conditionArr) {
+        this.db.groupWhere(conditionArr);
         return this;
     }
 
@@ -90,11 +90,6 @@ public class GrapeTreeDbLayerModel implements InterfaceDatabase<GrapeTreeDbLayer
 
     public GrapeTreeDbLayerModel limit(int no) {
         this.db.limit(no);
-        return this;
-    }
-
-    public GrapeTreeDbLayerModel findOne() {
-        this.db.findOne();
         return this;
     }
 
@@ -152,7 +147,7 @@ public class GrapeTreeDbLayerModel implements InterfaceDatabase<GrapeTreeDbLayer
                 JSONArray finalR = r;
                 HttpContext hCtx = HttpContext.current();
                 pipeJSONArray_Out.parallelStream().forEach(func -> {
-                    AppContext.virtualAppContext(hCtx.appid(), hCtx.serviceName());
+                    AppContext.virtualAppContext(hCtx.appId(), hCtx.serviceName());
                     resultArray.add(func.apply(finalR));
                 });
                 // 线性聚合data
@@ -444,7 +439,7 @@ public class GrapeTreeDbLayerModel implements InterfaceDatabase<GrapeTreeDbLayer
     // 写方法群
     private JSONObject autoCompletePerms(JSONObject data) {
         UserSession us = UserSession.current();
-        if (us == null || !us.checkSession()) {
+        if (!us.checkSession()) {
             us = UserSession.buildEveryone();
         }
         return data.put(SuperItemField.userIdField, us.getUID())

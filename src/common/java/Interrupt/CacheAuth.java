@@ -30,7 +30,7 @@ public class CacheAuth {
     }
 
     public boolean resumeRun(String ssid, String code) {
-        String rString = cache.get(ssid);
+        Object rString = cache.get(ssid);
         boolean rb = rString != null && rString.equals(code);
         if (rb) {
             cache.delete(ssid);

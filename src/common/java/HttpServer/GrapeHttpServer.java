@@ -37,10 +37,10 @@ public class GrapeHttpServer {
     private static void fixHttpContext(HttpContext ctx) {
         String path = ctx.path();
         String[] blocks = path.split("/");
-        int appid = blocks.length > 1 ? NumberHelper.number2int(blocks[1]) : 0;
-        if (appid > 0) {
-            // 自动补充appid
-            ctx.appid(appid);
+        int appId = blocks.length > 1 ? NumberHelper.number2int(blocks[1]) : 0;
+        if (appId > 0) {
+            // 自动补充appId
+            ctx.appId(appId);
             // 自动修正path
             ctx.path(StringHelper.join(blocks, "/", 2, -1));
         }
@@ -64,7 +64,7 @@ public class GrapeHttpServer {
             ctx.parameter(post);
             // 是普通http请求
             if (!ctx.isGscRequest()) {
-                // 自动修正appid和path
+                // 自动修正appId和path
                 fixHttpContext(ctx);
             }
             HttpContext ctxFinal = ctx;
@@ -92,33 +92,38 @@ public class GrapeHttpServer {
 
     /**
      * 来自netty服务器的调用
-     *
-     * @param ctx
-     * @return
      */
     public static Object systemCall(HttpContext ctx) {
         String path = ctx.path();
         String host = ctx.host();
-        int appid = ctx.appid();
+        int appId = ctx.appId();
         AppContext appContext;
         Object rsValue = "";
 
         String[] GrapeRequest = StringHelper.build(path).trimFrom('/').toString().split("/");
         if (GrapeRequest.length >= 2) {
-            // 当无有效appid时,根据域名重置Appid
-            if (appid == 0) {
-                appContext = AppContext.build(host);
-                if (appContext.hasData()) {    // 域名有效,重置appid
-                    appid = appContext.appId();
-                    ctx.appid(appid);
+            // 不包含 公钥
+            if (StringHelper.isInvalided(ctx.publicKey())) {
+                // appId 无效, 尝试根据域名获得 appId
+                if (appId == 0) {
+                    appContext = AppContext.build(host);
+                    if (appContext.hasData()) {
+                        appId = appContext.appId();
+                        ctx.appId(appId);
+                    }
+                } else {
+                    appContext = AppContext.build(appId);
+                    // 微服务名无效或者应用ID无效
+                    if (!appContext.hasData() || !Config.serviceName.equals(GrapeRequest[0])) {
+                        HttpContext.current().throwOut("[应用ID:" + appId + " 无效] 或者 [微服务名称:" + GrapeRequest[0] + " 无效]");
+                        return "";
+                    }
                 }
             }
-            //如果包含有效Appid,调用应用服务包
-            if (appid > 0) {
-                appContext = AppContext.build(appid);
-                // 微服务名无效或者应用ID无效
-                if (!appContext.hasData() || !Config.serviceName.equals(GrapeRequest[0])) {
-                    nLogger.logInfo("[应用ID:" + appid + " 无效] 或者 [微服务名称:" + GrapeRequest[0] + " 无效]");
+            // 包含 公钥 服务名必须是 system
+            else {
+                if (!GrapeRequest[0].equalsIgnoreCase("system")) {
+                    HttpContext.current().throwOut("加密模式->服务名称:" + GrapeRequest[0] + " 无效");
                     return "";
                 }
             }
@@ -140,10 +145,10 @@ public class GrapeHttpServer {
         GrapeHttpServer.writeHttpResponse(ctx, "".getBytes(), new JSONObject("Location", newURL));
     }
 
-    public static void location(ChannelHandlerContext ctx, String newURL, JSONObject exheader) {
+    public static void location(ChannelHandlerContext ctx, String newURL, JSONObject exHeader) {
         JSONObject header = new JSONObject("Location", newURL);
-        if (exheader != null) {
-            header.putAll(exheader);
+        if (exHeader != null) {
+            header.putAll(exHeader);
         }
         GrapeHttpServer.writeHttpResponse(ctx, "".getBytes(), header);
     }
@@ -153,7 +158,8 @@ public class GrapeHttpServer {
         response.headers().set("Access-Control-Allow-Headers",
                 HttpContext.GrapeHttpHeader.sid + " ," +
                         HttpContext.GrapeHttpHeader.token + " ," +
-                        HttpContext.GrapeHttpHeader.appid + " ," +
+                        HttpContext.GrapeHttpHeader.appId + " ," +
+                        HttpContext.GrapeHttpHeader.publicKey + " ," +
                         HttpContextDb.fields + " ," +
                         HttpContextDb.sorts + " ," +
                         HttpContextDb.options
@@ -262,8 +268,7 @@ public class GrapeHttpServer {
         if (!(responseData instanceof String)) {
             responseData = StringHelper.toString(responseData);
         }
-        //----------字符串输出
-        if (responseData instanceof String) {
+        if (responseData != null) {
             responseData = ((String) responseData).getBytes();
             writeHttpResponse(ctx, (byte[]) responseData, JSONObject.build(CONTENT_TYPE.toString(), "text/plain; charset=UTF-8"));
         }

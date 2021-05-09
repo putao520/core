@@ -12,7 +12,7 @@ public class AppThreadContext {
     }
 
     public static AppThreadContext build(HttpContext hCtx) {
-        return build(hCtx.appid(), hCtx.serviceName());
+        return build(hCtx.appId(), hCtx.serviceName());
     }
 
     public static AppThreadContext build(int AppID, String MicroServiceName) {

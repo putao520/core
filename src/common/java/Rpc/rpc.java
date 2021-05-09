@@ -4,6 +4,7 @@ import common.java.Apps.MicroService.MicroServiceContext;
 import common.java.HttpServer.HttpContext;
 import common.java.OAuth.oauthApi;
 import common.java.String.StringHelper;
+import common.java.Thread.ThreadHelper;
 import common.java.nLogger.nLogger;
 import kong.unirest.HttpRequestWithBody;
 import kong.unirest.RequestBodyEntity;
@@ -13,17 +14,22 @@ import org.json.gsc.JSONObject;
 import java.util.Arrays;
 
 public class rpc {
+    private static final int max_retry = 30;           // 重试次数30
+    private static final int delay_retry = 5000;       // 重试间隔5s
     private final String servName;
     private final MicroServiceContext msc;
     private String servPath;
     private HttpContext ctx;
     private boolean needApiAuth;
+    private String public_key;
 
     private rpc(String servName) {
         this.servName = servName;
         // boolean nullContext = false;
         this.needApiAuth = false;
         msc = new MicroServiceContext(this.servName);
+
+        this.public_key = null;
     }
 
     // 静态起步方法
@@ -36,6 +42,10 @@ public class rpc {
     }
 
     public static RpcResponse call(String path, HttpContext ctx, boolean api_auth, Object... args) {
+        return call(path, ctx, api_auth, null, args);
+    }
+
+    public static RpcResponse call(String path, HttpContext ctx, boolean api_auth, String public_key, Object... args) {
         String url = path;
         // 构造http协议rpc完整地址
         if (!path.toLowerCase().startsWith("http://")) {
@@ -68,14 +78,26 @@ public class rpc {
         if (api_auth) {
             r.header(HttpContext.GrapeHttpHeader.token, oauthApi.getInstance().getApiToken(rArr[1] + "@" + rArr[2] + "@" + rArr[3]));
         }
+        // 设置公钥
+        if (!StringHelper.isInvalided(public_key)) {
+            r.header(HttpContext.GrapeHttpHeader.publicKey, public_key);
+        }
         // 设置请求参数[post]
         RequestBodyEntity rBody = r.body(args != null ? ExecRequest.objects2poststring(args) : "");
-        String rs;
-        try {
-            rs = rBody.asString().getBody();
-        } catch (Exception e) {
-            nLogger.debugInfo(e, "服务:[" + path + "] ->连接失败！");
-            rs = null;
+        String rs = null;
+        for (int err_i = 0; err_i < max_retry; err_i++) {
+            try {
+                rs = rBody.asString().getBody();
+                break;
+            } catch (Exception e) {
+                if (err_i >= max_retry) {
+                    nLogger.debugInfo(e, "服务:[" + path + "] ->连接失败！");
+                    rs = null;
+                } else {
+                    ThreadHelper.sleep(delay_retry);
+                    continue;   // 无意义
+                }
+            }
         }
         return RpcResponse.build(rs);
     }
@@ -83,7 +105,7 @@ public class rpc {
     /**
      * @apiNote 包含参数的URL的使用
      */
-    public static RpcResponse call(String url, HttpContext ctx, boolean api_auth) {
+    public static RpcResponse call(int run_no, String url, HttpContext ctx, boolean api_auth) {
         String[] strArr = url.split("/");
         Object[] args = Arrays.stream(strArr).skip(4).toArray();
         return call(StringHelper.join(strArr, "/", 0, 4), ctx, api_auth, args);
@@ -122,10 +144,18 @@ public class rpc {
     }
 
     /**
+     * 设置请求公钥
+     */
+    public rpc setApiPublicKey(String public_key) {
+        this.public_key = public_key;
+        return this;
+    }
+
+    /**
      * 调用RPC
      */
     public RpcResponse call(Object... args) {
-        return call(this.toString(), this.ctx, this.needApiAuth, args);
+        return call(this.toString(), this.ctx, this.needApiAuth, this.public_key, args);
     }
 
     /**

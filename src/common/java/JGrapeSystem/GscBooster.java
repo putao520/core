@@ -1,6 +1,5 @@
 package common.java.JGrapeSystem;
 
-import common.java.Apps.MicroService.MicroServiceContext;
 import common.java.Config.Config;
 import common.java.HttpServer.GscServer;
 import common.java.HttpServer.HttpContext;
@@ -20,18 +19,20 @@ public class GscBooster {
             if (context == null) {
                 return;
             }
-            int appid = context.appid();
+            int appId = context.appId();
             ChannelHandlerContext ctx = context.channelContext();
             String printInfo = "时间:[" + TimeHelper.build().nowDatetime() + "]-"
-                    + "应用:[" + appid + "]-"
+                    + "应用:[" + appId + "]-"
                     + "级别:[" + type.toString() + "]-"
                     + "线程:[" + Thread.currentThread().getId() + "]\n"
                     + "信息:\n" + info + "\n"
                     + "============================";
             System.out.println(printInfo);
-            if (MicroServiceContext.current().isDebug()) {
+            /*
+            if ( Config.debug ) {
                 HttpContext.showMessage(ctx, printInfo);
             }
+            */
         };
         // 获得端口
         System.out.println("节点号:[" + Config.nodeID + "]");

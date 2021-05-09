@@ -42,7 +42,7 @@ public class MModelSuperField {
     private MModelRuleNode createEmptyNode(String fieldName, Object initVal) {
         JSONObject node = new JSONObject();
         node.put("name", fieldName)
-                .put("class", 0)
+                .put("type", 0)
                 .put("init", initVal)
                 .put("failed", initVal)
                 .put("checkId", 1);

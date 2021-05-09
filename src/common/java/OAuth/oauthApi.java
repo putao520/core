@@ -55,7 +55,7 @@ public class oauthApi {
         String api_name = build_api_name(header.serviceName(), header.className(), header.actionName());
         // 验证授权
         Cache c = Cache.getInstance();
-        String ca = c.get(token_key);
+        Object ca = c.get(token_key);
         if (ca == null) {
             return false;
         }
