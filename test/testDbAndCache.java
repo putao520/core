@@ -8,6 +8,13 @@ public class testDbAndCache extends TestCase {
     // 测试不带配置名本地缓存
     @Test
     public void testCacheLocal() {
+        /*
+        var t = TimeHelper.getNowTimestampByZero();
+        ThreadHelper.sleep(1000);
+        var c = TimeHelper.getNowTimestampByZero() - t;
+        System.out.println(c);
+        */
+
         CacheHelper ca = CacheHelper.buildLocal();
         ca.set("TestA", "putao520");
         assertEquals("putao520", ca.get("TestA"));

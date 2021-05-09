@@ -57,7 +57,12 @@ public class CaffeineCache implements InterfaceCache {
     }
 
     private boolean isExpire(long expireAt) {
-        return TimeHelper.getNowTimestampByZero() > expireAt;
+        var n = TimeHelper.getNowTimestampByZero();
+        return n > expireAt;
+    }
+
+    private JSONObject _getJson(Object v) {
+        return (v instanceof JSONObject) ? (JSONObject) v : JSONObject.build(v.toString());
     }
 
     public Object get(String objectName) {
@@ -65,7 +70,7 @@ public class CaffeineCache implements InterfaceCache {
         if (v == null) {
             return null;
         }
-        JSONObject r = JSONObject.build(get(objectName).toString());
+        JSONObject r = _getJson(v);
         if (JSONObject.isInvalided(r)) {
             return null;
         }
@@ -91,18 +96,11 @@ public class CaffeineCache implements InterfaceCache {
      */
     @Override
     public boolean setExpire(String objectName, int expire) {
-        var v = jdc.getIfPresent(objectName);
+        var v = get(objectName);
         if (v == null) {
             return false;
         }
-        JSONObject r = JSONObject.build(get(objectName).toString());
-        if (JSONObject.isInvalided(r)) {
-            return false;
-        }
-        var now_time = TimeHelper.getNowTimestampByZero();
-        r.put("_createAt", now_time);
-        r.put("_expireAt", now_time + expire);
-        set(objectName, v);
+        set(objectName, expire, v);
         return true;
     }
 
@@ -149,7 +147,7 @@ public class CaffeineCache implements InterfaceCache {
     public long inc(String objectName) {
         long r = NumberHelper.number2long(get(objectName));
         long i = r + 1;
-        set(objectName, String.valueOf(i));
+        set(objectName, i);
         return i;
     }
 
@@ -157,7 +155,7 @@ public class CaffeineCache implements InterfaceCache {
     public long incBy(String objectName, long num) {
         long r = NumberHelper.number2long(get(objectName));
         long i = r + num;
-        set(objectName, String.valueOf(i));
+        set(objectName, i);
         return i;
     }
 
@@ -165,7 +163,7 @@ public class CaffeineCache implements InterfaceCache {
     public long dec(String objectName) {
         long r = NumberHelper.number2long(get(objectName));
         long i = r - 1;
-        set(objectName, String.valueOf(i));
+        set(objectName, i);
         return i;
     }
 
@@ -173,7 +171,7 @@ public class CaffeineCache implements InterfaceCache {
     public long decBy(String objectName, long num) {
         long r = NumberHelper.number2long(get(objectName));
         long i = r - num;
-        set(objectName, String.valueOf(i));
+        set(objectName, i);
         return i;
     }
 
