@@ -48,6 +48,10 @@ public class CaffeineCache implements InterfaceCache {
         return new CaffeineCache(second);
     }
 
+    public static CaffeineCache build() {
+        return build(86400);
+    }
+
     public static CaffeineCache getInstance() {
         return new CaffeineCache();
     }
