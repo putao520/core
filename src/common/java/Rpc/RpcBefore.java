@@ -15,7 +15,7 @@ public class RpcBefore {
         return fl.runFor(actionName, input);
     }
 
-    public RpcBefore $(String actionName, FilterCallback fn) {
+    public RpcBefore filter(String actionName, FilterCallback fn) {
         String clsName = this.getClass().getSimpleName();
         FilterLink fl = filterArray.get(clsName);
         if (fl == null) {
@@ -30,9 +30,9 @@ public class RpcBefore {
         return this;
     }
 
-    public RpcBefore $(String[] actionNameArray, FilterCallback fn) {
+    public RpcBefore filter(String[] actionNameArray, FilterCallback fn) {
         for (String actionName : actionNameArray) {
-            $(actionName, fn);
+            filter(actionName, fn);
         }
         return this;
     }

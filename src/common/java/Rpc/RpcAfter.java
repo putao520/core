@@ -6,7 +6,7 @@ public class RpcAfter {
     // 过滤链
     public static final HashMap<String, ReturnLink> filterArray = new HashMap<>();
 
-    public static void $(Class clsName, String actionName, ReturnCallback fn) {
+    public static void filter(Class clsName, String actionName, ReturnCallback fn) {
         ReturnLink rl = filterArray.get(actionName);
         if (rl == null) {
             rl = ReturnLink.build();
@@ -19,9 +19,9 @@ public class RpcAfter {
         filterArray.put(clsName.getSimpleName(), rl);
     }
 
-    public static void $(Class clsName, String[] actionNameArray, ReturnCallback fn) {
+    public static void filter(Class clsName, String[] actionNameArray, ReturnCallback fn) {
         for (String actionName : actionNameArray) {
-            $(clsName, actionName, fn);
+            filter(clsName, actionName, fn);
         }
     }
 
