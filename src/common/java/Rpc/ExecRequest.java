@@ -182,7 +182,8 @@ public class ExecRequest {//框架内请求类
                 o instanceof Long ||
                 o instanceof Float ||
                 o instanceof Double ||
-                o instanceof Short
+                o instanceof Short ||
+                o instanceof Boolean
         ) {
             return rMsg.netMSG(o);
         }

@@ -14,6 +14,15 @@ public class rMsg {
     }
 
     public static String netMSG(Object data) {
+        if (data == null) {
+            return netMSG(false);
+        }
+
+        if (data instanceof Boolean) {
+            Boolean b = (Boolean) data;
+            return netMSG(b);
+        }
+
         if (data instanceof List<?>) {
             data = JSONArray.build().put((List<?>) data);
         } else if (data instanceof HashMap<?, ?>) {
