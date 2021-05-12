@@ -15,12 +15,12 @@ public class rMsg {
 
     public static String netMSG(Object data) {
         if (data == null) {
-            return netMSG(false);
+            return netState(false);
         }
 
         if (data instanceof Boolean) {
             Boolean b = (Boolean) data;
-            return netMSG(b);
+            return netState(b);
         }
 
         if (data instanceof List<?>) {
