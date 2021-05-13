@@ -6,31 +6,31 @@ public class RpcAfter {
     // 过滤链
     public static final HashMap<String, ReturnLink> filterArray = new HashMap<>();
 
-    public static void filter(Class clsName, String actionName, ReturnCallback fn) {
-        ReturnLink rl = filterArray.get(actionName);
-        if (rl == null) {
-            rl = ReturnLink.build();
-        }
-        // 锁定过滤器，不允许新增了
-        if (rl.isLocked()) {
-            return;
-        }
-        rl.put(actionName, fn);
-        filterArray.put(clsName.getSimpleName(), rl);
-    }
-
-    public static void filter(Class clsName, String[] actionNameArray, ReturnCallback fn) {
-        for (String actionName : actionNameArray) {
-            filter(clsName, actionName, fn);
-        }
-    }
-
-    public static Object filter(String className, String actionName, Object returnValue) {
-        ReturnLink rl = filterArray.get(className);
+    public static Object filter(String clsName, String actionName, Object returnValue) {
+        ReturnLink rl = filterArray.get(clsName);
         if (rl == null) {
             return returnValue;
         }
         return rl.runFor(actionName, returnValue);
+    }
+
+    public void filter(String[] actionNameArray, ReturnCallback fn) {
+        for (String actionName : actionNameArray) {
+            filter(this.getClass().getSimpleName(), actionName, fn);
+        }
+    }
+
+    public void filter(String actionName, ReturnCallback fn) {
+        String clsName = this.getClass().getSimpleName();
+        ReturnLink rl = filterArray.get(clsName);
+        if (rl == null) {
+            rl = ReturnLink.build();
+        }
+        if (rl.isLocked()) {
+            return;
+        }
+        rl.put(actionName, fn);
+        filterArray.put(clsName, rl);
     }
 
     public RpcAfter lock() {

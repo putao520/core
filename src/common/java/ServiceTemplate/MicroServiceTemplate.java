@@ -2,6 +2,7 @@ package common.java.ServiceTemplate;
 
 import common.java.Apps.MicroService.MicroServiceContext;
 import common.java.Apps.MicroService.Model.MModelRuleNode;
+import common.java.Check.CheckResult;
 import common.java.Database.DbFilter;
 import common.java.Database.DbLayer;
 import common.java.HttpServer.HttpContext;
@@ -11,14 +12,12 @@ import common.java.InterfaceModel.Type.Aggregation;
 import common.java.OAuth.oauthApi;
 import common.java.Rpc.RpcPageInfo;
 import common.java.Rpc.rMsg;
+import common.java.Rpc.rpc;
 import common.java.String.StringHelper;
 import org.json.gsc.JSONArray;
 import org.json.gsc.JSONObject;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -45,6 +44,46 @@ public class MicroServiceTemplate implements MicroServiceTemplateInterface {
             InitDB_fn.accept(this);
             InitDBFilter();
         }
+        // 根据模型字段定义，生成 join
+        var ruleArr = db.getMicroModel().rules();
+        for (var node : ruleArr.values()) {
+            var block = node.join();
+            if (block != null) {
+                outPipe(array ->
+                        joinOn(node.name(), array, block.key(),
+                                ids -> rpc.service(block.service()).setPath(block.item(), "find").call(block.key(), ids).asJsonArray()
+                        )
+                );
+            }
+        }
+    }
+
+    // 检查有约束的字段
+    private CheckResult constraintFilter(JSONObject input) {
+        if (input == null || JSONObject.isInvalided(input)) {
+            return CheckResult.build(false, "all");
+        }
+        var ruleArr = db.getMicroModel().rules();
+        for (var node : ruleArr.values()) {
+            var block = node.constraint();
+            if (block != null) {
+                var key = node.name();
+                // 获得 字段 对应值
+                if (input.containsKey(key)) {
+                    var v = input.get(node.name());
+                    if (v != null) {
+                        var response = rpc.service(block.service()).setPath(block.item(), "find").call(block.key(), v);
+                        if (!response.status()) {   // 请求异常
+                            return CheckResult.build(false, key);
+                        }
+                        if (JSONObject.isInvalided(response.asJson())) {    // 返回结果异常
+                            return CheckResult.build(false, key);
+                        }
+                    }
+                }
+            }
+        }
+        return CheckResult.buildTrue();
     }
 
     /**
@@ -170,10 +209,14 @@ public class MicroServiceTemplate implements MicroServiceTemplateInterface {
     }
 
     public Object insert(JSONObject newData) {
-        if (!JSONObject.isInvalided(newData)) {
-            return db.data(newData).insertOnce();
+        if (JSONObject.isInvalided(newData)) {
+            return null;
         }
-        return null;
+        // 输入数据对应字段值约束
+        if (!constraintFilter(newData).isStatus()) {
+            return null;
+        }
+        return db.data(newData).insertOnce();
     }
 
     @Override
@@ -223,15 +266,19 @@ public class MicroServiceTemplate implements MicroServiceTemplateInterface {
     }
 
     private int _update(String ids, JSONObject info, JSONArray cond) {
-        int r = 0;
-        if (!JSONObject.isInvalided(info)) {
-            _ids(db.getGeneratedKeys(), ids);
-            _condition(cond);
-            if (!db.nullCondition()) {
-                r = (int) db.data(info).updateAll();
-            }
+        if (JSONObject.isInvalided(info)) {
+            return -1;
         }
-        return r;
+        _ids(db.getGeneratedKeys(), ids);
+        _condition(cond);
+        if (db.nullCondition()) {
+            return -1;
+        }
+        // 输入数据对应字段值约束
+        if (!constraintFilter(info).isStatus()) {
+            return -1;
+        }
+        return (int) db.data(info).updateAll();
     }
 
     @Override
@@ -323,14 +370,11 @@ public class MicroServiceTemplate implements MicroServiceTemplateInterface {
         }
         String[] _ids = ids.split(",");
         if (_ids.length > 1) {
-            JSONObject rJson = new JSONObject();
+            Set<String> idsSet = new HashSet<>();
             for (String id : _ids) {
-                rJson.put(id, "");
+                idsSet.add(id);
             }
-            List<String> idArray = new ArrayList<>();
-            idArray.addAll(rJson.keySet());
-
-            for (String id : idArray) {
+            for (String id : idsSet) {
                 dbf.or().eq(fieldName, id);
             }
             if (dbf.nullCondition()) {

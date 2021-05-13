@@ -76,6 +76,9 @@ public class ExecRequest {//框架内请求类
         return rs;
     }
 
+    private static final ConcurrentHashMap<String, List<Object>> BeforeFilterObjectCache = new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<String, List<Object>> AfterFilterObjectCache = new ConcurrentHashMap<>();
+
     /**
      * 执行当前上下文环境下的调用
      */
@@ -91,7 +94,7 @@ public class ExecRequest {//框架内请求类
                 FilterReturn filterReturn = beforeExecute(className, actionName, _objs);
                 if (filterReturn.state()) {
                     // 载入主类
-                    Class<?> _cls = Class.forName("main.java._api" + "." + className);
+                    Class<?> _cls = Class.forName("main.java.Api._Api" + "." + className);
                     // 执行call
                     try {
                         // 创建类反射
@@ -116,22 +119,23 @@ public class ExecRequest {//框架内请求类
         return rs;
     }
 
-    private static final ConcurrentHashMap<String, List<Object>> FilterObjectCache = new ConcurrentHashMap<>();
-
-    private static List<Object> getFilterCache(String classFullName) {
+    private static List<Object> getFilterCache(String classFullName, ConcurrentHashMap<String, List<Object>> cacheObject, Class<?>... pCls) {
         List<Object> o_array;
-        // String classFullName = "main.java.before_api" + "." + className;
         try {
-            o_array = FilterObjectCache.get(classFullName);
+            o_array = cacheObject.get(classFullName);
             if (o_array == null) {
-                Class<?> _before_cls = Class.forName(classFullName);
-                Constructor<?> cObject = _before_cls.getDeclaredConstructor(null);
-                Object o = cObject.newInstance(null);
-                Method f = _before_cls.getMethod("filter", String.class, String.class, Object[].class);
-                o_array = new ArrayList<>();
-                o_array.add(o);
-                o_array.add(f);
-                FilterObjectCache.put(classFullName, o_array);
+                Class<?> _after_cls = Class.forName(classFullName);
+                Constructor<?> cObject = _after_cls.getDeclaredConstructor(null);
+                try {
+                    // String.class, String.class, ReturnCallback.class
+                    Method f = _after_cls.getMethod("filter", pCls);
+                    o_array = new ArrayList<>();
+                    o_array.add(cObject.newInstance(null));
+                    o_array.add(f);
+                    cacheObject.put(classFullName, o_array);
+                } catch (Exception e) {
+                    return null;
+                }
             }
         } catch (Exception e) {
             o_array = null;
@@ -141,8 +145,8 @@ public class ExecRequest {//框架内请求类
 
     // 过滤函数改变输入参数
     private static FilterReturn beforeExecute(String className, String actionName, Object[] objs) {
-        String classFullName = "main.java.before_api" + "." + className;
-        List<Object> o_array = getFilterCache(classFullName);
+        String classFullName = "main.java.Api._Before" + "." + className;
+        List<Object> o_array = getFilterCache(classFullName, BeforeFilterObjectCache, String.class, String.class, Object[].class);
         if (o_array == null) {  // 没有过滤函数
             return FilterReturn.buildTrue();
         }
@@ -157,8 +161,8 @@ public class ExecRequest {//框架内请求类
 
     // 结果函数改变输入参数
     private static Object afterExecute(String className, String actionName, Object obj) {
-        String classFullName = "main.java.after_api" + "." + className;
-        List<Object> o_array = getFilterCache(classFullName);
+        String classFullName = "main.java.Api._After" + "." + className;
+        List<Object> o_array = getFilterCache(classFullName, AfterFilterObjectCache, String.class, String.class, Object.class);
         if (o_array == null) {  // 没有过滤函数
             return obj;
         }

@@ -115,7 +115,9 @@ public class GscCenterClient {
      */
     public GscCenterClient subscribe() {
         this.setResponse(3);
-        client.send(GscCenterPacket.build(serviceKey, JSONObject.build("node", Config.nodeID), GscCenterEvent.Subscribe, false));
+        client.send(GscCenterPacket.build(serviceKey,
+                JSONObject.build("node", Config.nodeID).put("ip", Config.bindIP).put("port", Config.port),
+                GscCenterEvent.Subscribe, false));
         this.waitResponse();
         return this;
     }

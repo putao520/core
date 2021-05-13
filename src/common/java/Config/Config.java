@@ -87,14 +87,14 @@ public class Config {
         // 可选项
         masterHost = prop.getProperty("MasterHost", "http://127.0.0.1");//read putao520system host url
         masterPort = Integer.parseInt(prop.getProperty("MasterPort", "80"));
-        bindIP = prop.getProperty("BindIP", "0.0.0.0");//本地服务节点通信Ip
+        bindIP = prop.getProperty("BindIP", SystemDefined.ip());//本地服务节点通信Ip
         debug = Boolean.parseBoolean(prop.getProperty("Debug", "true"));
         publicKey = prop.getProperty("publicKey", "grapeSoft@");
 
         masterId = prop.getProperty(masterId_Key);
         masterPass = prop.getProperty(masterPass_Key);
         // 自动生成
-        nodeID = createNodeID(SystemDefined.ip(), port);
+        nodeID = createNodeID(bindIP, port);
     }
 
     public static String createNodeID(String ip, int port) {

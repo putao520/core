@@ -1,5 +1,6 @@
 package common.java.Apps.MicroService.Model;
 
+import common.java.Apps.MicroService.Model.Group.MMGroupBlock;
 import common.java.Check.CheckType;
 import org.json.gsc.JSONObject;
 
@@ -36,6 +37,38 @@ public class MModelRuleNode {
 
     public CheckType checkId() {
         return new CheckType(this.nodeInfo.getString("checkId"));
+    }
+
+    public String caption() {
+        return this.nodeInfo.getString("caption");
+    }
+
+    public boolean required() {
+        return this.nodeInfo.getBoolean("required");
+    }
+
+    public int classify() {
+        return this.nodeInfo.getInt("classify");
+    }
+
+    public Object preinstall() {
+        return this.nodeInfo.get("preinstall");
+    }
+
+    public MMGroupBlock constraint() {
+        var info = this.nodeInfo.getJson("constraint");
+        if (info == null || JSONObject.isInvalided(info)) {
+            return null;
+        }
+        return MMGroupBlock.build(info);
+    }
+
+    public MMGroupBlock join() {
+        var info = this.nodeInfo.getJson("join");
+        if (info == null || JSONObject.isInvalided(info)) {
+            return null;
+        }
+        return MMGroupBlock.build(info);
     }
 
     public JSONObject node() {

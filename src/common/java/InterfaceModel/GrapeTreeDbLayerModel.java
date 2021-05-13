@@ -31,6 +31,7 @@ public class GrapeTreeDbLayerModel implements InterfaceDatabase<GrapeTreeDbLayer
     private String pkField = null;
     private FormHelper checker = null;
     private Permissions permissions = null;
+    private MicroModel mModel = null;
 
     private Aggregation aggregationJSONArray_Out;
 
@@ -97,7 +98,7 @@ public class GrapeTreeDbLayerModel implements InterfaceDatabase<GrapeTreeDbLayer
      * 填充模型和权限模型
      */
     private GrapeTreeDbLayerModel descriptionModel(String modelName) {
-        MicroModel mModel = MicroServiceContext.current().model(modelName);
+        mModel = MicroServiceContext.current().model(modelName);
         String tableName = mModel.tableName();
         if (!StringHelper.isInvalided(tableName)) {
             pkField = this.db.form(tableName).bind().getGeneratedKeys();
@@ -105,6 +106,10 @@ public class GrapeTreeDbLayerModel implements InterfaceDatabase<GrapeTreeDbLayer
             permissions = new Permissions(mModel.tableName());
         }
         return this;
+    }
+
+    public MicroModel getMicroModel() {
+        return mModel;
     }
 
     public static GrapeTreeDbLayerModel getInstance() {
