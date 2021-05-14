@@ -22,15 +22,14 @@ public class rpc {
     private String servPath;
     private HttpContext ctx;
     private boolean needApiAuth;
-    private String public_key;
+    private boolean needPublicKey;
 
     private rpc(String servName) {
         this.servName = servName;
         // boolean nullContext = false;
         this.needApiAuth = false;
         msc = new MicroServiceContext(this.servName);
-
-        this.public_key = null;
+        this.needPublicKey = false;
     }
 
     // 静态起步方法
@@ -43,10 +42,10 @@ public class rpc {
     }
 
     public static RpcResponse call(String path, HttpContext ctx, boolean api_auth, Object... args) {
-        return call(path, ctx, api_auth, null, args);
+        return call(path, ctx, api_auth, false, args);
     }
 
-    public static RpcResponse call(String path, HttpContext ctx, boolean api_auth, String public_key, Object... args) {
+    public static RpcResponse call(String path, HttpContext ctx, boolean api_auth, boolean public_key, Object... args) {
         String url = path;
         // 构造http协议rpc完整地址
         if (!path.toLowerCase().startsWith("http://")) {
@@ -80,8 +79,8 @@ public class rpc {
             r.header(HttpContext.GrapeHttpHeader.token, oauthApi.getInstance().getApiToken(rArr[1] + "@" + rArr[2] + "@" + rArr[3]));
         }
         // 设置公钥
-        if (!StringHelper.isInvalided(public_key)) {
-            r.header(HttpContext.GrapeHttpHeader.publicKey, public_key);
+        if (public_key) {
+            r.header(HttpContext.GrapeHttpHeader.publicKey, Config.publicKey);
         }
         // 设置请求参数[post]
         RequestBodyEntity rBody = r.body(args != null ? ExecRequest.objects2poststring(args) : "");
@@ -147,13 +146,8 @@ public class rpc {
     /**
      * 设置请求公钥
      */
-    public rpc setApiPublicKey(String public_key) {
-        this.public_key = public_key;
-        return this;
-    }
-
     public rpc setApiPublicKey() {
-        this.public_key = Config.publicKey;
+        this.needPublicKey = true;
         return this;
     }
 
@@ -161,7 +155,7 @@ public class rpc {
      * 调用RPC
      */
     public RpcResponse call(Object... args) {
-        return call(this.toString(), this.ctx, this.needApiAuth, this.public_key, args);
+        return call(this.toString(), this.ctx, this.needApiAuth, this.needPublicKey, args);
     }
 
     /**
