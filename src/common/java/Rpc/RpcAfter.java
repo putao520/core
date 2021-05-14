@@ -20,17 +20,18 @@ public class RpcAfter {
         }
     }
 
-    public void filter(String actionName, ReturnCallback fn) {
+    public RpcAfter filter(String actionName, ReturnCallback fn) {
         String clsName = this.getClass().getSimpleName();
         ReturnLink rl = filterArray.get(clsName);
         if (rl == null) {
             rl = ReturnLink.build();
         }
         if (rl.isLocked()) {
-            return;
+            return this;
         }
         rl.put(actionName, fn);
         filterArray.put(clsName, rl);
+        return this;
     }
 
     public RpcAfter lock() {
