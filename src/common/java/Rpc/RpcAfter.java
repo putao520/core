@@ -20,6 +20,13 @@ public class RpcAfter {
         }
     }
 
+    public RpcAfter filter(String[] actionName, ReturnCallback fn) {
+        for (String func : actionName) {
+            filter(func, fn);
+        }
+        return this;
+    }
+
     public RpcAfter filter(String actionName, ReturnCallback fn) {
         String clsName = this.getClass().getSimpleName();
         ReturnLink rl = filterArray.get(clsName);
