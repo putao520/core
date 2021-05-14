@@ -110,7 +110,7 @@ public class ExecRequest {//框架内请求类
                         obj.newInstance();
                         // 调用主要类,后置类,固定返回结构
                         rs = obj._call(actionName, _objs);
-                        rs = RpcResult(afterExecute(className, actionName, rs));
+                        rs = RpcResult(afterExecute(className, actionName, _objs, rs));
                     } catch (Exception e) {
                         nLogger.logInfo(e, "实例化 " + _cls + " ...失败");
                     }
@@ -187,16 +187,16 @@ public class ExecRequest {//框架内请求类
     }
 
     // 结果函数改变输入参数
-    private static Object afterExecute(String className, String actionName, Object obj) {
+    private static Object afterExecute(String className, String actionName, Object[] parameter, Object obj) {
         String classFullName = "main.java.Api._After" + "." + className;
-        List<Object> o_array = getFilterCache(classFullName, AfterFilterObjectCache, String.class, String.class, Object.class);
+        List<Object> o_array = getFilterCache(classFullName, AfterFilterObjectCache, String.class, String.class, Object[].class, Object.class);
         if (o_array == null) {  // 没有过滤函数
             return obj;
         }
         Object o = o_array.get(0);
         Method f = (Method) o_array.get(1);
         try {
-            return f.invoke(o, className, actionName, obj);
+            return f.invoke(o, className, actionName, parameter, obj);
         } catch (Exception e) {
             return obj;
         }

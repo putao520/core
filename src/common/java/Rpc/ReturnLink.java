@@ -46,20 +46,20 @@ public class ReturnLink {
         return this;
     }
 
-    public Object global_run(String actionName, Object returnValue) {
+    public Object global_run(String actionName, Object[] parameter, Object returnValue) {
         if (global_fn == null) {
             return FilterReturn.buildTrue();
         }
         return returnValue;
     }
 
-    public Object runFor(String actionName, Object returnValue) {
+    public Object runFor(String actionName, Object[] parameter, Object returnValue) {
         List<ReturnCallback> ar = filterArray.get(actionName);
         if (ar == null) {
             return returnValue;
         }
         for (ReturnCallback fn : ar) {
-            returnValue = fn.run(actionName, returnValue);
+            returnValue = fn.run(actionName, parameter, returnValue);
         }
         return returnValue;
     }

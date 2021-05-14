@@ -6,17 +6,17 @@ public class RpcAfter {
     // 过滤链
     public static final HashMap<String, ReturnLink> filterArray = new HashMap<>();
 
-    public static Object filter(String clsName, String actionName, Object returnValue) {
+    public static Object filter(String clsName, String actionName, Object[] parameter, Object returnValue) {
         ReturnLink rl = filterArray.get(clsName);
         if (rl == null) {
             return returnValue;
         }
-        return rl.runFor(actionName, returnValue);
+        return rl.runFor(actionName, parameter, returnValue);
     }
 
-    public void filter(String[] actionNameArray, ReturnCallback fn) {
+    public void filter(String[] actionNameArray, Object[] parameter, ReturnCallback fn) {
         for (String actionName : actionNameArray) {
-            filter(this.getClass().getSimpleName(), actionName, fn);
+            filter(this.getClass().getSimpleName(), actionName, parameter, fn);
         }
     }
 
