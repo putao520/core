@@ -1,6 +1,7 @@
 package common.java.Rpc;
 
 import common.java.Apps.MicroService.MicroServiceContext;
+import common.java.Config.Config;
 import common.java.HttpServer.HttpContext;
 import common.java.OAuth.oauthApi;
 import common.java.String.StringHelper;
@@ -148,6 +149,11 @@ public class rpc {
      */
     public rpc setApiPublicKey(String public_key) {
         this.public_key = public_key;
+        return this;
+    }
+
+    public rpc setApiPublicKey() {
+        this.public_key = Config.publicKey;
         return this;
     }
 
