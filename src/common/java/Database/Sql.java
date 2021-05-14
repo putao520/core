@@ -135,9 +135,11 @@ public class Sql {
             // 注意url串中间不要有空格，因为mysql源码对多个地址split时没有trim.(replication mode)
             // " jdbc:mysql:replication://127.0.0.1:3309,127.0.0.1:3306/core " ,
             String url = obj.getString("host") + "/" + databaseName + "?useUnicode=" + useUnicode + "&characterEncoding=" + charName + "&useSSL=" + useSSL;
+
             if (obj.containsKey("timezone")) {
                 url += ("&serverTimezone=" + obj.getString("timezone"));
             }
+
             minIdle = obj.getInt("minidle");
             maxWait = obj.getInt("maxwait");
             maxActive = obj.getInt("maxactive");
@@ -522,7 +524,8 @@ public class Sql {
     }
 
     public List<JSONObject> clearData() {
-        List<JSONObject> v = data();
+        List<JSONObject> v = new ArrayList<>();
+        v.addAll(data());
         dataJSON.clear();
         return v;
     }
@@ -803,11 +806,10 @@ public class Sql {
             for (String _sql : lStrings) {
                 String nsql = TransactSQLInjection(_sql);
                 // nLogger.logInfo(nsql);
-                if (smt.executeUpdate(nsql, Statement.RETURN_GENERATED_KEYS) > 0) {
-                    rs = smt.getGeneratedKeys();
-                    if (rs != null && rs.next()) {
-                        rList.add(rs.getInt(1));
-                    }
+                smt.execute(nsql, Statement.RETURN_GENERATED_KEYS);
+                rs = smt.getGeneratedKeys();
+                if (rs != null && rs.next()) {
+                    rList.add(rs.getInt(1));
                 }
             }
         } catch (Exception e) {
@@ -861,13 +863,11 @@ public class Sql {
             if (sqlString != null && !sqlString.equals("")) {
                 String nsql = TransactSQLInjection(sqlString);
                 // nLogger.logInfo(nsql);
-                if (smt.executeUpdate(nsql, Statement.RETURN_GENERATED_KEYS) > 0) {
-                    rObject = new JSONObject();
-                    rs = smt.getGeneratedKeys();
-                    if (rs != null) {
-                        if (rs.next()) {
-                            rObject = rs.getInt(1);
-                        }
+                smt.execute(nsql, Statement.RETURN_GENERATED_KEYS);
+                rs = smt.getGeneratedKeys();
+                if (rs != null) {
+                    if (rs.next()) {
+                        rObject = rs.getInt(1);
                     }
                 }
             }

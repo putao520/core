@@ -179,7 +179,7 @@ public class FormHelper {
         if (nowValue instanceof String) {
             switch (nowValue.toString()) {
                 case ":timestamp":
-                    rs = TimeHelper.build().nowMillis();
+                    rs = TimeHelper.build().nowDatetime();
                     break;
                 case ":user": {
                     UserSession se = UserSession.current();
