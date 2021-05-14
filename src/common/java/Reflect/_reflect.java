@@ -1,5 +1,6 @@
 package common.java.Reflect;
 
+import common.java.Encrypt.GscJson;
 import common.java.HttpServer.Upload.UploadFile;
 import common.java.InterfaceModel.Type.ApiType;
 import common.java.InterfaceModel.Type.ApiTypes;
@@ -234,10 +235,31 @@ public class _reflect {
         List<Object> rList = new ArrayList<>();
         Class<?>[] rs;
         try {
-            for (Object obj : parameters) {
+            for (int i = 0; i < parameters.size(); i++) {
+                Object obj = parameters.get(i);
                 Class<?> _vClass;
                 Class<?> _oClass = obj.getClass();
                 if (callType.containsKey(_oClass)) {
+                    // 如果是字符串，可能是特殊 json,jsonArray
+                    if (_oClass == String.class) {
+                        var objStr = (String) obj;
+                        var header = GscJson.getHeader(objStr);
+                        if (header != null) {
+                            switch (GscJson.getType(header)) {
+                                case "json":
+                                    _oClass = JSONObject.class;
+                                    obj = GscJson.decodeJson(objStr);
+                                    break;
+                                case "jsonArray":
+                                    _oClass = JSONArray.class;
+                                    obj = GscJson.decodeJson(objStr);
+                                    break;
+                            }
+                            // 替换参数值
+                            parameters.set(i, obj);
+                        }
+                    }
+                    // 如果是包装类，替换成纯数据类型
                     _vClass = callType.get(_oClass);
                     if (_vClass != null) {
                         _oClass = _vClass;

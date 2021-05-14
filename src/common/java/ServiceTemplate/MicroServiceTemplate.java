@@ -202,12 +202,6 @@ public class MicroServiceTemplate implements MicroServiceTemplateInterface {
         return JSONArray.isInvalided(newArray) ? localObject : (JSONObject) newArray.get(0);
     }
 
-
-    @Override
-    public Object insert(String json) {
-        return insert(JSONObject.toJSON(json));
-    }
-
     public Object insert(JSONObject newData) {
         if (JSONObject.isInvalided(newData)) {
             return null;
@@ -225,7 +219,7 @@ public class MicroServiceTemplate implements MicroServiceTemplateInterface {
     }
 
     @Override
-    public int deleteEx(String cond) {
+    public int deleteEx(JSONArray cond) {
         return _delete(null, JSONArray.toJSONArray(cond));
     }
 
@@ -239,28 +233,11 @@ public class MicroServiceTemplate implements MicroServiceTemplateInterface {
         return r;
     }
 
-    @Override
-    public int update(String uids, String json) {
-        return _update(uids, JSONObject.toJSON(json), null);
-    }
-
     public int update(String uids, JSONObject data) {
         return _update(uids, data, null);
     }
 
     @Override
-    public int updateEx(String json, String cond) {
-        return _update(null, JSONObject.toJSON(json), JSONArray.toJSONArray(cond));
-    }
-
-    public int updateEx(String json, JSONArray cond) {
-        return _update(null, JSONObject.toJSON(json), cond);
-    }
-
-    public int updateEx(JSONObject info, String cond) {
-        return _update(null, info, JSONArray.toJSONArray(cond));
-    }
-
     public int updateEx(JSONObject info, JSONArray cond) {
         return _update(null, info, cond);
     }
@@ -283,12 +260,7 @@ public class MicroServiceTemplate implements MicroServiceTemplateInterface {
 
     @Override
     public RpcPageInfo page(int idx, int max) {
-        return pageEx(idx, max, (String) null);
-    }
-
-    @Override
-    public RpcPageInfo pageEx(int idx, int max, String cond) {
-        return pageEx(idx, max, JSONArray.toJSONArray(cond));
+        return pageEx(idx, max, null);
     }
 
     public RpcPageInfo pageEx(int idx, int max, JSONArray cond) {
@@ -298,12 +270,7 @@ public class MicroServiceTemplate implements MicroServiceTemplateInterface {
 
     @Override
     public JSONArray select() {
-        return selectEx((JSONArray) null);
-    }
-
-    @Override
-    public JSONArray selectEx(String cond) {
-        return selectEx(JSONArray.toJSONArray(cond));
+        return selectEx(null);
     }
 
     public JSONArray selectEx(JSONArray cond) {
@@ -317,11 +284,6 @@ public class MicroServiceTemplate implements MicroServiceTemplateInterface {
         return idNo == 1 ? db.find() : db.select();
     }
 
-    @Override
-    public JSONObject findEx(String cond) {
-        return findEx(JSONArray.toJSONArray(cond));
-    }
-
     public JSONObject findEx(JSONArray cond) {
         _condition(cond);
         return db.find();
@@ -330,11 +292,6 @@ public class MicroServiceTemplate implements MicroServiceTemplateInterface {
     /**
      * @apiNote 获得tree-json结构的全表数据,获得行政机构json树
      */
-    @Override
-    public Object tree(String cond) {
-        return tree(JSONArray.toJSONArray(cond));
-    }
-
     public Object tree(JSONArray cond) {
         Object rs;
         GrapeTreeDbLayerModel db = getDB();

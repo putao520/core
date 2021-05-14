@@ -55,6 +55,22 @@ public class RpcResponse {
         return r == null ? null : r.getJson("record");
     }
 
+    public int asInt() {
+        return r == null ? null : r.getInt("record");
+    }
+
+    public long asLong() {
+        return r == null ? null : r.getLong("record");
+    }
+
+    public float asFloat() {
+        return r == null ? null : r.getFloat("record");
+    }
+
+    public double asDouble() {
+        return r == null ? null : r.getDouble("record");
+    }
+
     public boolean asBoolean() {
         return r != null && r.getBoolean("record");
     }

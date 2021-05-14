@@ -7,6 +7,7 @@ import common.java.HttpServer.HttpContext;
 import common.java.Reflect._reflect;
 import common.java.String.StringHelper;
 import common.java.nLogger.nLogger;
+import org.json.gsc.JSONArray;
 import org.json.gsc.JSONObject;
 
 import java.lang.reflect.Constructor;
@@ -40,6 +41,9 @@ public class ExecRequest {//框架内请求类
         class2string.put(Boolean.class, "b,boolean");
         class2string.put(Short.class, "short");
         class2string.put(Double.class, "d,double");
+
+        class2string.put(JSONObject.class, "j,json");
+        class2string.put(JSONArray.class, "ja,jsonArray");
         appsURL = null;
     }
 
@@ -187,7 +191,9 @@ public class ExecRequest {//框架内请求类
                 o instanceof Float ||
                 o instanceof Double ||
                 o instanceof Short ||
-                o instanceof Boolean
+                o instanceof Boolean ||
+                o instanceof JSONObject ||
+                o instanceof JSONArray
         ) {
             return rMsg.netMSG(o);
         }

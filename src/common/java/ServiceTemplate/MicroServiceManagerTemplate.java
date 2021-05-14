@@ -1,6 +1,8 @@
 package common.java.ServiceTemplate;
 
 import common.java.InterfaceModel.Type.ApiType;
+import org.json.gsc.JSONArray;
+import org.json.gsc.JSONObject;
 
 import java.util.function.Consumer;
 
@@ -17,7 +19,7 @@ public class MicroServiceManagerTemplate extends MicroServiceTemplate {
     }
 
     @ApiType(ApiType.type.SessionApi)
-    public Object insert(String json) {
+    public Object insert(JSONObject json) {
         return super.insert(json);
     }
 
@@ -27,17 +29,17 @@ public class MicroServiceManagerTemplate extends MicroServiceTemplate {
     }
 
     @ApiType(ApiType.type.SessionApi)
-    public int deleteEx(String cond) {
+    public int deleteEx(JSONArray cond) {
         return super.deleteEx(cond);
     }
 
     @ApiType(ApiType.type.SessionApi)
-    public int update(String uids, String json) {
+    public int update(String uids, JSONObject json) {
         return super.update(uids, json);
     }
 
     @ApiType(ApiType.type.SessionApi)
-    public int updateEx(String json, String cond) {
+    public int updateEx(JSONObject json, JSONArray cond) {
         return super.updateEx(json, cond);
     }
 }

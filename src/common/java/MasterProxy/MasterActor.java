@@ -1,6 +1,11 @@
 package common.java.MasterProxy;
 
+import common.java.Config.Config;
 import common.java.Coordination.Client.GscCenterClient;
+import common.java.HttpServer.HttpContext;
+import common.java.Rpc.ExecRequest;
+import common.java.Rpc.RpcResponse;
+import kong.unirest.Unirest;
 import org.json.gsc.JSONArray;
 import org.json.gsc.JSONObject;
 
@@ -13,6 +18,36 @@ public class MasterActor {
 
     private MasterActor(String actionName) {
         this.actionName = actionName;
+    }
+
+    private static RpcResponse rpc_secret(String className, String actionName, Object... parameter) {
+        String v = ExecRequest.objects2string(parameter);
+        return RpcResponse.build(Unirest.get("http://" + Config.masterHost + ":" + Config.masterPort + "/system/" + className + "/" + actionName + v)
+                .header(HttpContext.GrapeHttpHeader.publicKey, Config.publicKey)
+                .asJson()
+                .getBody()
+                .getObject());
+    }
+
+    // 新增idx
+    public int insert(JSONObject info) {
+        return rpc_secret(actionName, "insert", info).asInt();
+    }
+
+    public boolean update(int id, JSONObject info) {
+        return rpc_secret(actionName, "update", id, info).status();
+    }
+
+    public JSONObject find(int id) {
+        return rpc_secret(actionName, "find", id).asJson();
+    }
+
+    public JSONArray<JSONObject> select(String key, Object val) {
+        return rpc_secret(actionName, "select", key, val).asJsonArray();
+    }
+
+    public boolean delete(int id) {
+        return rpc_secret(actionName, "delete", id).status();
     }
 
     // 检查客户端网络是否正常,不正常重新连接

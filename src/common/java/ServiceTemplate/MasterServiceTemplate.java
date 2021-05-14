@@ -1,7 +1,6 @@
 package common.java.ServiceTemplate;
 
 import common.java.Database.DbLayer;
-import common.java.Encrypt.GscJson;
 import common.java.HttpServer.HttpContext;
 import common.java.InterfaceModel.Type.ApiType;
 import common.java.Rpc.RpcPageInfo;
@@ -49,7 +48,7 @@ public class MasterServiceTemplate implements MicroServiceTemplateInterface {
     @ApiType(ApiType.type.SessionApi)
     @ApiType(ApiType.type.OauthApi)
     @Override
-    public JSONArray selectEx(String cond) {
+    public JSONArray selectEx(JSONArray cond) {
         if (fdb.where(JSONArray.toJSONArray(cond)).nullCondition()) {
             return null;
         }
@@ -70,8 +69,8 @@ public class MasterServiceTemplate implements MicroServiceTemplateInterface {
 
     @ApiType(ApiType.type.SessionApi)
     @Override
-    public RpcPageInfo pageEx(int idx, int max, String cond) {
-        if (fdb.where(JSONArray.toJSONArray(cond)).nullCondition()) {
+    public RpcPageInfo pageEx(int idx, int max, JSONArray cond) {
+        if (fdb.where(cond).nullCondition()) {
             return null;
         }
         return page(idx, max);
@@ -80,30 +79,29 @@ public class MasterServiceTemplate implements MicroServiceTemplateInterface {
     /**
      * 更新计划任务信息
      *
-     * @param uidArr     用,分开的id组
-     * @param base64Json GSC-FastJSON:更新的内容
+     * @param uidArr 用,分开的id组
+     * @param json   GSC-FastJSON:更新的内容
      */
     @ApiType(ApiType.type.SessionApi)
     @Override
-    public int update(String uidArr, String base64Json) {
-        return _update(uidArr, base64Json, null);
+    public int update(String uidArr, JSONObject json) {
+        return _update(uidArr, json, null);
     }
 
     @ApiType(ApiType.type.SessionApi)
     @Override
-    public int updateEx(String base64Json, String cond) {
-        return _update(null, base64Json, cond);
+    public int updateEx(JSONObject json, JSONArray cond) {
+        return _update(null, json, cond);
     }
 
-    private int _update(String uidArr, String base64Json, String cond) {
-        JSONObject info = GscJson.decode(base64Json);
+    private int _update(String uidArr, JSONObject info, JSONArray cond) {
         if (JSONObject.isInvalided(info)) {
             return 0;
         }
         if (HttpContext.current().appId() > 0) {//非管理员情况下
             info.remove("appId");
         }
-        if (fdb.where(JSONArray.toJSONArray(cond)).nullCondition()) {
+        if (fdb.where(cond).nullCondition()) {
             return 0;
         }
         fdb.data(info);
@@ -122,15 +120,14 @@ public class MasterServiceTemplate implements MicroServiceTemplateInterface {
 
     @ApiType(ApiType.type.SessionApi)
     @Override
-    public int deleteEx(String cond) {
-        return (int) (fdb.where(JSONArray.toJSONArray(cond)).nullCondition() ? 0 : fdb.deleteAll());
+    public int deleteEx(JSONArray cond) {
+        return (int) (fdb.where(cond).nullCondition() ? 0 : fdb.deleteAll());
     }
 
     @ApiType(ApiType.type.SessionApi)
     @Override
-    public String insert(String base64Json) {
+    public String insert(JSONObject nObj) {
         String rString = null;
-        JSONObject nObj = GscJson.decode(base64Json);
         if (nObj != null) {
             nObj.put("appId", HttpContext.current().appId());
             rString = StringHelper.toString(fdb.data(nObj).insertOnce());
@@ -146,12 +143,12 @@ public class MasterServiceTemplate implements MicroServiceTemplateInterface {
 
     @ApiType(ApiType.type.SessionApi)
     @Override
-    public JSONObject findEx(String cond) {
-        return fdb.where(JSONArray.toJSONArray(cond)).nullCondition() ? null : fdb.find();
+    public JSONObject findEx(JSONArray cond) {
+        return fdb.where(cond).nullCondition() ? null : fdb.find();
     }
 
     @Override
-    public String tree(String cond) {
+    public String tree(JSONArray cond) {
         return "";
     }
 }

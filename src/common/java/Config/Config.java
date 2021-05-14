@@ -1,6 +1,5 @@
 package common.java.Config;
 
-import common.java.JGrapeSystem.SystemDefined;
 import common.java.MasterProxy.MasterActor;
 import common.java.String.StringHelper;
 import common.java.nLogger.nLogger;
@@ -82,12 +81,11 @@ public class Config {
         // 必选项
         port = Integer.parseInt(prop.getProperty("port", "80"));
         // 附加选项
-        // centerPort = Integer.parseInt(prop.getProperty("centerPort", "80"));
         serviceName = prop.getProperty("name", "default");
         // 可选项
-        masterHost = prop.getProperty("MasterHost", "http://127.0.0.1");//read putao520system host url
+        masterHost = prop.getProperty("MasterHost", "http://127.0.0.1");//read master host url
         masterPort = Integer.parseInt(prop.getProperty("MasterPort", "80"));
-        bindIP = prop.getProperty("BindIP", SystemDefined.ip());//本地服务节点通信Ip
+        bindIP = prop.getProperty("bindIP", "0.0.0.0");//本地服务节点通信Ip
         debug = Boolean.parseBoolean(prop.getProperty("Debug", "true"));
         publicKey = prop.getProperty("publicKey", "grapeSoft@");
 

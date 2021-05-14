@@ -7,11 +7,11 @@ import org.json.gsc.JSONObject;
 
 public interface MicroServiceTemplateInterface {
     /**
-     * @param base64Json gsc-json
+     * @param info gsc-json
      * @apiNote 新增数据
      */
     @ApiType(ApiType.type.SessionApi)
-    Object insert(String base64Json);
+    Object insert(JSONObject info);
 
     /**
      * @param uids 主键组（不同主键值用“,”隔开）
@@ -25,23 +25,23 @@ public interface MicroServiceTemplateInterface {
      * @apiNote 删除数据, 通过指定条件
      */
     @ApiType(ApiType.type.SessionApi)
-    int deleteEx(String cond);
+    int deleteEx(JSONArray cond);
 
     /**
-     * @param uids       主键组（不同主键值用“,”隔开）
-     * @param base64Json gsc-json
+     * @param uids 主键组（不同主键值用“,”隔开）
+     * @param info gsc-json
      * @apiNote 更新数据
      */
     @ApiType(ApiType.type.SessionApi)
-    int update(String uids, String base64Json);
+    int update(String uids, JSONObject info);
 
     /**
-     * @param base64Json gsc-json
+     * @param info       gsc-json
      * @param cond       gsc-GraphQL
      * @apiNote 更新数据, 通过指定条件
      */
     @ApiType(ApiType.type.SessionApi)
-    int updateEx(String base64Json, String cond);
+    int updateEx(JSONObject info, JSONArray cond);
 
     /**
      * @param idx 当前页码
@@ -58,7 +58,7 @@ public interface MicroServiceTemplateInterface {
      * @apiNote 页方式展示数据, 通过指定条件
      */
     @ApiType(ApiType.type.SessionApi)
-    RpcPageInfo pageEx(int idx, int max, String cond);
+    RpcPageInfo pageEx(int idx, int max, JSONArray cond);
 
     /**
      * @apiNote 获得全部数据
@@ -73,7 +73,7 @@ public interface MicroServiceTemplateInterface {
      */
     @ApiType(ApiType.type.SessionApi)
     @ApiType(ApiType.type.OauthApi)
-    JSONArray selectEx(String cond);
+    JSONArray selectEx(JSONArray cond);
 
     /***
      * @apiNote 查找指定数据
@@ -88,13 +88,13 @@ public interface MicroServiceTemplateInterface {
      * @param cond gsc-GraphQL
      */
     @ApiType(ApiType.type.SessionApi)
-    JSONObject findEx(String cond);
+    JSONObject findEx(JSONArray cond);
 
     /**
      * @apiNote 根据条件获得以符合条件的数据为ROOT的构造JSON-TREE
      */
     @ApiType(ApiType.type.SessionApi)
-    Object tree(String cond);
+    Object tree(JSONArray cond);
 
     /**
      * @apiNote 为特定的方法申请一次性授权

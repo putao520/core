@@ -4,6 +4,7 @@ import common.java.Config.Config;
 import common.java.Coordination.Client.Store.Store;
 import common.java.Coordination.Common.GscCenterEvent;
 import common.java.Coordination.Common.GscCenterPacket;
+import common.java.JGrapeSystem.SystemDefined;
 import common.java.Thread.ThreadHelper;
 import org.json.gsc.JSONArray;
 import org.json.gsc.JSONObject;
@@ -116,7 +117,7 @@ public class GscCenterClient {
     public GscCenterClient subscribe() {
         this.setResponse(3);
         client.send(GscCenterPacket.build(serviceKey,
-                JSONObject.build("node", Config.nodeID).put("ip", Config.bindIP).put("port", Config.port),
+                JSONObject.build("node", Config.nodeID).put("ip", Config.bindIP.equals("0.0.0.0") ? SystemDefined.ip() : Config.bindIP).put("port", Config.port),
                 GscCenterEvent.Subscribe, false));
         this.waitResponse();
         return this;
