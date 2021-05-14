@@ -8,6 +8,8 @@ import common.java.Time.TimeHelper;
 import org.json.gsc.JSONArray;
 import org.json.gsc.JSONObject;
 
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -79,6 +81,38 @@ public class CaffeineCache implements InterfaceCache {
             return null;
         }
         return r.get("_store");
+    }
+
+    public int getInt(String objectName) {
+        return NumberHelper.number2int(get(objectName));
+    }
+
+    public long getLong(String objectName) {
+        return NumberHelper.number2long(get(objectName));
+    }
+
+    public float getFloat(String objectName) {
+        return NumberHelper.number2float(get(objectName));
+    }
+
+    public double getDouble(String objectName) {
+        return NumberHelper.number2double(get(objectName));
+    }
+
+    public boolean getBoolean(String objectName) {
+        return Boolean.parseBoolean(StringHelper.toString(get(objectName)));
+    }
+
+    public String getString(String objectName) {
+        return StringHelper.toString(get(objectName));
+    }
+
+    public BigDecimal getBigDecimal(String objectName) {
+        return BigDecimal.valueOf(getLong(objectName));
+    }
+
+    public BigInteger getBigInteger(String objectName) {
+        return BigInteger.valueOf(getInt(objectName));
     }
 
     public JSONObject getJson(String objectName) {

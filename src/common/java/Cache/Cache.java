@@ -9,11 +9,15 @@ import common.java.Cache.Redis.RedisMasterSlave;
 import common.java.Cache.Redis.RedisSentinel;
 import common.java.Cache.Redis.RedisSingle;
 import common.java.Config.Config;
+import common.java.Number.NumberHelper;
 import common.java.Reflect._reflect;
+import common.java.String.StringHelper;
 import common.java.nLogger.nLogger;
 import org.json.gsc.JSONArray;
 import org.json.gsc.JSONObject;
 
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.concurrent.ConcurrentHashMap;
 
 
@@ -152,6 +156,38 @@ public class Cache implements InterfaceCache {
             r = _cache._call(Thread.currentThread().getStackTrace()[1].getMethodName(), objectName);
         }
         return r;
+    }
+
+    public int getInt(String objectName) {
+        return NumberHelper.number2int(get(objectName));
+    }
+
+    public long getLong(String objectName) {
+        return NumberHelper.number2long(get(objectName));
+    }
+
+    public float getFloat(String objectName) {
+        return NumberHelper.number2float(get(objectName));
+    }
+
+    public double getDouble(String objectName) {
+        return NumberHelper.number2double(get(objectName));
+    }
+
+    public boolean getBoolean(String objectName) {
+        return Boolean.parseBoolean(StringHelper.toString(get(objectName)));
+    }
+
+    public String getString(String objectName) {
+        return StringHelper.toString(get(objectName));
+    }
+
+    public BigDecimal getBigDecimal(String objectName) {
+        return BigDecimal.valueOf(getLong(objectName));
+    }
+
+    public BigInteger getBigInteger(String objectName) {
+        return BigInteger.valueOf(getInt(objectName));
     }
 
     public JSONObject getJson(String objectName) {

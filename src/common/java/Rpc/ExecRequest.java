@@ -234,6 +234,16 @@ public class ExecRequest {//框架内请求类
         return arg != null && arg.split(":").length > 1;
     }
 
+    private static String rpc_parameter2string(Object obj) {
+        if (obj instanceof JSONObject) {
+            return GscJson.encodeJson((JSONObject) obj);
+        } else if (obj instanceof JSONArray) {
+            return GscJson.encodeJsonArray((JSONArray) obj);
+        } else {
+            return StringHelper.toString(obj);
+        }
+    }
+
     public static String objects2string(Object[] objs) {
         if (objs == null) {
             return "";
@@ -246,7 +256,7 @@ public class ExecRequest {//框架内请求类
                 value = class2string(val.getClass());
                 rString.append(value).append(":");
             }
-            rString.append(StringHelper.toString(val));
+            rString.append(rpc_parameter2string(val));
         }
         return rString.toString();
     }

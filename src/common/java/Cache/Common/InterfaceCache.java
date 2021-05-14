@@ -3,8 +3,27 @@ package common.java.Cache.Common;
 import org.json.gsc.JSONArray;
 import org.json.gsc.JSONObject;
 
+import java.math.BigDecimal;
+import java.math.BigInteger;
+
 public interface InterfaceCache {
     Object get(String objectName);
+
+    int getInt(String objectName);
+
+    long getLong(String objectName);
+
+    float getFloat(String objectName);
+
+    double getDouble(String objectName);
+
+    boolean getBoolean(String objectName);
+
+    String getString(String objectName);
+
+    BigDecimal getBigDecimal(String objectName);
+
+    BigInteger getBigInteger(String objectName);
 
     JSONObject getJson(String objectName);
 
