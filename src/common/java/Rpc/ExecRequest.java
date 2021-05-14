@@ -2,6 +2,7 @@ package common.java.Rpc;
 
 import common.java.Apps.AppContext;
 import common.java.Apps.MicroService.Model.MicroModel;
+import common.java.Encrypt.GscJson;
 import common.java.HttpServer.Common.RequestSession;
 import common.java.HttpServer.HttpContext;
 import common.java.Reflect._reflect;
@@ -93,8 +94,8 @@ public class ExecRequest {//框架内请求类
             String className = hCtx.className();
             String actionName = hCtx.actionName();
             try {
-                // 执行前置类
-                Object[] _objs = hCtx.invokeParamter();
+                // 执行转换前置类
+                Object[] _objs = convert2GscCode(hCtx.invokeParamter());
                 FilterReturn filterReturn = beforeExecute(className, actionName, _objs);
                 if (filterReturn.state()) {
                     // 载入主类
@@ -145,6 +146,28 @@ public class ExecRequest {//框架内请求类
             o_array = null;
         }
         return o_array;
+    }
+
+    // 转换 GscJson 参数(请求层转换)
+    private static Object[] convert2GscCode(Object[] objs) {
+        for (int i = 0; i < objs.length; i++) {
+            Object o = objs[i];
+            if (o instanceof String) {
+                String v = (String) o;
+                var header = GscJson.getHeader(v);
+                if (header != null) {
+                    switch (GscJson.getType(header)) {
+                        case "json":
+                            objs[i] = GscJson.decodeJson(v);
+                            break;
+                        case "jsonArray":
+                            objs[i] = GscJson.decodeJsonArray(v);
+                            break;
+                    }
+                }
+            }
+        }
+        return objs;
     }
 
     // 过滤函数改变输入参数
