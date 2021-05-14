@@ -18,6 +18,7 @@ public class Config {
     private static final String configNodePath = "configs";
     public static String masterHost;
     public static int masterPort;
+    public static int masterManagerPort;
     public static String bindIP;
     public static int port;
     public static final String masterId_Key = "MasterId";
@@ -85,6 +86,7 @@ public class Config {
         // 可选项
         masterHost = prop.getProperty("MasterHost", "http://127.0.0.1");//read master host url
         masterPort = Integer.parseInt(prop.getProperty("MasterPort", "80"));
+        masterManagerPort = Integer.parseInt(prop.getProperty("MasterManagerPort", String.valueOf(masterPort + 1)));
         bindIP = prop.getProperty("bindIP", "0.0.0.0");//本地服务节点通信Ip
         debug = Boolean.parseBoolean(prop.getProperty("Debug", "true"));
         publicKey = prop.getProperty("publicKey", "grapeSoft@");

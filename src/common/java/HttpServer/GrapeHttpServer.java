@@ -71,7 +71,13 @@ public class GrapeHttpServer {
 
             es.submit(() -> {
                 RequestSession.setChannelID(_ctx.channel().id());
-                stubLoop(ctxFinal);
+                try {
+                    stubLoop(ctxFinal);
+                } catch (Exception e) {
+                    if (Config.debug) {
+                        writeHttpResponse(_ctx, rMsg.netMSG(false, e.getMessage()));
+                    }
+                }
             });
         }
     }

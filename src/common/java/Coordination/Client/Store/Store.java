@@ -73,7 +73,7 @@ public class Store {
         return true;
     }
 
-    public JSONArray<JSONObject> find(String className, String key, String val) {
+    public JSONArray<JSONObject> find(String className, String key, Object val) {
         var r = JSONArray.<JSONObject>build();
         switch (className) {
             case "apps":
@@ -103,7 +103,7 @@ public class Store {
                 }
                 break;
         }
-        return null;
+        return r;
     }
 
     public JSONArray<JSONObject> find(String className) {

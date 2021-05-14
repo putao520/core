@@ -40,7 +40,7 @@ public class App {
     }
 
     public boolean check(String key, Object val) {
-        return store.has(key) && store.get(key).equals(val);
+        return store.check(key, val);
     }
 
 }

@@ -22,7 +22,7 @@ public class MasterActor {
 
     private static RpcResponse rpc_secret(String className, String actionName, Object... parameter) {
         String v = ExecRequest.objects2string(parameter);
-        return RpcResponse.build(Unirest.get("http://" + Config.masterHost + ":" + Config.masterPort + "/system/" + className + "/" + actionName + v)
+        return RpcResponse.build(Unirest.get("http://" + Config.masterHost + ":" + Config.masterManagerPort + "/system/" + className + "/" + actionName + v)
                 .header(HttpContext.GrapeHttpHeader.publicKey, Config.publicKey)
                 .asJson()
                 .getBody()
@@ -77,7 +77,7 @@ public class MasterActor {
         return actionName;
     }
 
-    public JSONArray<JSONObject> getDataByIndex(String key, String value) {
+    public JSONArray<JSONObject> getDataByIndex(String key, Object value) {
         return client.getData(actionName, key, value);
     }
 
