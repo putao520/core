@@ -23,17 +23,21 @@ public class Permissions {
         this.perms = MicroServiceContext.current().model(tableName).perms();
     }
 
+    /**
+     * 根据权限逻辑定义，生成操作有关用户组
+     */
     private List<String> groupArr(MModelPermInfo perm) {
         AppRoles roles = AppContext.current().roles();
+        List<String> totalGroupArr = roles.getRolesTree(perm.value());
         switch (perm.logic()) {
             case MModelPermDef.perm_group_logic_gt:
                 // 获得最小的用户组
-                return roles.gt(roles.getMinRole(perm.value()));
+                return roles.gt(roles.getMinRole(totalGroupArr), totalGroupArr);
             case MModelPermDef.perm_group_logic_lt:
                 // 获得最大的用户组
-                return roles.lt(roles.getMaxRole(perm.value()));
+                return roles.lt(roles.getMaxRole(totalGroupArr), totalGroupArr);
             case MModelPermDef.perm_group_logic_eq:
-                return perm.value();
+                return totalGroupArr;
             default:
                 return new ArrayList<>();
         }

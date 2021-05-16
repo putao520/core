@@ -1,5 +1,6 @@
 package common.java.Apps.MicroService.Model.Group;
 
+import common.java.HttpServer.HttpContext;
 import org.json.gsc.JSONObject;
 
 public class MMGroupBlock {
@@ -14,7 +15,7 @@ public class MMGroupBlock {
     }
 
     public String service() {
-        return nodeInfo.getString("service");
+        return nodeInfo.containsKey("service") ? nodeInfo.getString("service") : HttpContext.current().serviceName();
     }
 
     public String item() {

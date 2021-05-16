@@ -3,7 +3,9 @@ package common.java.Apps.Roles;
 import org.json.gsc.JSONObject;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class AppRoles {
     private final JSONObject store;
@@ -23,11 +25,30 @@ public class AppRoles {
         return new AppRoles(info);
     }
 
+    private JSONObject getRoleBlock(String roleName) {
+        return store.containsKey(roleName) ? store.getJson(roleName) : null;
+    }
+
     /**
      * 获得角色权值
      */
     public int getPV(String roleName) {
-        return store.containsKey(roleName) ? store.getInt(roleName) : -1;
+        var r = getRoleBlock(roleName);
+        return JSONObject.isInvalided(r) ? -1 : r.getInt("weight");
+    }
+
+    /**
+     * 获得角色父组
+     */
+    public String getElder(String roleName) {
+        var r = getRoleBlock(roleName);
+        if (r == null) {
+            return null;
+        }
+        if (!r.containsKey("elder")) {
+            return null;
+        }
+        return r.getString("elder");
     }
 
     /**
@@ -39,7 +60,24 @@ public class AppRoles {
             int basePV = this.getPV(roleName);
             if (basePV >= 0) {
                 for (String _roleName : store.keySet()) {
-                    if (store.getInt(_roleName) >= basePV) {
+                    JSONObject block = store.getJson(_roleName);
+                    if (block.getInt("weight") >= basePV) {
+                        arr.add(_roleName);
+                    }
+                }
+            }
+        }
+        return arr;
+    }
+
+    public List<String> gt(String roleName, List<String> _store) {
+        List<String> arr = new ArrayList<>();
+        if (roleName != null) {
+            int basePV = this.getPV(roleName);
+            if (basePV >= 0) {
+                for (String _roleName : _store) {
+                    JSONObject block = store.getJson(_roleName);
+                    if (block.getInt("weight") >= basePV) {
                         arr.add(_roleName);
                     }
                 }
@@ -49,7 +87,7 @@ public class AppRoles {
     }
 
     /**
-     * 获得权值小于于 roleName 的全部角色名称
+     * 获得权值小于 roleName 的全部角色名称
      */
     public List<String> lt(String roleName) {
         List<String> arr = new ArrayList<>();
@@ -57,7 +95,24 @@ public class AppRoles {
             int basePV = this.getPV(roleName);
             if (basePV >= 0) {
                 for (String _roleName : store.keySet()) {
-                    if (store.getInt(_roleName) <= basePV) {
+                    JSONObject block = store.getJson(_roleName);
+                    if (block.getInt("weight") <= basePV) {
+                        arr.add(_roleName);
+                    }
+                }
+            }
+        }
+        return arr;
+    }
+
+    public List<String> lt(String roleName, List<String> _store) {
+        List<String> arr = new ArrayList<>();
+        if (roleName != null) {
+            int basePV = this.getPV(roleName);
+            if (basePV >= 0) {
+                for (String _roleName : _store) {
+                    JSONObject block = store.getJson(_roleName);
+                    if (block.getInt("weight") <= basePV) {
                         arr.add(_roleName);
                     }
                 }
@@ -88,6 +143,45 @@ public class AppRoles {
         this.minRole = temp_min_name;
     }
     */
+
+    /**
+     * 根据当前权限 用户组， 生成新 有关角色组
+     * 依赖原始的有序角色组列表，根据角色从属权构造有序有效角色列表
+     */
+    private Set<String> getRolesElder(Set<String> elderArr) {
+        Set<String> parentSet = new HashSet<>();
+        // 先根据权限角色组和其父角色，构造组
+        for (String roleName : elderArr) {
+            JSONObject block = store.getJson(roleName);
+            if (block.containsKey("elder")) {
+                String[] elderStrArr = block.getString("elder").split(",");
+                for (int i = 0; i > elderStrArr.length; i++) {
+                    parentSet.add(elderStrArr[i]);
+                }
+            }
+        }
+        if (parentSet.size() > 0) {
+            elderArr.addAll(getRolesElder(parentSet));
+        }
+        return elderArr;
+    }
+
+    // 基于用户组从属组，按照权值重新构造新的用户组
+    public List<String> getRolesTree(List<String> values) {
+        Set<String> elderArr = new HashSet<>();
+        for (String roleName : values) {
+            elderArr.add(roleName);
+        }
+        getRolesElder(elderArr);
+        // 按照用户组权值顺序，基于所有用到的用户组重拍
+        List<String> elderGroup = new ArrayList<>();
+        for (String roleName : store.keySet()) {
+            if (elderArr.contains(roleName)) {
+                elderGroup.add(roleName);
+            }
+        }
+        return elderGroup;
+    }
 
     public String getMaxRole(List<String> values) {
         return values.size() > 0 ? values.get(values.size() - 1) : null;

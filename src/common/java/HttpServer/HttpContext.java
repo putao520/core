@@ -330,7 +330,7 @@ public class HttpContext {
     public Object[] invokeParamter() {
         String[] urls = this.path().split("/");
         int offset = 4;
-        if (urls.length < offset) {
+        if (urls.length <= offset) {
             return null;
         }
         // 构造参数组
