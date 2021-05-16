@@ -150,6 +150,9 @@ public class ExecRequest {//框架内请求类
 
     // 转换 GscJson 参数(请求层转换)
     private static Object[] convert2GscCode(Object[] objs) {
+        if (objs == null) {
+            return null;
+        }
         for (int i = 0; i < objs.length; i++) {
             Object o = objs[i];
             if (o instanceof String) {
