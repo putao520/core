@@ -214,7 +214,7 @@ public class _reflect {
     }
 
     private Method _getMethod(String functionName, Class<?>[] parameterlist) {
-        int i = parameterlist == null ? 0 : parameterlist.length;
+        int i = parameterlist.length;
         Method comMethod = null;
         while (true) {
             try {
@@ -415,7 +415,7 @@ public class _reflect {
     public Object _call(String functionName, Object... parameters) {
         Object rs = global_service(functionName, parameters);
         if (rs == null) {
-            Class<?>[] cls = object2class(Arrays.asList(parameters));
+            Class<?>[] cls = parameters == null ? new Class[]{} : object2class(Arrays.asList(parameters));
             Method comMethod = _getMethod(functionName, cls);
             // 主方法存在
             if (comMethod != null) {

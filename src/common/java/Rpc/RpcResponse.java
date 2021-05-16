@@ -75,11 +75,11 @@ public class RpcResponse {
         return r != null && r.getBoolean("record");
     }
 
-    public JSONArray asJsonArray() {
+    public JSONArray<JSONObject> asJsonArray() {
         if (r == null) {
             return null;
         }
-        JSONArray t0 = r.getJsonArray("record");
+        JSONArray<JSONObject> t0 = r.getJsonArray("record");
         if (t0 == null) {
             JSONObject t1 = r.getJson("record");
             if (!JSONObject.isInvalided(t1)) {
