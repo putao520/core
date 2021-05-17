@@ -52,7 +52,7 @@ public class GscBooster {
         try {
             // 此时订阅全部用到的数据
             if (!Config.serviceName.toLowerCase(Locale.ROOT).equals("system")) {
-                MasterActor.getClient().setConnected(v -> v.subscribe());
+                MasterActor.getClient().setConnected(v -> v.subscribe()).subscribe();
             }
             // 设置日志过滤器
             _before(serverName);

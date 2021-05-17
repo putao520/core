@@ -3,7 +3,6 @@ package common.java.Apps;
 import common.java.Apps.MicroService.Config.ModelServiceConfig;
 import common.java.Apps.MicroService.MicroServiceContext;
 import common.java.Apps.Roles.AppRoles;
-import common.java.Config.Config;
 import common.java.HttpServer.Common.RequestSession;
 import common.java.HttpServer.HttpContext;
 import common.java.String.StringHelper;
@@ -39,11 +38,19 @@ public class AppContext {
     }
 
     public static AppContext build(int appId) {
-        return (new AppContext(appId)).loadMircServiceInfo();
+        return build(appId, HttpContext.current().serviceName());
+    }
+
+    public static AppContext build(int appId, String serviceName) {
+        return (new AppContext(appId)).loadMircServiceInfo(serviceName);
     }
 
     public static AppContext build(String domain) {
-        return (new AppContext(domain)).loadMircServiceInfo();
+        return build(domain, HttpContext.current().serviceName());
+    }
+
+    public static AppContext build(String domain, String serviceName) {
+        return (new AppContext(domain)).loadMircServiceInfo(serviceName);
     }
 
     public static AppContext current() {
@@ -51,7 +58,8 @@ public class AppContext {
         if (r == null) {
             r = new AppContext();
             RequestSession.setValue(AppContext.SessionKey, r);
-            r.loadMircServiceInfo();
+            String serviceName = HttpContext.current().serviceName();
+            r.loadMircServiceInfo(serviceName);
         }
         return r;
     }
@@ -124,9 +132,10 @@ public class AppContext {
     }
 
     // 获得
-    private AppContext loadMircServiceInfo() {
+    private AppContext loadMircServiceInfo(String serviceName) {
         // 单服务只管自己的微服务信息
-        String serviceName = Config.serviceName;
+        // String serviceName = Config.serviceName;
+        // String serviceName = Config.serviceName;
         MicroServiceContext msc = new MicroServiceContext(this.appId, serviceName);
         if (msc.hasData()) {
             this.microServiceInfo = msc;

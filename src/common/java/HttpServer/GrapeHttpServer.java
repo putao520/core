@@ -112,15 +112,15 @@ public class GrapeHttpServer {
             if (StringHelper.isInvalided(ctx.publicKey())) {
                 // appId 无效, 尝试根据域名获得 appId
                 if (appId == 0) {
-                    appContext = AppContext.build(host);
+                    appContext = AppContext.build(host, GrapeRequest[0]);
                     if (appContext.hasData()) {
                         appId = appContext.appId();
                         ctx.appId(appId);
                     }
                 } else {
-                    appContext = AppContext.build(appId);
+                    appContext = AppContext.build(appId, GrapeRequest[0]);
                     // 微服务名无效或者应用ID无效
-                    if (!appContext.hasData() || !Config.serviceName.equals(GrapeRequest[0])) {
+                    if (!appContext.hasData()) {
                         HttpContext.current().throwOut("[应用ID:" + appId + " 无效] 或者 [微服务名称:" + GrapeRequest[0] + " 无效]");
                         return "";
                     }

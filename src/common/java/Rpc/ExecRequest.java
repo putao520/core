@@ -230,7 +230,7 @@ public class ExecRequest {//框架内请求类
      * java类型转成字符串类型
      */
     public static String class2string(Class<?> cls) {
-        return class2string.containsKey(cls) ? class2string.get(cls).split(",")[0] : cls.getName();
+        return class2string.containsKey(cls) ? class2string.get(cls).split(",")[0] : cls.getSimpleName();
     }
 
     private static boolean is_grape_args(String arg) {
