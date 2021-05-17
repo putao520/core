@@ -24,11 +24,18 @@ public class TcpClient {
      */
     private Channel clientChannel;
     private TCPClientHandler clientHandle;
+    private Runnable onConnect;
 
     private TcpClient(GscCenterClient cli) {
         this.group = null;
         this.cli = cli;
         this.clientHandle = null;
+        this.onConnect = null;
+    }
+
+    public TcpClient setConnected(Runnable fn) {
+        this.onConnect = fn;
+        return this;
     }
 
     /**

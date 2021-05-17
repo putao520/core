@@ -10,6 +10,7 @@ import org.json.gsc.JSONArray;
 import org.json.gsc.JSONObject;
 
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
 
 public class GscCenterClient {
     private final Store store;
@@ -19,6 +20,7 @@ public class GscCenterClient {
     private boolean keepLived;
     private final String serviceKey;
 
+
     private GscCenterClient() {
         this.serviceKey = Config.getServiceName();
         this.liveStatus = false;
@@ -26,6 +28,11 @@ public class GscCenterClient {
         this.loadCnt = new AtomicInteger(0);
         this.store = Store.build();
         this.client = TcpClient.build(this).run();
+    }
+
+    public GscCenterClient setConnected(Consumer<GscCenterClient> fn) {
+        this.client.setConnected(() -> fn.accept(this));
+        return this;
     }
 
     public static GscCenterClient build() {

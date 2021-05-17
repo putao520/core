@@ -137,7 +137,7 @@ public class _reflect {
     }
 
     private static Object ServDecl(Class<?> cls) {
-        JSONArray funcs = new JSONArray();
+        JSONArray func = new JSONArray();
         Method[] methods;
         do {
             methods = cls.getDeclaredMethods();
@@ -149,12 +149,14 @@ public class _reflect {
                 if (method.getModifiers() == Modifier.PUBLIC) {
                     String api = AnnotationMethod(method);
                     String param = ParameterMethod(method);
-                    funcs.add(new JSONObject("name", method.getName()).put("level", api).put("param", StringHelper.build(param).trimFrom(',').toString()));
+                    func.add(JSONObject.build("name", method.getName())
+                            .put("level", api)
+                            .put("param", StringHelper.isInvalided(param) ? "" : StringHelper.build(param).trimFrom(',').toString()));
                 }
             }
             cls = cls.getSuperclass();
         } while (cls != Object.class);
-        return funcs;
+        return func;
     }
 
     public _reflect superMode() {
