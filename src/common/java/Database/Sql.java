@@ -42,38 +42,39 @@ public class Sql {
     /**
      *
      */
-    private static final HashMap<String, HikariDataSource> DataSource;
+    protected static final HashMap<String, HikariDataSource> DataSource;
 
 
     static {
         DataSource = new HashMap<>();
     }
 
-    private final String _configString;
-    private final HashMap<String, Object> constantConds;
-    private HikariDataSource dataSource;//  = new DruidDataSource();
+    protected final String _configString;
+    protected final HashMap<String, Object> constantConds;
+    protected HikariDataSource dataSource;//  = new DruidDataSource();
     //声明线程共享变量
-    private boolean conditiobLogicAnd;
-    private int skipNo;
-    private int limitNo;
-    private JSONObject sortBSON;
-    private boolean _count;
-    private boolean _max;
-    private boolean _min;
-    private boolean _sum;
-    private boolean _avg;
-    private boolean _distinct;
-    private List<List<Object>> conditionJSON;    //条件
-    private List<JSONObject> dataJSON;
-    private List<String> fieldList;
-    private String fastfieldString;
-    private String groupbyfield = "";
-    private String formName;
-    private String ownid;
-    private HashMap<String, String> baseTable;        //基本表信息,准备用
-    private HashMap<String, Boolean> tableState;    //派生表状态，加速用
-    private List<String> tableFields;                    //表字段结构
-    private boolean isDirty;
+    protected boolean conditiobLogicAnd;
+    protected int skipNo;
+    protected int limitNo;
+    protected JSONObject sortBSON;
+    protected boolean _count;
+    protected boolean _max;
+    protected boolean _min;
+    protected boolean _sum;
+    protected boolean _avg;
+    protected boolean _distinct;
+    protected List<List<Object>> conditionJSON;    //条件
+    protected List<JSONObject> dataJSON;
+    protected Set<String> fieldVisible;
+    protected Set<String> fieldDisable;
+
+    protected String groupbyfield = "";
+    protected String formName;
+    protected String ownid;
+    protected HashMap<String, String> baseTable;        //基本表信息,准备用
+    protected HashMap<String, Boolean> tableState;    //派生表状态，加速用
+    protected List<String> tableFields;                    //表字段结构
+    protected boolean isDirty;
 
     //配置说明，参考官方网址
     //http://blog.163.com/hongwei_benbear/blog/static/1183952912013518405588/
@@ -109,7 +110,7 @@ public class Sql {
         }
     }
 
-    private void initsql() {
+    protected void initsql() {
         JSONObject obj;
         String user;
         String password;
@@ -272,7 +273,7 @@ public class Sql {
         return con;
     }
 
-    private void _Close(Connection conn) {
+    protected void _Close(Connection conn) {
         try {
             if (conn != null) {//如果连接不为空
                 //conn.close();
@@ -318,20 +319,22 @@ public class Sql {
     }
 
     /***关闭连接*/
-    private void reinit() {
+    protected void reinit() {
         if (isDirty) {//脏执行下不重置
             isDirty = false;
             return;
         }
         conditionJSON = new ArrayList<>();
         conditiobLogicAnd = true;
-        fieldList = new ArrayList<>();
+        fieldVisible = new HashSet<>();
+        fieldDisable = new HashSet<>();
+
         sortBSON = new JSONObject();//默认_id排序
         dataJSON = new ArrayList<>();
-        // JSONObject updateJSON = new JSONObject();
+
         limitNo = 0;
         skipNo = 0;
-        fastfieldString = "*";
+
         _count = false;
         _max = false;
         _min = false;
@@ -493,11 +496,11 @@ public class Sql {
         return null;
     }
 
-    private <T> void addCondition(String field, T value, String logic) {
+    protected <T> void addCondition(String field, T value, String logic) {
         addCondition(field, value, logic, conditiobLogicAnd);
     }
 
-    private <T> void addCondition(String field, T value, String logic, boolean link_logic) {
+    protected <T> void addCondition(String field, T value, String logic, boolean link_logic) {
         List<Object> nJSONArray;
         if (value != null && !value.toString().equals("")) {
             nJSONArray = new ArrayList<>();
@@ -535,44 +538,33 @@ public class Sql {
     }
 
     public Sql field(String fieldString) {
-        fastfieldString = fieldString;
         field(fieldString.split(","));
         return this;
     }
 
     public Sql field() {
-        fastfieldString = "*";
-        fieldList = new ArrayList<>();
+        fieldVisible.clear();
+        fieldDisable.clear();
         return this;
     }
 
-    private String stringList2string(String[] _fieldList) {
-        StringBuilder rs = new StringBuilder();
-        if (_fieldList.length > 0) {
-            for (String s : _fieldList) {
-                rs.append("`").append(s).append("`,");
-            }
-            rs = new StringBuilder(StringHelper.build(rs.toString()).removeTrailingFrom().toString());
-        }
-        return rs.toString();
-    }
-
-    private String stringList2string(List<String> _fieldList) {
-        StringBuilder rs = new StringBuilder();
-        if (_fieldList.size() > 0) {
-            for (String val : _fieldList) {
+    protected String fieldSQL() {
+        if (fieldVisible.size() == 0) {
+            return "*";
+        } else {
+            StringBuilder rs = new StringBuilder();
+            for (String val : fieldVisible) {
                 rs.append("`").append(val).append("`,");
             }
             rs = new StringBuilder(StringHelper.build(rs.toString()).removeTrailingFrom().toString());
+            return rs.toString();
         }
-        return rs.toString();
     }
 
     public Sql field(String[] _fieldList) {
-        if (fastfieldString.equals("*")) {
-            fastfieldString = stringList2string(_fieldList);
+        for (String v : _fieldList) {
+            fieldVisible.add(v);
         }
-        fieldList = Arrays.asList(_fieldList);
         return this;
     }
 
@@ -581,29 +573,14 @@ public class Sql {
         return mask(maskField);
     }
 
-    public Sql mask(String[] _FieldList) {
-        //getGeneratedKeys();
-        List<String> tempField = new ArrayList<>();
-        if (tableFields.size() < 1) {
-            getGeneratedKeys();
+    public Sql mask(String[] _fieldList) {
+        for (String v : _fieldList) {
+            fieldDisable.add(v);
         }
-        if (tableFields.size() > 0) {
-            tempField = tableFields;
-            int l = _FieldList.length;
-            int idx;
-            for (String s : _FieldList) {
-                idx = tempField.indexOf(s);
-                if (idx >= 0) {
-                    tempField.remove(idx);
-                }
-            }
-        }
-        fieldList = tempField;
-        fastfieldString = stringList2string(fieldList);
         return this;
     }
 
-    private String result2create(ResultSet rst) {
+    protected String result2create(ResultSet rst) {
         ResultSetMetaData m;
         int columns, n;
         String fieldName, fieldType;
@@ -644,7 +621,7 @@ public class Sql {
         return tmpStr.toString();
     }
 
-    private String getCreateSQL(String tableName) {
+    protected String getCreateSQL(String tableName) {
         ResultSet rs;
         Statement smt;
         String sqlString = null;
@@ -665,7 +642,7 @@ public class Sql {
         return sqlString;
     }
 
-    private boolean createTable(String tableName, String colString) {
+    protected boolean createTable(String tableName, String colString) {
         boolean rs = false;
         String sql;
         if (colString != null) {
@@ -687,7 +664,7 @@ public class Sql {
         return rs;
     }
 
-    private String getCreateTableColSQL() {
+    protected String getCreateTableColSQL() {
         JSONObject json;
         String rString = "";
         if (dataJSON.size() > 0) {
@@ -737,7 +714,7 @@ public class Sql {
      * @param
      * @return
      */
-    private boolean safeTable() {
+    protected boolean safeTable() {
         /*
          * 1:获得基础表的字段信息
          * 2:生成创建SQL
@@ -899,7 +876,7 @@ public class Sql {
         return _update(true);
     }
 
-    private long _update(boolean isall) {//缺少特殊update政策支持,原子模式下模拟未实现
+    protected long _update(boolean isall) {//缺少特殊update政策支持,原子模式下模拟未实现
         long rs = 0;
         List<String> lStrings = updateSQL();
         Statement smt;
@@ -920,7 +897,7 @@ public class Sql {
         return rs;
     }
 
-    private List<String> insertSQL() {
+    protected List<String> insertSQL() {
         List<String> sqlList = new ArrayList<>();
         String fieldString = "", valueString = "";
         for (JSONObject _t : dataJSON) {//dataJSON可以包含多个jsonString,每一个jsonString代表一个操作
@@ -938,7 +915,6 @@ public class Sql {
         return conditionJSON;
     }
 
-    @SuppressWarnings("unchecked")
     public Sql setCond(List<List<Object>> conJSON) {
         conditionJSON = conJSON;
         return this;
@@ -958,9 +934,8 @@ public class Sql {
         return this;
     }
 
-    private String whereSQL() {//不支持自由条件，必须严格区分and和or2个组
+    protected String whereSQL() {//不支持自由条件，必须严格区分and和or2个组
         StringBuilder rString = new StringBuilder();
-        String tempString;
         if (conditionJSON.size() > 0) {
             int cnt = 0;
             for (List<Object> item : conditionJSON) {
@@ -973,7 +948,7 @@ public class Sql {
         return rString.toString();
     }
 
-    private String whereSQL(List<Object> conds, boolean isfirst) {
+    protected String whereSQL(List<Object> conds, boolean isfirst) {
         StringBuilder r = new StringBuilder();
         int cnt = 0;
         for (Object item : conds) {
@@ -999,7 +974,7 @@ public class Sql {
         return r.toString();
     }
 
-    private List<String> updateSQL() {
+    protected List<String> updateSQL() {
         List<String> sqlList = new ArrayList<>();
         String updateString = "";
         for (JSONObject _t : dataJSON) {//dataJSON可以包含多个jsonString,每一个jsonString代表一个操作
@@ -1030,7 +1005,7 @@ public class Sql {
         return _delete(true);
     }
 
-    private long _delete(boolean isall) {
+    protected long _delete(boolean isall) {
         long rs = 0;
         Statement smt;
         if (conditionJSON.size() > 0 || isall) {
@@ -1090,11 +1065,11 @@ public class Sql {
         return _find(true);
     }
 
-    private String limitSQl() {
+    protected String limitSQl() {
         return limitNo > 0 ? " limit " + (skipNo > 0 ? skipNo + "," : "") + limitNo : "";
     }
 
-    private String sortSQL() {//只有第一个有效
+    protected String sortSQL() {//只有第一个有效
         String rs = "";
         if (sortBSON.size() > 0) {
             for (Object item : sortBSON.keySet()) {
@@ -1105,7 +1080,7 @@ public class Sql {
         return rs;
     }
 
-    private Object _findex(boolean isall) {
+    protected Object _findex(boolean isall) {
         //ResultSet rs;
         Object rs;
         Connection conn = getNewConnection();
@@ -1115,7 +1090,7 @@ public class Sql {
                 if (limitNo == 0)
                     limitNo = 1;
             }
-            String sql = TransactSQLInjection("select " + fastfieldString + " from " + getfullform() + whereSQL() + sortSQL() + limitSQl());
+            String sql = TransactSQLInjection("select " + fieldSQL() + " from " + getfullform() + whereSQL() + sortSQL() + limitSQl());
             TransactSQLInjection(sql);
             rs = col2jsonArray(smt.executeQuery(sql));
         } catch (Exception e) {
@@ -1129,7 +1104,7 @@ public class Sql {
         return rs;
     }
 
-    private JSONArray _find(boolean isall) {//不支持groupby
+    protected JSONArray _find(boolean isall) {//不支持groupby
         try {
             return (JSONArray) _findex(isall);
         } catch (Exception e) {
@@ -1171,7 +1146,7 @@ public class Sql {
             otherfield += ", avg(" + _distinctfield(_valueName) + ") as avg";
         String condString = whereSQL();
         groupSQL = groupName == null || groupName.equals("") ? "" : (condString) + " group by " + groupName;
-        sql = TransactSQLInjection("select " + fastfieldString + otherfield + " from " + getfullform() + groupSQL + sortSQL() + limitSQl());
+        sql = TransactSQLInjection("select " + fieldSQL() + otherfield + " from " + getfullform() + groupSQL + sortSQL() + limitSQl());
         TransactSQLInjection(sql);
         JSONArray fd;
         Statement smt;
@@ -1190,7 +1165,7 @@ public class Sql {
         return fd;
     }
 
-    private String _distinctfield(String str) {
+    protected String _distinctfield(String str) {
         String rs = str;
         if (_distinct) {
             rs = "DISTINCT(" + str + ")";
@@ -1209,8 +1184,8 @@ public class Sql {
         Connection conn = getNewConnection();
         try {
             Statement smt = conn.createStatement();
-            if (fieldList.size() > 0) {
-                for (String item : fieldList) {
+            if (fieldVisible.size() > 0) {
+                for (String item : fieldVisible) {
                     if (item.equals(fieldName)) {
                         fieldString.insert(0, "DISTINCT(" + item + "),");
                         havefield = true;
@@ -1238,7 +1213,7 @@ public class Sql {
         return skip((pageidx - 1) * pagemax).limit(pagemax).select();
     }
 
-    private long _count() {
+    protected long _count() {
         //ResultSet rd;
         Connection conn = getNewConnection();
         try {
@@ -1306,7 +1281,7 @@ public class Sql {
         return this;
     }
 
-    private List<String> getResultCol(ResultSet rst) throws SQLException {
+    protected List<String> getResultCol(ResultSet rst) throws SQLException {
         ResultSetMetaData m = rst.getMetaData();//获取 列信息;
         int columns = m.getColumnCount();
         List<String> array = new ArrayList<>();
@@ -1316,7 +1291,7 @@ public class Sql {
         return array;
     }
 
-    private List<String> col2list(ResultSet rst) {
+    protected List<String> col2list(ResultSet rst) {
         List<String> tableList = new ArrayList<>();
         ResultSetMetaData m;
         try {
@@ -1334,8 +1309,7 @@ public class Sql {
         return tableList;
     }
 
-    @SuppressWarnings("unchecked")
-    private JSONArray col2jsonArray(ResultSet rst) {
+    protected JSONArray col2jsonArray(ResultSet rst) {
         JSONArray rsj = new JSONArray();
         ResultSetMetaData m;
         int columns;
@@ -1347,6 +1321,11 @@ public class Sql {
             while (rst.next()) {
                 JSONObject obj = new JSONObject();
                 for (int i = 1; i <= columns; i++) {
+                    // 过滤隐藏字段
+                    String columnsName = m.getColumnName(i);
+                    if (fieldDisable.contains(columnsName)) {
+                        continue;
+                    }
                     Object tobj = null;
                     try {
                         tobj = rst.getObject(i);
@@ -1354,25 +1333,22 @@ public class Sql {
                         if (sqle.getSQLState().equals("S1009")) {
                             tobj = 0;
                         }
-                        //System.out.println("errorNO:" + sqle.getSQLState());
                     }
                     if (tobj instanceof Timestamp) {
                         tobj = TimeHelper.build().dateTimeToTimestamp(tobj.toString());
                     }
-                    obj.put(m.getColumnName(i), tobj);
+                    obj.put(columnsName, tobj);
                 }
                 rsj.add(obj);
             }
         } catch (Exception e) {
-            // TODO Auto-generated catch block
-
             rsj = null;
             nLogger.logInfo(e);
         }
         return rsj;
     }
 
-    private Object Result(ResultSet rst) {
+    protected Object Result(ResultSet rst) {
         Object rs = null;
         try {
             if (rst.next()) {
@@ -1383,7 +1359,7 @@ public class Sql {
         return rs;
     }
 
-    private Object Result(ResultSet rst, String fieldName) {
+    protected Object Result(ResultSet rst, String fieldName) {
         Object rs = null;
         try {
             if (rst.next()) {
@@ -1398,7 +1374,7 @@ public class Sql {
         return formName;
     }
 
-    private String sqlvalue(Object _value) {//未考虑json字符串
+    protected String sqlvalue(Object _value) {//未考虑json字符串
         String rValue;
         String value;
         try {

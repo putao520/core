@@ -20,11 +20,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Vector;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 
 public class GrapeTreeDbLayerModel implements InterfaceDatabase<GrapeTreeDbLayerModel> {
     private List<Function<JSONArray, JSONArray>> pipeJSONArray_Out;
+    private List<Consumer<GrapeTreeDbLayerModel>> pipeRead;
     private boolean hardMode = false;
     private boolean SuperMode = false;
     private DbLayer db;
@@ -130,6 +132,12 @@ public class GrapeTreeDbLayerModel implements InterfaceDatabase<GrapeTreeDbLayer
         return this;
     }
 
+    // 查询时管道
+    public GrapeTreeDbLayerModel readPipe(Consumer<GrapeTreeDbLayerModel> func) {
+        pipeRead.add(func);
+        return this;
+    }
+
     // 数据管道
     public GrapeTreeDbLayerModel outPipe(Function<JSONArray, JSONArray> func) {
         pipeJSONArray_Out.add(func);
@@ -172,6 +180,7 @@ public class GrapeTreeDbLayerModel implements InterfaceDatabase<GrapeTreeDbLayer
 
     private void init() {
         pipeJSONArray_Out = new ArrayList<>();
+        pipeRead = new ArrayList<>();
         aggregationJSONArray_Out = null;
         db = new DbLayer();
     }
@@ -641,6 +650,12 @@ public class GrapeTreeDbLayerModel implements InterfaceDatabase<GrapeTreeDbLayer
     }
 
     // 读取方法群
+    private void _readPiper() {
+        for (Consumer<GrapeTreeDbLayerModel> func : pipeRead) {
+            func.accept(this);
+        }
+    }
+
     private JSONObject findOutFilter(JSONObject rInfo) {
         if (JSONObject.isInvalided(rInfo)) {
             return rInfo;
@@ -667,6 +682,8 @@ public class GrapeTreeDbLayerModel implements InterfaceDatabase<GrapeTreeDbLayer
         if (mask_fields.length > 0) {
             db.mask(mask_fields);
         }
+        // 响应读取前置过滤
+        _readPiper();
         return true;
     }
 

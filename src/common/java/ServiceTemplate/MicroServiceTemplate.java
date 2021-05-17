@@ -42,8 +42,9 @@ public class MicroServiceTemplate implements MicroServiceTemplateInterface {
         if (fn != null) {
             InitDB_fn = fn;
             InitDB_fn.accept(this);
-            InitDBFilter();
         }
+        // 新增读取数据时前置操作
+        db.readPipe(m -> InitDBFilter(m));
         // 根据模型字段定义，生成 join
         var ruleArr = db.getMicroModel().rules();
         for (var node : ruleArr.values()) {
@@ -89,22 +90,22 @@ public class MicroServiceTemplate implements MicroServiceTemplateInterface {
     /**
      * 响应新的字段限制，排序限制，功能开关
      */
-    private void InitDBFilter() {
+    private void InitDBFilter(GrapeTreeDbLayerModel m) {
         HttpContextDb ctx = HttpContext.current().dbHeaderContext();
         if (ctx.hasFields()) {
             if (ctx.notIn()) {
-                db.mask(ctx.fields());
+                m.mask(ctx.fields());
             } else {
-                db.field(ctx.fields());
+                m.field(ctx.fields());
             }
         }
         JSONObject sorts = ctx.sort();
         if (!JSONObject.isInvalided(sorts)) {
             for (String field : sorts.keySet()) {
                 if (sorts.getString(field).equalsIgnoreCase("desc")) {
-                    db.desc(field);
+                    m.desc(field);
                 } else {
-                    db.asc(field);
+                    m.asc(field);
                 }
             }
         }
@@ -112,7 +113,7 @@ public class MicroServiceTemplate implements MicroServiceTemplateInterface {
         if (!JSONObject.isInvalided(options)) {
             // join开关
             if (options.containsKey("join")) {
-                db.outPiperEnable(options.getBoolean("join"));
+                m.outPiperEnable(options.getBoolean("join"));
             }
         }
     }

@@ -15,6 +15,13 @@ public class HttpContextDb {
     private final JSONObject options_object;
     private final Set<String> field_array;
     private boolean field_logic_not = false;
+    public static Set<String> DBHeaderKeys = new HashSet<>();
+
+    static {
+        DBHeaderKeys.add(fields);
+        DBHeaderKeys.add(sorts);
+        DBHeaderKeys.add(options);
+    }
 
     public HttpContextDb(JSONObject nHeader) {
         field_array = new HashSet<>();

@@ -16,10 +16,7 @@ import org.bson.types.ObjectId;
 import org.json.gsc.JSONArray;
 import org.json.gsc.JSONObject;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -77,6 +74,8 @@ public class Mongodb {
     private int limitNo;
     private MongoCollection<Document> collection;
     private BasicDBObject fieldBSON;
+    private Set<String> fieldVisible;       // 可见字段
+    private Set<String> fieldDisable;       // 不可见字段
     private List<Bson> sortBSON;
     private List<Document> dataBSON;
     private List<Bson> updateBSON;
@@ -170,13 +169,47 @@ public class Mongodb {
             return;
         }
         //tempCondtion = new ArrayList<>();
-        conditionJSON = new ArrayList<>();
+        if (conditionJSON == null) {
+            conditionJSON = new ArrayList<>();
+        } else {
+            conditionJSON.clear();
+        }
         conditiobLogicAnd = true;
-        fieldBSON = new BasicDBObject();
 
-        sortBSON = new ArrayList<>();
-        dataBSON = new ArrayList<>();
-        updateBSON = new ArrayList<>();
+        if (fieldBSON == null) {
+            fieldBSON = new BasicDBObject();
+        } else {
+            fieldBSON.clear();
+        }
+
+        if (fieldVisible == null) {
+            fieldVisible = new HashSet<>();
+        } else {
+            fieldDisable.clear();
+        }
+
+        if (fieldDisable == null) {
+            fieldDisable = new HashSet<>();
+        } else {
+            fieldDisable.clear();
+        }
+
+        if (sortBSON == null) {
+            sortBSON = new ArrayList<>();
+        } else {
+            sortBSON.clear();
+        }
+        if (dataBSON == null) {
+            dataBSON = new ArrayList<>();
+        } else {
+            dataBSON.clear();
+        }
+        if (updateBSON == null) {
+            updateBSON = new ArrayList<>();
+        } else {
+            updateBSON.clear();
+        }
+
         limitNo = 0;
         skipNo = 0;
 
@@ -391,51 +424,55 @@ public class Mongodb {
 
     public Mongodb field() {
         fieldBSON.clear();
+        fieldVisible.clear();
+        fieldDisable.clear();
         return this;
     }
 
     public Mongodb field(String fieldString) {
         String[] fieldList = fieldString.split(",");
-        return fieldOperate(fieldList, 1);
+        return fieldList == null ? null : field(fieldList);
     }
 
     public Mongodb mask(String fieldString) {
         String[] fieldList = fieldString != null ? fieldString.split(",") : null;
-        return fieldOperate(Objects.requireNonNull(fieldList), 0);
+        return fieldList == null ? null : mask(fieldList);
     }
 
     public Mongodb field(String[] fieldList) {
-        return fieldOperate(fieldList, 1);
-    }
-
-    public Mongodb mask(String[] fieldList) {
-        return fieldOperate(fieldList, 0);
-    }
-
-    private Mongodb fieldOperate(String[] fieldList, int visable) {
-        //fieldBSON.put("_id",0);
-        checkFieldMix(visable);
-        for (String s : fieldList) {
-            fieldBSON.put(s, visable);
+        for (String k : fieldList) {
+            fieldVisible.add(k);
         }
         return this;
     }
 
-    private void checkFieldMix(int visable) {
-        Object temp;
-        boolean needClear = false;
-        for (Object obj : fieldBSON.keySet()) {
-            temp = fieldBSON.get(obj);
-            if (temp != null && !obj.toString().equalsIgnoreCase("_id")) {
-                if ((int) temp != visable) {//发现 字段冲突
-                    needClear = true;
-                    break;
-                }
+    public Mongodb mask(String[] fieldList) {
+        for (String k : fieldList) {
+            fieldDisable.add(k);
+        }
+        return this;
+    }
+
+    private void buildFieldBSON(Set<String> set, int state) {
+        for (String v : set) {
+            fieldBSON.put(v, set);
+        }
+    }
+
+    private BasicDBObject reBuildField() {
+        // 选择字段多的为基准
+        if (fieldVisible.size() > fieldDisable.size()) { // 可见字段 多于 不可见字段,去掉可见字段里不可见字段
+            for (String v : fieldDisable) {
+                fieldVisible.remove(v);
             }
+            buildFieldBSON(fieldVisible, 1);
+        } else { // 不可见字段 多于 可见字段,去掉不可见字段里可见字段
+            for (String v : fieldVisible) {
+                fieldDisable.remove(v);
+            }
+            buildFieldBSON(fieldDisable, 0);
         }
-        if (needClear) {
-            fieldBSON.clear();
-        }
+        return fieldBSON;
     }
 
     public Mongodb form(String _formName) {
@@ -683,8 +720,8 @@ public class Mongodb {
             Bson filterData = translate2bsonAndRun();
             fd = filterData == null ? collection.find() : collection.find(filterData);
 
-            if (fieldBSON.size() > 0)
-                fd = fd.projection(fieldBSON);
+            if (fieldVisible.size() > 0 || fieldDisable.size() > 0)
+                fd = fd.projection(reBuildField());
             if (sortBSON.size() > 0) {
                 bson = Sorts.orderBy(sortBSON);
                 fd = fd.sort(bson);
@@ -730,7 +767,7 @@ public class Mongodb {
         if (filterData != null)
             ntemp.add(Aggregates.match(filterData));
         if (fieldBSON.size() > 0)
-            ntemp.add(Aggregates.project(fieldBSON));
+            ntemp.add(Aggregates.project(reBuildField()));
         if (_count)
             groupParamts.add(Accumulators.sum("count", 1));
         if (_sum)

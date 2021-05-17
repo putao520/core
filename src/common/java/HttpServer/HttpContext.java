@@ -515,6 +515,11 @@ public class HttpContext {
             keys.add(GrapeHttpHeader.ChannelContext);
             keys.add(GrapeHttpHeader.publicKey);
 
+            //db
+            keys.add(HttpContextDb.fields);
+            keys.add(HttpContextDb.sorts);
+            keys.add(HttpContextDb.options);
+
             //app
             apps.add(App.fullUrl);
 

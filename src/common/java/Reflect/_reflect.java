@@ -18,9 +18,11 @@ import org.json.gsc.JSONObject;
 
 import java.io.*;
 import java.lang.annotation.Annotation;
-import java.lang.reflect.*;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.lang.reflect.Parameter;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.function.Consumer;
@@ -160,13 +162,13 @@ public class _reflect {
         return this;
     }
 
-    public _reflect newInstance(Object... _parameters) {
-        List<Object> parameters = Arrays.asList(_parameters);
-        Class<?>[] parametercls = object2class(parameters);
+    public _reflect newInstance(Object... parameters) {
+        List<Object> pArr = new ArrayList<>();
+        Class<?>[] cls = c2p(parameters, pArr);
         // 初始化反射类
         try {
-            Constructor<?> cObject = _Class.getDeclaredConstructor(parametercls.length == 0 ? null : parametercls);
-            _oObject = _parameters.length > 0 ? cObject.newInstance(_parameters) : cObject.newInstance();
+            var cObject = _Class.getDeclaredConstructor(cls);
+            _oObject = pArr.size() > 0 ? cObject.newInstance(pArr.toArray()) : cObject.newInstance();
         } catch (InstantiationException e) {
             nLogger.logInfo(e, "初始化类:" + _Class.getName() + " 实例化失败");
             _oObject = null;
@@ -214,7 +216,7 @@ public class _reflect {
     }
 
     private Method _getMethod(String functionName, Class<?>[] parameterlist) {
-        int i = parameterlist.length;
+        int i = parameterlist == null ? 0 : parameterlist.length;
         Method comMethod = null;
         while (true) {
             try {
@@ -231,12 +233,11 @@ public class _reflect {
         return comMethod;
     }
 
-    private Class<?>[] object2class(List<Object> parameters) {
-        List<Object> rList = new ArrayList<>();
-        Class<?>[] rs;
+    private Class<?>[] object2class(Object[] parameters) {
+        Class<?>[] rs = new Class[parameters.length];
         try {
-            for (int i = 0; i < parameters.size(); i++) {
-                Object obj = parameters.get(i);
+            for (int i = 0; i < parameters.length; i++) {
+                Object obj = parameters[i];
                 Class<?> _vClass;
                 Class<?> _oClass = obj.getClass();
                 if (callType.containsKey(_oClass)) {
@@ -256,7 +257,7 @@ public class _reflect {
                                     break;
                             }
                             // 替换参数值
-                            parameters.set(i, obj);
+                            parameters[i] = obj;
                         }
                     }
                     // 如果是包装类，替换成纯数据类型
@@ -278,9 +279,8 @@ public class _reflect {
                         _oClass = Object.class;
                     }
                 }
-                rList.add(_oClass);
+                rs[i] = _oClass;
             }
-            rs = rList.toArray(new Class<?>[0]);
         } catch (Exception e) {
             rs = null;
         }
@@ -404,6 +404,43 @@ public class _reflect {
         return rs;
     }
 
+    private Class<?>[] objectArr2class(Object... parameters) {
+        if (parameters instanceof String[]) {
+            return new Class[]{String[].class};
+        } else if (parameters instanceof Integer[]) {
+            return new Class[]{Integer[].class};
+        } else if (parameters instanceof Long[]) {
+            return new Class[]{Long[].class};
+        } else if (parameters instanceof Float[]) {
+            return new Class[]{Float[].class};
+        } else if (parameters instanceof Double[]) {
+            return new Class[]{Double[].class};
+        } else if (parameters instanceof Short[]) {
+            return new Class[]{Short[].class};
+        } else if (parameters instanceof Byte[]) {
+            return new Class[]{Byte[].class};
+        } else {
+            return null;
+        }
+    }
+
+    private Class<?>[] c2p(Object[] parameters, List<Object> out) {
+        Class<?>[] cls;
+        if (parameters == null || parameters.length == 0) {
+            return null;
+        }
+        cls = objectArr2class(parameters);
+        if (cls == null) {
+            cls = object2class(parameters);
+            for (Object v : parameters) {
+                out.add(v);
+            }
+        } else {
+            out.add(parameters);
+        }
+        return cls;
+    }
+
     /**
      * 反射调用类方法
      * 补充功能，此处获得方法apiType注解信息，判断其接口属性，决定是否有返回值
@@ -415,12 +452,13 @@ public class _reflect {
     public Object _call(String functionName, Object... parameters) {
         Object rs = global_service(functionName, parameters);
         if (rs == null) {
-            Class<?>[] cls = parameters == null ? new Class[]{} : object2class(Arrays.asList(parameters));
+            List<Object> pArr = new ArrayList<>();
+            Class<?>[] cls = c2p(parameters, pArr);
             Method comMethod = _getMethod(functionName, cls);
             // 主方法存在
             if (comMethod != null) {
                 // 调用主要方法
-                rs = callMainAction(comMethod, cls, functionName, parameters);
+                rs = callMainAction(comMethod, cls, functionName, pArr.size() > 0 ? pArr.toArray() : null);
             } else {
                 rs = RpcError.Instant(false, "无效接口!");
             }

@@ -3,6 +3,7 @@ package common.java.Rpc;
 import common.java.Apps.MicroService.MicroServiceContext;
 import common.java.Config.Config;
 import common.java.HttpServer.HttpContext;
+import common.java.HttpServer.SpecHeader.Db.HttpContextDb;
 import common.java.OAuth.oauthApi;
 import common.java.String.StringHelper;
 import common.java.Thread.ThreadHelper;
@@ -72,7 +73,9 @@ public class rpc {
         // 设置httpHeader环境
         JSONObject requestHeader = ctx.header();
         for (String key : requestHeader.keySet()) {
-            r.header(key, requestHeader.getString(key));
+            if (!HttpContextDb.DBHeaderKeys.contains(key)) {
+                r.header(key, requestHeader.getString(key));
+            }
         }
         // 设置授权
         if (api_auth) {
