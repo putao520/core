@@ -163,9 +163,12 @@
     </profiles>
     <distributionManagement>
         <repository>
-            <id>GrapeSoft</id>
-            <name>GrapeSoft</name>
-            <url>http://mvn.putao282.com:8081/repository/GrapeSoft/</url>
+            <id>rdc-releases</id>
+            <url>https://packages.aliyun.com/maven/repository/2008022-release-LfFRDq</url>
         </repository>
+        <snapshotRepository>
+            <id>rdc-snapshots</id>
+            <url>https://packages.aliyun.com/maven/repository/2008022-snapshot-oYlpxF</url>
+        </snapshotRepository>
     </distributionManagement>
 </project>
