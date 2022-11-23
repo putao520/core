@@ -81,6 +81,10 @@ public class MicroServiceTemplate implements MicroServiceTemplateInterface {
     }
 
     protected JSONArray joinOn(String localKey, JSONArray localArray, String foreignKey, Function<String, JSONArray> func, boolean save_null_item) {
+        return joinOn(localKey, localArray, foreignKey, func, save_null_item, false);
+    }
+
+    protected JSONArray joinOn(String localKey, JSONArray localArray, String foreignKey, Function<String, JSONArray> func, boolean save_null_item, boolean save_broken_item) {
         if (JSONArray.isInvaild(localArray)) {
             return localArray;
         }
@@ -109,7 +113,7 @@ public class MicroServiceTemplate implements MicroServiceTemplateInterface {
         for(int i =0; i < c; i++){
             String _ids = StringHelper.join(idsArray, ",", p, 50);
             JSONArray foreignArray = func.apply(_ids);
-            localArray.joinOn(localKey, foreignKey, foreignArray, save_null_item);
+            localArray.joinOn(localKey, foreignKey, foreignArray, save_null_item, save_broken_item);
             p+=50;
         }
         // 设置返回数据
