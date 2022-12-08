@@ -12,10 +12,7 @@ import common.java.string.StringHelper;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -88,7 +85,7 @@ public class MicroServiceTemplate implements MicroServiceTemplateInterface {
         if (JSONArray.isInvaild(localArray)) {
             return localArray;
         }
-        List<String> ids = new ArrayList<>();
+        Set<String> ids = new HashSet<>();
         // 构造模板ID条件组
         for (Object obj : localArray) {
             JSONObject _obj = (JSONObject) obj;
